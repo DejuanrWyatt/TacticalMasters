@@ -9,6 +9,7 @@ const BattleSetup = preload("res://scripts/ui/battle_setup.gd")
 const UiTheme = preload("res://scripts/ui/ui_theme.gd")
 const HowToPlay = preload("res://scripts/ui/how_to_play.gd")
 const DevTools = preload("res://scripts/ui/dev_tools.gd")
+const Jobs = preload("res://scripts/core/jobs.gd")
 
 var address_edit: LineEdit
 var port_edit: LineEdit
@@ -26,6 +27,8 @@ func _ready() -> void:
 	theme = UiTheme.build()
 	Net.status_changed.connect(_set_status)
 	Net.game_started.connect(_on_game_started)
+	# Back from a battle (maybe online, or a replay): the player's own class stats.
+	Jobs.set_overrides(GameConfig.stat_overrides)
 	_build_ui()
 	# "-- autostart" on the command line jumps straight into a battle vs the computer.
 	if OS.get_cmdline_user_args().has("autostart"):
@@ -139,6 +142,7 @@ func _open_guide() -> void:
 	if guide == null:
 		guide = UnitGuide.new()
 		guide.tuning = GameConfig.tuning.duplicate()
+		guide.editable = true  # class stats can be changed here
 		add_child(guide)
 	guide.visible = true
 

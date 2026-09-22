@@ -52,10 +52,12 @@ func _initialize() -> void:
 		config.map_id = "river"
 		config.rosters = [["monk", "archer", "time_mage", "white_mage"], ["knight", "black_mage", "archer", "monk"]]
 		config.tuning = {"wits_multiplier": 1.3, "damage_multiplier": 0.7}  # in memory only
+		config.stat_overrides = {"monk": {"hp": 140}}  # in memory only
 	else:
 		# The client must get the class and the rule numbers from the host.
 		Jobs.custom_jobs.erase("time_mage")
 		config.tuning = {}
+		config.stat_overrides = {}
 	var err: int = net.host(PORT, false) if role == "host" else net.join("127.0.0.1", PORT)
 	if err != OK:
 		_finish(role, "could not start (%d)" % err)
@@ -70,7 +72,11 @@ func _initialize() -> void:
 	if config.online_tuning.get("wits_multiplier") != 1.3 or not Jobs.has_job("time_mage"):
 		_finish(role, "host tuning or class didn't arrive (%s, time_mage=%s)" % [config.online_tuning, Jobs.has_job("time_mage")])
 		return
+	Jobs.set_overrides(config.battle_overrides())
 	state.setup(config.build_map(), config.battle_tuning())
+	if state.units[0].max_hp() != 140:
+		_finish(role, "host's changed stats didn't apply (monk HP %d)" % state.units[0].max_hp())
+		return
 	if role == "client":
 		net.send_chat("gl hf")
 

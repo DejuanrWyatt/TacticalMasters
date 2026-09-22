@@ -32,7 +32,7 @@ battle vs the computer. Its log is in `%APPDATA%\Godot\app_userdata\Tactical Mas
 | Cancel | Esc |
 | Pause (not online) | P |
 | Chat (online) | T, type, Enter to send (Esc closes) |
-| Combat log | L or the Log button shows / hides it. Drag its title bar to move it, its corner to resize it; – collapses it. It keeps the whole battle's messages (scroll up for older ones) and remembers its place. |
+| Combat log | L or the Log button shows / hides it. Drag its title bar to move it, its corner to resize it; – collapses it. The cog opens its options: text size, text color and background opacity. It keeps the whole battle's messages (scroll up for older ones) and remembers its place. |
 | Unit Guide (stats, abilities, damage) | U, or the **Units** button. Also on the main menu. Pauses the game when not online. |
 | Camera | WASD / arrows pan · R / F raise / lower · Q / E or right-drag rotate and tilt · wheel zoom · middle-drag pan · C center on the selected unit. The camera never moves by itself: press C, or click a unit's chip in the turn order (a second click on your selected unit's chip centers on it). |
 | Menu (in battle) | **Menu** button: Resume, Options, Unit Guide, How to Play, Quit to Main Menu (pauses when not online) |
@@ -89,18 +89,54 @@ deterministic, so the replay is exact), with ×1 / ×2 / ×4 speed.
 - **Facing:** units face where they last walked or aimed. Hits from the **side deal +10%**, from **behind +25%**.
 - **Line of sight:** ranged abilities (reach beyond 1.8 m) need a clear line over the terrain; the targeting hint says
   "No line of sight" when a hill is in the way.
-- **Status effects** (tags over the unit's head): **Burn** (from Fire, −3% max HP per second), **Regen** (from Chakra and
-  Sanctuary, +3% per second), **Slow** (from Blizzard, Turn Gauge fills at half speed), **Stun** (from Shield Bash, can't
+- **Status effects** (tags over the unit's head) last a number of the affected unit's **own turns**: they act and count
+  down when its turn comes. **Burn** (from Fire, −10% max HP a turn), **Regen** (from Chakra and
+  Sanctuary, +10% a turn), **Slow** (from Blizzard, Turn Gauge fills at half speed), **Stun** (from Shield Bash, loses
   act and the Turn Gauge is frozen).
 - **Knock-outs:** a unit at 0 HP is **knocked out** for 12 s (it lies on the field with a `KO` countdown). The White
   Mage's **Raise** (replaces Staff Strike) revives it with 30% HP; otherwise it's gone. KO'd units don't count as alive.
 
-Damage = (power stat × ability power × 2 × height bonus − AttDef (physical) or MagDef (magic)) × 0.5, minimum 1.
-There is no randomness. The final × 0.5 is `DAMAGE_MULTIPLIER` in `game_state.gd`, the quickest dial for overall damage.
+Damage = ((the ability's own **Power** + the class's **Power** stat) × height bonus − AttDef (physical) or MagDef
+(magic)) × 0.5, minimum 1. The final × 0.5 is the damage multiplier in Developer Tools, the quickest dial for overall damage.
+
+Two rolls decide the rest: the target's **A-Eva** (physical) or **M-Eva** (magic) is its chance to evade the ability
+completely (a MISS), and the user's **Crit** chance multiplies the damage by 1.5. Baselines are 5%; nimble classes reach
+about 30%. Both are rolled from the battle's own seed — only while a command is actually played — so a replay and both
+players online see exactly the same hits and misses.
+
+## Classes: roles, ability types and target shapes
+
+Every class has a **role** — Tank, Damage, Support or Special, or a pair like Tank/Support — shown with an icon in the
+Unit Guide, which can also **search, filter by role and sort** its 107 classes. A class that doesn't state a role gets
+one worked out from its stats and abilities.
+
+Each ability has a **type** and a **target shape**, both taken from Astra Ability Creator:
+
+| Type | What it means |
+|---|---|
+| Active | Used on the unit's turn (most abilities) |
+| Passive | Always on; its buffs apply from the start and it can't be used |
+| Toggle | Switched on and off (once a turn); its buffs apply while on |
+| Channeled | Repeats on each of the next turns; the unit can't act meanwhile |
+| Active + Passive | Always on, and usable as well |
+| Aura | Always on; reaches everyone of the target side within its radius |
+
+| Shape | What it covers |
+|---|---|
+| Unit / Point | One unit, or whoever stands on the spot |
+| Circle | Everyone within the radius of the aimed point |
+| Self | Centred on the user (with a radius, everyone around it) |
+| Line | Everyone along the line out to its range (it skewers) |
+| Cone | Everyone inside the arc in front of the user |
+| Global | Everyone on the field |
+| Vector | Like a line, and the user ends up at the far end (a dash) |
+
+Every ability also has its own **icon** (a glyph for what it does plus a mark for its shape), shown on the action bar
+and in the Unit Guide.
 
 ## Battle Setup: maps and teams
 
-Every game starts with **Battle Setup**: pick the **map**, each side's **4 jobs** (any of the 6, repeats allowed; **Random**
+Every game starts with **Battle Setup**: pick the **map**, each side's **4 classes** (any of the 107, repeats allowed; **Random**
 and **Default** buttons), and the computer's **difficulty**. A host picks for both sides, and the joining player gets the
 same settings.
 
@@ -119,46 +155,115 @@ Maps are 24 × 24 m and point-symmetric (fair for both sides). They're defined a
 The default team is Knight, Archer, Black Mage and White Mage (`Jobs.DEFAULT_ROSTER`); Squire and Monk are also
 available in Battle Setup. Move and Sight are in meters.
 
-| Job | HP | AttPwr | MagPwr | AttDef | MagDef | Wits | Move | Patience | Sight |
-|---|---|---|---|---|---|---|---|---|---|
-| Squire | 80 | 14 | 6 | 8 | 6 | 9 | 7 | 6 | 9 |
-| Knight | 100 | 16 | 5 | 12 | 6 | 7 | 6 | 7 | 8 |
-| Archer | 70 | 15 | 6 | 6 | 7 | 10 | 7 | 6 | 13 |
-| Monk | 90 | 17 | 6 | 8 | 5 | 10 | 8 | 5 | 9 |
-| Black Mage | 60 | 5 | 18 | 4 | 12 | 8 | 6 | 8 | 10 |
-| White Mage | 65 | 5 | 15 | 5 | 13 | 8 | 6 | 8 | 10 |
+| Class | Role | HP | Power | AttDef | MagDef | A-Eva | M-Eva | Crit | Wits | Move | Patience | Sight |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Squire | Damage | 75 | 14 | 8 | 6 | 8% | 5% | 8% | 10 | 7 | 6 | 9 |
+| Knight | Tank / Damage | 105 | 16 | 12 | 6 | 5% | 5% | 5% | 6 | 6 | 7 | 8 |
+| Archer | Damage | 60 | 15 | 6 | 7 | 15% | 8% | 15% | 12 | 7 | 6 | 13 |
+| Monk | Damage / Support | 80 | 17 | 8 | 5 | 18% | 8% | 12% | 12 | 8 | 5 | 9 |
+| Black Mage | Damage | 60 | 18 | 4 | 12 | 5% | 12% | 10% | 8 | 6 | 8 | 10 |
+| White Mage | Support | 65 | 15 | 5 | 13 | 5% | 15% | 5% | 8 | 6 | 8 | 10 |
 
 | Job | 1 | 2 | 3 | 4 (Ultimate) |
 |---|---|---|---|---|
-| Squire | Attack | Throw Stone | Focus (AttPwr up) | Brave Slash |
+| Squire | Attack | Throw Stone | Focus (Power up) | Brave Slash |
 | Knight | Attack | Shield Bash (TG −30%, Stun) | Guard (defense up) | Holy Blade (area, 1 s) |
 | Archer | Bow Shot | Aimed Shot (1 s) | Pin Shot (TG −40%) | Arrow Rain (area, 2 s) |
 | Monk | Punch | Wave Fist | Chakra (area heal + Regen) | Earth Slash (area around self, 1 s) |
 | Black Mage | Staff Strike | Fire (Burn, 1 s) | Blizzard (area, Slow, 2 s) | Meteor (large area, 4 s) |
 | White Mage | Raise (revive, 2 s) | Cure (1 s) | Haste (TG +50%, 1.5 s) | Sanctuary (large area heal + Regen, 3 s) |
 
-Abilities without a time are instant. The in-game **Unit Guide** lists every number, including each ability's
-damage against any job you pick.
+Abilities without a time are instant. The in-game **Unit Guide** lists every class's stats and, for the class picked in its Class dropdown (or clicked in the
+stats table), every ability's numbers, including its damage against any class you pick.
 
 Each ability has its own animation (`scripts/battle/fx.gd`). Melee abilities lunge, arrows and fireballs fly in arcs,
 Arrow Rain and Blizzard fall on the area, Meteor drops from the sky, Holy Blade brings down a pillar of light, and heals sparkle.
 
+**Wits makes a big difference:** from 4 (a turn about every 50 s) to 16 (about every 12.5 s). Faster classes
+trade some HP for it: 3 HP per point of Wits above the middle, and slower ones gain it.
+
+**Changing class stats:** in the **Unit Guide** on the main menu, click any stat to change it; changed stats are gold.
+The number box goes up to each stat's limit, **Default** puts back the class's own value, and **Reset class** / **Reset
+all stats** undo more. Changes are saved (`user://class_stats.cfg`) and used by every new battle; online matches use
+the host's, sent to the other player. A replay uses the stats its battle started with. In a battle the guide only
+shows them.
+
 All numbers are in `scripts/core/jobs.gd` (jobs and abilities) and at the top of `scripts/core/game_state.gd`
 (time, countdown, damage, height and movement rules). The main rule numbers can also be changed in **Developer Tools**.
 
-### Imported class: Time Mage (from Astra Ability Creator)
+### Imported classes (made in Astra Ability Creator)
 
-| Job | HP | AttPwr | MagPwr | AttDef | MagDef | Wits | Move | Patience | Sight |
+101 more classes were designed in **Astra Ability Creator** (`E:\Astra-Ability Creator`). Each lives there as five
+library entries tagged `class:<id>`, and the game reads Astra's JSON exports in `data/classes/`.
+
+| Class | Role | HP | Power | AttDef | MagDef | A-Eva | M-Eva | Crit | Wits | Move | Patience | Sight | Plays like |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Time Mage | Special | 58 | 16 | 5 | 11 | 10% | 16% | 10% | 16 | 6 | 7 | 10 | Turn Gauge control |
+| Dragoon | Damage | 95 | 17 | 11 | 5 | 12% | 6% | 12% | 8 | 7 | 6 | 9 | Leaps onto distant targets |
+| Ninja | Damage | 80 | 16 | 10 | 7 | 26% | 10% | 22% | 14 | 8 | 5 | 10 | Fast melee assassin |
+| Summoner | Damage | 63 | 19 | 4 | 12 | 5% | 14% | 10% | 6 | 6 | 9 | 10 | Slow, huge area magic |
+| Paladin | Tank / Support | 105 | 14 | 13 | 9 | 6% | 10% | 5% | 8 | 6 | 8 | 8 | Tank, heals and shields |
+| Bard | Support | 60 | 13 | 6 | 10 | 10% | 12% | 8% | 12 | 6 | 7 | 11 | Speeds allies, slows enemies |
+| Berserker | Damage | 115 | 19 | 7 | 4 | 8% | 5% | 18% | 8 | 7 | 4 | 8 | Heavy damage, weak defense |
+| Chemist | Support | 70 | 12 | 7 | 8 | 10% | 10% | 8% | 10 | 6 | 7 | 9 | Bombs, potions, revives |
+| Geomancer | Damage / Support | 78 | 15 | 9 | 10 | 8% | 12% | 8% | 8 | 6 | 7 | 9 | Earth magic, stuns |
+| Oracle | Special | 65 | 17 | 5 | 14 | 6% | 20% | 8% | 10 | 6 | 9 | 11 | Debuffs and sleep |
+| Samurai | Damage / Support | 85 | 16 | 9 | 8 | 14% | 10% | 16% | 10 | 7 | 6 | 9 | Area sword, team Regen |
+
+| Class | 1 | 2 | 3 | 4 (Ultimate) |
+|---|---|---|---|---|
+| Time Mage | Chrono Bolt (TG −10%) | Slowga (area Slow, 1.5 s) | Quicken (ally TG +40%, 1 s) | Time Stop (area + Stun, 2.5 s) |
+| Dragoon | Lance (2.2 m reach) | Jump (dashes onto a target 3-7 m away) | Dragon Spirit (Power up) | Highwind (area, 2 s) |
+| Ninja | Twin Strike | Shuriken (2-8 m) | Smoke Bomb (area Slow) | Assassinate |
+| Summoner | Rod | Ifrit (area + Burn, 2 s) | Carbuncle (area MagDef up, 1 s) | Bahamut (huge area, 4 s) |
+| Paladin | Holy Strike | Aegis (ally AttDef up) | Lay on Hands (heal, 1 s) | Judgment (area around self, 1.5 s) |
+| Bard | Dissonance (1-7 m) | Song of Haste (area TG +25%, 1.5 s) | Lullaby (area Slow, 1.5 s) | Hymn of Life (heal + Regen around self, 2 s) |
+| Berserker | Cleave (90° cone) | Rage (toggle: Power +8, AttDef −4) | Leap Smash (area + Stun, 1 s) | Rampage (area around self) |
+| Chemist | Fire Bomb (area + Burn) | Potion (heal) | Phoenix Down (revive, 1 s) | Elixir Mist (area heal) |
+| Geomancer | Rock Toss (1-6 m) | Quake (area + Stun, 2 s) | Stone Skin (ally AttDef up, 1 s) | Tectonic Rift (area + Slow, 3 s) |
+| Oracle | Hex (1-7 m) | Curse (AttDef/MagDef −6, 1 s) | Sleep (Stun a turn, 2 s) | Divination (everyone on the field + Slow, 2.5 s) |
+| Samurai | Iaido Slash | Draw Out (area around self, 1 s) | Meditate (Power/MagDef up) | Masamune (heal + Regen around self) |
+
+#### The 90-class pack: 10 roles × 9 elements
+
+Every combination of a **role** and an **element** is its own class, with its own name, ability names, color and icon.
+The icon is the role's emblem in the element's colors, with an element badge.
+
+| Role | Fire | Ice | Lightning | Earth | Wind | Water | Holy | Shadow | Nature |
 |---|---|---|---|---|---|---|---|---|---|
-| Time Mage | 65 | 5 | 16 | 5 | 11 | 12 | 6 | 7 | 10 |
+| Brawler (fast melee) | Ember Pugilist | Frost Brawler | Thunder Fist | Stone Fist | Gale Dancer | Tide Brawler | Temple Fist | Shade Brawler | Thorn Brawler |
+| Guardian (tank) | Flame Warden | Glacier Guard | Storm Bulwark | Mountain Sentinel | Sky Warden | Reef Guardian | Templar | Dread Knight | Oakheart |
+| Assassin (melee killer) | Cinder Blade | Frost Stalker | Volt Striker | Sand Viper | Wind Dancer | Tidecutter | Inquisitor | Shadow Stalker | Venom Fang |
+| Ranger (long range) | Flame Archer | Frost Ranger | Storm Archer | Stone Slinger | Wind Archer | Harpooner | Sun Archer | Night Hunter | Beast Hunter |
+| Sorcerer (area magic) | Pyromancer | Cryomancer | Stormcaller | Terramancer | Aeromancer | Hydromancer | Lumimancer | Necromancer | Druid |
+| Cleric (healer) | Phoenix Priest | Frost Mender | Spark Medic | Earthmother | Wind Shaman | Tide Priest | Saint | Blood Cleric | Herbalist |
+| Minstrel (buffs, TG) | War Drummer | Winter Skald | Thunder Herald | Stone Chanter | Piper | Siren | Cantor | Dirge Singer | Sylvan Muse |
+| Hexer (debuffs, sleep) | Ash Witch | Frost Witch | Arc Warlock | Dust Hexer | Tempest Hexer | Sea Witch | Exorcist | Warlock | Plague Doctor |
+| Summoner (huge summons) | Salamander Caller | Yeti Caller | Thunderbird Caller | Golem Master | Roc Caller | Leviathan Caller | Seraph Caller | Lich Caller | Treant Caller |
+| Spellblade (magic melee) | Blazeblade | Frostblade | Stormblade | Earthshaker | Windblade | Tideblade | Crusader | Hexblade | Thornblade |
 
-1 **Chrono Bolt** (instant magic bolt, 1-7 m, target's TG −10%) · 2 **Slowga** (Slow everyone within 2.5 m, 1.5 s) ·
-3 **Quicken** (ally TG +40%, 1 s) · 4 **Time Stop** (ultimate: damage and a 2 s Stun within 3 m, 2.5 s).
+- **Role:** sets the base stats and the four-ability kit, sized against the built-in jobs.
+- **Element:** nudges the stats and adds its own effect to the role's key abilities:
+  - fire and nature: Burn
+  - ice and water: Slow
+  - lightning and earth: Stun
+  - wind: knocks the target's Turn Gauge back 25%
+  - shadow: MagDef −6 and AttDef −3
+  - holy: +10% power
+- **Ally buffs** also follow the element. Water, holy and nature heals add Regen.
+- **Tooltips:** the Unit Guide and ability tooltips show every number.
 
-The Time Mage was designed in **Astra Ability Creator** (`E:\Astra-Ability Creator`) and lives there as five
-library entries tagged `class:time_mage`. The game reads Astra's JSON export, `data/classes/time_mage.astra.json`.
-`tools/astra_time_mage.mjs` re-creates the class in a running Astra and re-exports it:
-`& "E:\Astra-Ability Creator\runtime\node.exe" tools/astra_time_mage.mjs`.
+Three scripts re-create the classes in a running Astra and re-export them:
+
+- `tools/astra_classes.mjs`: the ten classes from Dragoon to Samurai.
+- `tools/astra_time_mage.mjs`: the Time Mage.
+- `tools/astra_class_pack.mjs`: the 90-class pack, with its icons.
+
+Run them with `& "E:\Astra-Ability Creator\runtime\node.exe" tools/<script>`.
+
+`tests/balance.gd` pits each class, in a mixed team, against a fixed team in computer-vs-computer battles and reports
+win rate, damage dealt, which abilities it used and how long it survived:
+`godot --headless --script res://tests/balance.gd -- [games per class] [class ids...]`.
 
 ## Developer Tools
 
@@ -193,7 +298,10 @@ host sends the class to the other player. The rules, in `scripts/core/astra_impo
 - Tag every ability of the class `class:<id>` (lowercase id).
 - One **Passive** entry tagged `profile` holds the class stats as parameters with formula keys `hp`, `att`, `mag`,
   `attdef`, `magdef`, `wits`, `move`, `patience`, `sight`. Its name and color are the class name and color.
-  Tag it `look:<job>` to choose a built-in character model (tinted with the class color).
+  Tag it `look:<job>` to choose a built-in character model (tinted with the class color), and `role:tank`
+  (or `damage`, `support`, `special`, or a pair like `tank/support`) to say what the class is for.
+  The profile needs hp, attdef, magdef, wits, move, patience and sight; power, aeva, meva and crit are optional
+  (0, 5, 5, 5).
   The class icon is `assets/icons/<id>.svg`. Tag the profile `icon:<name>` to use another icon from that folder.
   Without one, the class gets a generic star in its color.
 - Four abilities are tagged `slot:1` to `slot:4`; slot 4 is the ultimate. Their parameters are read at **rank 1**, and
@@ -201,21 +309,25 @@ host sends the class to the other player. The rules, in `scripts/core/astra_impo
 
   | Key | Meaning | Default |
   |---|---|---|
-  | `power` | multiplier on AttPwr or MagPwr | 1 |
+  | `power` | the damage it does (healing for heals; a share of max HP for a revive) | 0 |
   | `min_range` | closest target point | 0 |
   | `cast_range` | farthest target point | 1.8 (melee); 0 when targeting is Self |
   | `radius` | area radius | 0 (one unit) |
   | `cast_time` | seconds until it takes effect | 0 (instant) |
   | `cooldown_turns` | turns to wait | Astra's `cooldown` seconds ÷ 10 |
+  | `channel_turns` | turns a Channeled ability lasts | 2 |
+  | `cone_angle` | the spread of a cone, in degrees | 60 |
   | `tg_change` | % change to each target's Turn Gauge | none |
   | `buff_<stat>` + `buff_turns` | a stat buff | none |
 
-- **Damage type** Physical uses AttPwr against AttDef; anything else uses MagPwr against MagDef.
+- **Damage type** Physical is resisted by AttDef and evaded with A-Eva; anything else by MagDef and M-Eva.
+- **Ability type** (Astra's own field) becomes Active, Passive, Toggle, Channeled, Active + Passive or Aura, and
+  **targeting** becomes the target shape (Unit, Point, Self, Circle, Line, Cone, Global, Vector).
 - **Target team** Enemies targets enemies; anything else targets allies. The tag `revive` makes it revive a KO'd ally.
 - **Effects:**
   - A Damage or Heal effect decides what the ability does. With neither, it's a support ability.
   - Slow, Stun, periodic Damage (Burn) and periodic Heal (Regen) put that status on each unit hit for the effect's
-    duration in seconds.
+    duration in **turns** of that unit.
   - An `fx:<ability id>` tag borrows a built-in animation.
 - Formulas work as in Astra: numbers, `+ - * /`, parentheses, postfix `%`, other parameter keys, `rank` and Astra's
   sample stats. They are evaluated by a port of Astra's safe evaluator.

@@ -26,6 +26,7 @@ func _initialize() -> void:
 	await _test_cpu_vs_cpu()
 	await _test_log_window()
 	await _test_turn_order_groups()
+	await _test_stat_changes()
 	await _test_replay_scene(replay_log)
 	print("SMOKE TEST %s (%d failure(s))" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
@@ -37,9 +38,11 @@ func _check(cond: bool, what: String) -> void:
 		printerr("FAIL: ", what)
 
 
+## A battle for the rules tests: evasion and criticals are switched off so
+## the numbers are exact (they have their own test).
 func _new_state() -> GameState:
 	var state := GameState.new()
-	state.setup(MapData.highlands())
+	state.setup(MapData.highlands(), {"evade_multiplier": 0.0, "crit_chance_multiplier": 0.0})
 	return state
 
 
@@ -62,7 +65,7 @@ func _test_rules() -> void:
 	_check(state.ready_units().is_empty(), "nobody ready at the start")
 
 	var u = _wait_for_ready(state)
-	_check(u != null and u.job == "archer", "fastest unit (archer, Wits 10) is ready first")
+	_check(u != null and u.job == "archer", "the fastest unit (the Archer, Wits %d) is ready first" % Jobs.job("archer").wits)
 	_check(state.validate({"type": "end_turn", "unit": u.id, "serial": u.serial - 1}) != "", "stale serial rejected")
 	_check(state.validate({"type": "ability", "unit": u.id, "serial": u.serial, "slot": 3, "target": u.pos}) != "", "ultimate locked until meter full")
 	_check(state.validate({"type": "move", "unit": u.id, "serial": u.serial, "to": Vector2(20.25, 20.25)}) != "", "can't move beyond Move")
@@ -93,7 +96,11 @@ func _test_rules() -> void:
 
 	# Abilities by distance, cooldowns and the ultimate meter.
 	var s2 := _new_state()
-	var archer = _wait_for_ready(s2)
+	var archer = null
+	for unit in s2.units:
+		if unit.team == 0 and unit.job == "archer":
+			archer = unit
+	_force_ready(s2, archer)
 	var enemy = s2.units[4]
 	archer.pos = Vector2(10.25, 10.25)
 	enemy.pos = Vector2(10.25, 15.25)  # 5 m away
@@ -113,6 +120,10 @@ func _test_rules() -> void:
 	_test_casting()
 	_test_facing()
 	_test_statuses()
+	_test_evade_and_crit()
+	_test_ability_kinds()
+	_test_target_shapes()
+	_test_roles_and_icons()
 	_test_ko_and_raise()
 	_test_line_of_sight()
 
@@ -145,7 +156,8 @@ func _test_facing() -> void:
 
 
 func _test_statuses() -> void:
-	# Fire burns: HP keeps dropping each second, then it wears off.
+	# Statuses last turns of the unit they are on, not seconds.
+	# Fire burns: HP drops at the start of each of the target's turns.
 	var s := _new_state()
 	var mage = s.units[2]
 	var foe = s.units[4]
@@ -153,28 +165,68 @@ func _test_statuses() -> void:
 	s.apply({"type": "ability", "unit": mage.id, "serial": mage.serial, "slot": 1, "target": foe.pos, "follow": foe.id})
 	s.apply({"type": "advance", "ticks": 10})  # 1 s cast
 	_check(foe.has_status("burn"), "Fire leaves Burn")
+	var burn_turns: int = foe.statuses[0].turns
 	var hp_after_hit: int = foe.hp
-	s.apply({"type": "advance", "ticks": 20})
-	_check(foe.hp < hp_after_hit, "Burn deals damage over time")
-	s.apply({"type": "advance", "ticks": 50})
-	_check(not foe.has_status("burn"), "Burn wears off after 6 s")
+	s.apply({"type": "advance", "ticks": maxi(1, s.ticks_to_ready(foe) - 2)})
+	_check(foe.hp == hp_after_hit and not foe.ready, "Burn waits for the unit's turn (no damage between turns)")
+	var turn_damage := maxi(1, roundi(foe.max_hp() * 0.1))
+	_wait_for_turn(s, foe)
+	_check(foe.hp == hp_after_hit - turn_damage and foe.statuses[0].turns == burn_turns - 1,
+		"Burn takes 10%% of max HP on the unit's turn and counts down (HP %d)" % foe.hp)
+	for i in burn_turns - 1:
+		_wait_for_turn(s, foe)
+	_check(not foe.has_status("burn"), "Burn wears off after its turns (%d)" % burn_turns)
+
+	# Regen heals on the unit's turn, up to full.
+	var sr := _new_state()
+	var hurt = sr.units[1]
+	hurt.hp = 10
+	sr._add_status(hurt, "regen", 2)
+	_wait_for_turn(sr, hurt)
+	_check(hurt.hp == 10 + maxi(1, roundi(hurt.max_hp() * 0.1)), "Regen heals on the unit's turn")
 
 	# Slow halves Turn Gauge filling; Stun freezes it and blocks orders.
 	var s2 := _new_state()
 	var u = s2.units[0]
 	u.tg = 0
 	var normal: int = s2.ticks_to_ready(u)
-	s2._add_status(u, "slow", 30.0)
+	s2._add_status(u, "slow", 2)
 	_check(s2.ticks_to_ready(u) > normal * 1.8, "Slow roughly halves Turn Gauge speed")
 	u.statuses.clear()
 	var tg_before: int = u.tg
-	s2._add_status(u, "stun", 1.0)
+	s2._add_status(u, "stun", 1)
 	s2.apply({"type": "advance", "ticks": 5})
-	_check(u.tg == tg_before, "Stun freezes the Turn Gauge")
+	_check(u.tg > tg_before, "a stunned unit's Turn Gauge keeps filling (its turn is what it loses)")
 	u.statuses.clear()
 	_force_ready(s2, u)
-	s2._add_status(u, "stun", 2.0)
+	s2._add_status(u, "stun", 2)
 	_check(s2.validate({"type": "end_turn", "unit": u.id, "serial": u.serial}) != "", "a stunned unit can't take orders")
+
+	# A status counts down once per turn: a lost turn to Stun still counts.
+	var s4 := _new_state()
+	var stunned = s4.units[3]
+	s4._add_status(stunned, "stun", 2)
+	var lost_turns := 0
+	for i in 4000:
+		var r := s4.apply({"type": "advance", "ticks": 1})
+		for line in r.logs:
+			if line.contains("loses its turn"):
+				lost_turns += 1
+		if not stunned.has_status("stun"):
+			break
+	_check(lost_turns == 2 and not stunned.ready, "Stun takes away exactly its number of turns")
+
+	# Re-applying a status keeps the longer of the two.
+	var again := _new_state()
+	var victim2 = again.units[1]
+	again._add_status(victim2, "burn", 3)
+	again._add_status(victim2, "burn", 1)
+	_check(victim2.statuses[0].turns == 3, "a weaker re-application doesn't shorten a status")
+	again._add_status(victim2, "burn", 5)
+	_check(victim2.statuses.size() == 1 and victim2.statuses[0].turns == 5, "a longer re-application extends it")
+	victim2.hp = 1
+	again._knock_out(victim2, "x", {"logs": [], "knocked_out": [], "gone": [], "events": []})
+	_check(victim2.statuses.is_empty(), "a knocked-out unit loses its statuses")
 
 	# Shield Bash stuns.
 	var s3 := _new_state()
@@ -182,7 +234,249 @@ func _test_statuses() -> void:
 	foe = s3.units[4]
 	_stage(s3, knight, foe, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
 	s3.apply({"type": "ability", "unit": knight.id, "serial": knight.serial, "slot": 1, "target": foe.pos})
-	_check(foe.has_status("stun"), "Shield Bash stuns")
+	_check(foe.has_status("stun") and foe.statuses[0].turns == 1, "Shield Bash stuns for a turn")
+
+
+## Runs time on until this unit's next turn comes (its statuses act then).
+func _wait_for_turn(state: GameState, u) -> void:
+	if u.ready:
+		state.apply({"type": "end_turn", "unit": u.id, "serial": u.serial})
+	var serial: int = u.serial
+	for i in 3000:
+		if u.serial > serial or not u.is_alive():
+			return
+		state.apply({"type": "advance", "ticks": 1})
+	_check(false, "the unit's turn never came")
+
+
+## A-Eva / M-Eva and Crit: rolled only while applying a command, from the
+## battle's own seed, so both players online and a replay see the same rolls.
+func _test_evade_and_crit() -> void:
+	var state := GameState.new()
+	state.setup(MapData.highlands(), {}, 12345)
+	var hitter = state.units[4]
+	var victim = state.units[1]
+	_stage(state, hitter, victim, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
+	victim.hp = 9999
+	var ab: Dictionary = hitter.ability(0)
+	_check(state.evade_chance(victim, ab) == victim.stat("aeva" if ab.scale == "att" else "meva"),
+		"the evade chance is the target's A-Eva / M-Eva")
+	_check(state.crit_chance(hitter) == hitter.stat("crit"), "the crit chance is the user's Crit")
+	_check(state.evade_chance(victim, hitter.ability(2)) == 0, "friendly abilities are never evaded")
+
+	# Roll many times: some hits land, some are evaded, some are critical.
+	var misses := 0
+	var crits := 0
+	var normal := 0
+	var normal_damage: int = state.preview(hitter, 0, hitter.pos, victim.pos)[0].amount
+	for i in 400:
+		_force_ready(state, hitter)
+		var before: int = victim.hp
+		state.apply({"type": "ability", "unit": hitter.id, "serial": hitter.serial, "slot": 0, "target": victim.pos})
+		var dealt: int = before - victim.hp
+		if dealt == 0:
+			misses += 1
+		elif dealt > normal_damage:
+			crits += 1
+		else:
+			normal += 1
+	_check(misses > 0 and crits > 0 and normal > misses + crits,
+		"over 400 hits: %d evaded, %d critical, %d normal" % [misses, crits, normal])
+
+	# The same seed and the same commands roll the same way.
+	var a := GameState.new()
+	var b := GameState.new()
+	var log: Array = []
+	for state2 in [a, b]:
+		state2.setup(MapData.highlands(), {}, 777)
+	var ai := AIPlayer.new()
+	while a.winner == -1 and a.tick < 6000:
+		var ready := a.orderable_units()
+		var cmd: Dictionary = {"type": "advance", "ticks": 1} if ready.is_empty() else ai.next_command(a, ready[0])
+		log.append(cmd)
+		a.apply(cmd)
+	for cmd in log:
+		b.apply(cmd)
+	var same := a.tick == b.tick and a.winner == b.winner
+	for i in a.units.size():
+		same = same and a.units[i].hp == b.units[i].hp
+	_check(same, "a battle with evasion and criticals replays exactly from its seed")
+	var other := GameState.new()
+	other.setup(MapData.highlands(), {}, 4242)
+	for cmd in log:
+		other.apply(cmd)
+	var hp_a := []
+	var hp_other := []
+	for i in a.units.size():
+		hp_a.append(a.units[i].hp)
+		hp_other.append(other.units[i].hp)
+	_check(hp_a != hp_other, "a different seed rolls differently")
+
+
+## Ability types: passive and aura are always on, a toggle switches once a
+## turn, and a channeled ability repeats and locks the unit.
+func _test_ability_kinds() -> void:
+	var state := _new_state()
+	var u = state.units[0]
+	var ab := u.ability(2).duplicate(true)  # Guard: a support ability with buffs
+
+	# Passive: always on, can't be used, and its buffs count all the time.
+	Jobs.custom_abilities["test_passive"] = ab.duplicate(true)
+	Jobs.custom_abilities.test_passive.kind = "passive"
+	Jobs.custom_abilities.test_passive.buffs = [{"stat": "power", "amount": 7, "turns": 2}]
+	Jobs.custom_jobs["test_class"] = Jobs.base_job("knight").duplicate(true)
+	Jobs.custom_jobs.test_class.name = "Test Class"
+	Jobs.custom_jobs.test_class.abilities = ["attack", "test_passive", "test_toggle", "test_channel"]
+	Jobs.custom_abilities["test_toggle"] = ab.duplicate(true)
+	Jobs.custom_abilities.test_toggle.kind = "toggle"
+	Jobs.custom_abilities.test_toggle.buffs = [{"stat": "attdef", "amount": 5, "turns": 2}]
+	Jobs.custom_abilities["test_channel"] = u.ability(0).duplicate(true)
+	Jobs.custom_abilities.test_channel.kind = "channeled"
+	Jobs.custom_abilities.test_channel.channel = 2
+	Jobs.custom_abilities.test_channel.max_range = 8.0
+	var tester := GameState.new()
+	tester.setup(MapData.build(MapData.DEFAULT_MAP, ["test_class", "knight", "archer", "white_mage"],
+		["knight", "archer", "black_mage", "white_mage"]), {"evade_multiplier": 0.0, "crit_chance_multiplier": 0.0})
+	var t = tester.units[0]
+	_force_ready(tester, t)
+	_check(t.stat("power") == Jobs.base_job("knight").power + 7, "a passive ability's buffs are always on")
+	_check(tester.ability_blocked_reason(t, 1) != "", "a passive ability can't be used")
+	_check(t.is_on(1) and not t.is_on(2), "is_on: passive yes, toggle not yet")
+
+	# Toggle: switches on, applies while on, and only once a turn.
+	var defense: int = t.stat("attdef")
+	tester.apply({"type": "ability", "unit": t.id, "serial": t.serial, "slot": 2, "target": t.pos})
+	_check(t.toggled.get(2, false) and t.stat("attdef") == defense + 5, "a toggle switches on and applies at once")
+	_check(not t.acted, "switching a toggle doesn't use up the turn")
+	_check(tester.validate({"type": "ability", "unit": t.id, "serial": t.serial, "slot": 2, "target": t.pos}) != "",
+		"a toggle can only be switched once a turn")
+
+	# Channeled: repeats on the next turns and the unit can't act meanwhile.
+	var foe = tester.units[4]
+	foe.pos = t.pos + Vector2(4, 0)
+	foe.hp = 999
+	t.ult = GameState.ULT_MAX  # slot 4 is the ultimate
+	tester.apply({"type": "ability", "unit": t.id, "serial": t.serial, "slot": 3, "target": foe.pos, "follow": foe.id})
+	_check(t.is_channeling() and t.channeling.turns == 2 and not t.ready,
+		"a channeled ability starts channeling and ends the turn")
+	var hp_after_first: int = foe.hp
+	var serial: int = t.serial
+	for i in 3000:
+		if t.serial > serial:
+			break
+		tester.apply({"type": "advance", "ticks": 1})
+	_check(foe.hp < hp_after_first, "a channeled ability goes off again on the next turn")
+	_check(not t.ready, "the unit's turn is spent channeling")
+	Jobs.custom_jobs.erase("test_class")
+	for id in ["test_passive", "test_toggle", "test_channel"]:
+		Jobs.custom_abilities.erase(id)
+
+	# Auras reach everyone nearby when their turn comes.
+	var aura := _new_state()
+	var giver = aura.units[0]
+	var friend = aura.units[1]
+	var aura_ability := {"name": "Test Aura", "desc": "", "effect": "support", "scale": "att", "power": 0,
+		"min_range": 0.0, "max_range": 0.0, "aoe": 5.0, "cooldown": 0, "cast": 0.0, "target": "ally",
+		"kind": "aura", "buffs": [{"stat": "attdef", "amount": 4, "turns": 2}]}
+	Jobs.custom_abilities["test_aura"] = aura_ability
+	var giver_job := Jobs.base_job(giver.job).duplicate(true)
+	giver_job.abilities = giver_job.abilities.duplicate()
+	giver_job.abilities[2] = "test_aura"
+	Jobs.custom_jobs[giver.job] = giver_job
+	Jobs.set_overrides({})
+	friend.pos = giver.pos + Vector2(2, 0)
+	var before: int = friend.stat("attdef")
+	_force_ready(aura, friend)
+	_check(friend.stat("attdef") == before + 4, "an aura reaches an ally when its turn comes")
+	Jobs.custom_jobs.erase(giver.job)
+	Jobs.custom_abilities.erase("test_aura")
+	Jobs.set_overrides({})
+
+
+## Target shapes: a line skewers, a cone sweeps, global reaches everyone, and
+## a vector carries the user to the far end.
+func _test_target_shapes() -> void:
+	var state := _new_state()
+	var caster = state.units[0]
+	caster.pos = Vector2(6.25, 12.25)
+	var line_ab := {"name": "Line", "desc": "", "effect": "damage", "scale": "att", "power": 20,
+		"min_range": 0.0, "max_range": 12.0, "aoe": 0.8, "cooldown": 0, "cast": 0.0, "target": "enemy", "shape": "line"}
+	var foes := []
+	for i in 3:
+		var foe = state.units[4 + i]
+		foe.pos = Vector2(6.25 + 3.0 * (i + 1), 12.25)
+		foes.append(foe)
+	state.units[7].pos = Vector2(6.25, 20.25)  # off the line
+	var hits := []
+	for t in state.units:
+		if state.in_shape(line_ab, caster.pos, Vector2(16.25, 12.25), t.pos):
+			hits.append(t.id)
+	_check(hits.has(foes[0].id) and hits.has(foes[1].id) and hits.has(foes[2].id) and not hits.has(state.units[7].id),
+		"a line hits everyone along it and nobody beside it")
+
+	var cone_ab := line_ab.duplicate()
+	cone_ab.shape = "cone"
+	cone_ab.max_range = 6.0
+	cone_ab.angle = 60.0
+	_check(state.in_shape(cone_ab, caster.pos, Vector2(12.25, 12.25), Vector2(9.25, 12.25))
+		and not state.in_shape(cone_ab, caster.pos, Vector2(12.25, 12.25), Vector2(6.25, 18.25)),
+		"a cone hits in front of the user, not behind")
+
+	var global_ab := line_ab.duplicate()
+	global_ab.shape = "global"
+	_check(state.in_shape(global_ab, caster.pos, caster.pos, Vector2(23.0, 23.0)), "a global ability reaches the whole field")
+
+	# A vector ability moves the caster to the far end.
+	var dash := line_ab.duplicate()
+	dash.shape = "vector"
+	dash.max_range = 6.0
+	Jobs.custom_abilities["test_dash"] = dash
+	var dash_job := Jobs.base_job("knight").duplicate(true)
+	dash_job.abilities = ["test_dash", "shield_bash", "guard", "holy_blade"]
+	Jobs.custom_jobs["test_dasher"] = dash_job
+	var dash_state := GameState.new()
+	dash_state.setup(MapData.build(MapData.DEFAULT_MAP, ["test_dasher", "knight", "archer", "white_mage"],
+		["knight", "archer", "black_mage", "white_mage"]), {"evade_multiplier": 0.0})
+	var dasher = dash_state.units[0]
+	_force_ready(dash_state, dasher)
+	var target := dash_state.snap(dasher.pos + Vector2(4, 0))
+	dash_state.apply({"type": "ability", "unit": dasher.id, "serial": dasher.serial, "slot": 0, "target": target})
+	_check(dasher.pos == target, "a vector ability carries the user to the far end (%s vs %s)" % [dasher.pos, target])
+	Jobs.custom_jobs.erase("test_dasher")
+	Jobs.custom_abilities.erase("test_dash")
+
+
+## Roles come from the class when it says so, and are worked out when it doesn't.
+func _test_roles_and_icons() -> void:
+	_check(Jobs.roles_of("knight") == ["tank", "damage"] and Jobs.role_name("knight") == "Tank / Damage",
+		"a class's own role is used (%s)" % [Jobs.roles_of("knight")])
+	_check(Jobs.roles_of("white_mage") == ["support"], "the White Mage is Support")
+	var tagged := 0
+	var guessed := 0
+	for id in Jobs.custom_jobs:
+		if Jobs.custom_jobs[id].has("role"):
+			tagged += 1
+		else:
+			guessed += 1
+		_check(not Jobs.roles_of(id).is_empty(), "%s has a role" % id)
+	_check(tagged >= 100, "the imported classes carry their own roles (%d tagged, %d guessed)" % [tagged, guessed])
+	var healer_roles := Jobs.roles_of("frost_mender")
+	_check(healer_roles.has("support"), "a cleric class is Support (%s)" % [healer_roles])
+
+	# Icons: every class and ability resolves to a file, with a fallback.
+	_check(Jobs.ability_icon_path("attack").ends_with("attack.svg"), "an ability uses its own icon")
+	Jobs.custom_abilities["test_no_icon"] = {"name": "No Icon", "desc": "", "effect": "heal", "scale": "mag",
+		"power": 5, "min_range": 0.0, "max_range": 3.0, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "ally"}
+	_check(Jobs.ability_icon_path("test_no_icon").ends_with("any_heal.svg"), "an ability without an icon falls back to its effect")
+	Jobs.custom_abilities.erase("test_no_icon")
+
+	# Classes that arrive over the network are checked before they are used.
+	var junk := {"jobs": {"bad": {"name": "Bad"}}, "abilities": {}}
+	_check(Jobs.clean_classes(junk).jobs.is_empty(), "a class missing its stats is rejected")
+	_check(Jobs.clean_classes("nonsense").jobs.is_empty(), "nonsense instead of classes is rejected")
+	var good := Jobs.classes_for([["time_mage"], []])
+	var cleaned := Jobs.clean_classes(good)
+	_check(cleaned.jobs.has("time_mage") and cleaned.abilities.size() == 4, "a whole class passes the check")
 
 
 func _test_ko_and_raise() -> void:
@@ -216,7 +510,7 @@ func _test_ko_and_raise() -> void:
 
 	# Snapshots copy the new state.
 	var s3 := _new_state()
-	s3._add_status(s3.units[1], "burn", 3.0)
+	s3._add_status(s3.units[1], "burn", 3)
 	var snap = s3.snapshot()
 	_check(snap.units[1].has_status("burn") and snap.units[1].facing == s3.units[1].facing, "snapshot copies statuses and facing")
 
@@ -395,6 +689,23 @@ func _test_ai_battle() -> void:
 		state.winner, state.tick / 10.0, orders, Time.get_ticks_msec() - start])
 	_check(state.winner != -1, "AI vs AI battle finishes")
 
+	# Reviving from on top of the knocked-out ally (bodies don't block): the
+	# computer's order must follow the ally, not the caster.
+	var rv := _new_state()
+	var mage = null
+	for unit in rv.units:
+		if unit.team == 0 and unit.job == "white_mage":
+			mage = unit
+	var fallen = rv.units[0]
+	rv._knock_out(fallen, "x", {"logs": [], "knocked_out": [], "gone": []})
+	mage.pos = fallen.pos
+	mage.ready = true
+	mage.clock = 200
+	mage.moved = true  # it must act from on top of the ally
+	var revive := ai.next_command(rv, mage)
+	_check(revive.get("slot", -1) == 0 and rv.validate(revive) == "",
+		"the computer revives an ally it stands on (%s: %s)" % [revive, rv.validate(revive)])
+
 	# The computer thinks on a snapshot; it must decide exactly as on the live state.
 	var live := _new_state()
 	var first = _wait_for_ready(live)
@@ -410,7 +721,7 @@ func _test_ai_battle() -> void:
 	var hard := AIPlayer.new("hard")
 	state = _new_state()
 	var wins := [0, 0]
-	for game in 3:
+	for game in 5:
 		state = _new_state()
 		while state.winner == -1 and state.tick < 30000:
 			var ready := state.orderable_units()
@@ -425,7 +736,7 @@ func _test_ai_battle() -> void:
 			state.apply(cmd)
 		if state.winner >= 0:
 			wins[state.winner] += 1
-	print("Easy (Blue) vs Hard (Red) over 3 games: easy %d, hard %d" % wins)
+	print("Easy (Blue) vs Hard (Red) over 5 games: easy %d, hard %d" % wins)
 	_check(wins[1] >= wins[0], "hard beats easy at least as often as it loses")
 
 
@@ -506,9 +817,9 @@ func _test_astra_import() -> void:
 	if not Jobs.has_job("time_mage"):
 		return
 	var tm: Dictionary = Jobs.job("time_mage")
-	_check(tm.wits == 12 and tm.mag == 16 and tm.abilities.size() == 4, "Time Mage stats come from its profile")
+	_check(tm.wits == 16 and tm.meva == 16 and tm.power == 16 and tm.abilities.size() == 4, "Time Mage stats come from its profile")
 	var bolt: Dictionary = Jobs.ability(tm.abilities[0])
-	_check(bolt.effect == "damage" and bolt.cast == 0.0 and bolt.power == 1.0 and bolt.tg == -10, "Chrono Bolt: instant damage, formula power, TG -10%")
+	_check(bolt.effect == "damage" and bolt.cast == 0.0 and bolt.power >= 15.0 and bolt.tg == -10, "Chrono Bolt: instant damage, flat power, TG -10%")
 	var stop: Dictionary = Jobs.ability(tm.abilities[3])
 	_check(stop.status.id == "stun" and stop.aoe == 3.0 and stop.fx == "meteor", "Time Stop: area Stun with a borrowed animation")
 	_check(Jobs.ability(tm.abilities[1]).status.id == "slow" and Jobs.ability(tm.abilities[2]).tg == 40, "Slowga slows, Quicken +40% TG")
@@ -531,6 +842,37 @@ func _test_astra_import() -> void:
 			printerr("illegal: ", cmd, " ", state.validate(cmd))
 		state.apply(cmd)
 	_check(legal and state.winner != -1, "a battle with Time Mages finishes with legal orders")
+	# Every class file made in Astra imports cleanly, with an icon.
+	var class_files := DirAccess.get_files_at("res://data/classes/")
+	var imported := 0
+	for file in class_files:
+		if file.ends_with(".json"):
+			var r := AstraImport.parse(FileAccess.get_file_as_string("res://data/classes/" + file))
+			_check(r.errors.is_empty() and r.jobs.size() == 1, "%s imports cleanly %s" % [file, r.errors])
+			for id in r.jobs:
+				_check(Jobs.icon_path(id) != Jobs.GENERIC_ICON, "%s has its own icon" % id)
+			imported += r.jobs.size()
+	_check(imported >= 11, "at least 11 imported classes (%d)" % imported)
+
+	# The new classes in battle, two games (every class on the field), legal orders throughout.
+	var mixes := [[["dragoon", "ninja", "summoner", "paladin"], ["bard", "berserker", "chemist", "geomancer"]],
+		[["oracle", "samurai", "chemist", "bard"], ["paladin", "summoner", "ninja", "dragoon"]]]
+	for mix in mixes:
+		var game := GameState.new()
+		game.setup(MapData.build(MapData.DEFAULT_MAP, mix[0], mix[1]))
+		var ok := true
+		while game.winner == -1 and game.tick < 40000 and ok:
+			var ready := game.orderable_units()
+			if ready.is_empty():
+				game.apply({"type": "advance", "ticks": 1})
+				continue
+			var cmd := ai.next_command(game, ready[0])
+			ok = game.validate(cmd) == ""
+			if not ok:
+				printerr("illegal: ", cmd, " ", game.validate(cmd))
+			game.apply(cmd)
+		_check(ok and game.winner != -1, "a battle of %s vs %s finishes with legal orders" % mix)
+
 	var sent := Jobs.classes_for([["time_mage"], ["knight"]])
 	_check(sent.jobs.has("time_mage") and sent.abilities.size() == 4 and not sent.jobs.has("knight"),
 		"online sends only the imported classes in use")
@@ -597,12 +939,26 @@ func _test_log_window() -> void:
 	_check(log.size == LogWindow.MIN_SIZE and before != log.size, "resizing stops at the minimum size")
 	log.toggle_collapsed()
 	_check(not log._body.visible and log.size.y < LogWindow.MIN_SIZE.y, "collapsing leaves only the title bar")
+	log.toggle_options()
+	_check(log._options.visible, "the cog opens the combat log options")
+	log.set_options(18, Color(1, 0.8, 0.2), 0.4)
+	var line: Label = log._lines.get_child(0)
+	_check(line.get_theme_font_size("font_size") == 18 and line.get_theme_color("font_color") == Color(1, 0.8, 0.2)
+		and is_equal_approx(log._style.bg_color.a, 0.4), "log options change every line's size and color and the background")
+	log.add_message("new line")
+	var newest: Label = log._lines.get_child(log.line_count() - 1)
+	_check(newest.get_theme_font_size("font_size") == 18, "new log lines use the chosen size")
+	log.set_options(99, Color.WHITE, 0.4)
+	_check(log.font_size == LogWindow.FONT_SIZES.y, "log text size stays within its limits")
+	log.set_options(18, Color(1, 0.8, 0.2), 0.4)
 	log.toggle_collapsed()
 	log.hide_log()
 	var again = LogWindow.new()
 	root.add_child(again)
 	await process_frame
 	_check(not again.visible and again.position == log.position, "the combat log remembers where it was and that it was hidden")
+	_check(again.font_size == 18 and again.text_color == Color(1, 0.8, 0.2) and is_equal_approx(again.opacity, 0.4),
+		"the combat log remembers its text size, color and background")
 	log.queue_free()
 	again.queue_free()
 	if saved_cfg != "":
@@ -652,6 +1008,55 @@ func _test_turn_order_groups() -> void:
 	hud.queue_free()
 
 
+## Class stats changed in the Unit Guide: applied to units, limited, saved,
+## editable from the main menu's guide only. The player's own are put back.
+func _test_stat_changes() -> void:
+	var config := root.get_node("GameConfig")
+	var saved: Dictionary = config.stat_overrides.duplicate(true)
+	config.reset_stats()
+	config.set_stat("knight", "hp", 150)
+	config.set_stat("knight", "wits", 99)
+	config.set_stat("archer", "move", Jobs.base_job("archer").move)  # its own value: no change
+	_check(Jobs.job("knight").hp == 150 and Jobs.job("knight").wits == Jobs.STAT_LIMITS.wits[1] and not Jobs.stat_overrides.has("archer"),
+		"changed stats apply, stay within limits, and a class's own value is no change")
+	var state := GameState.new()
+	state.setup(MapData.build(MapData.DEFAULT_MAP, ["knight", "archer", "monk", "squire"], ["knight", "archer", "monk", "squire"]))
+	_check(state.units[0].hp == 150 and state.units[0].max_hp() == 150 and state.units[0].stat("wits") == Jobs.STAT_LIMITS.wits[1],
+		"a new battle's units use the changed stats")
+	_check(Jobs.clean_overrides({"knight": {"bogus": 3, "att": "x"}, "nobody": {"hp": 50}}).is_empty(), "bad stat changes are dropped")
+	var file := ConfigFile.new()
+	_check(file.load(config.STATS_PATH) == OK and file.get_value("knight", "hp") == 150, "changed stats are saved")
+
+	var menu: Node = load("res://scenes/main_menu.tscn").instantiate()
+	root.add_child(menu)
+	await process_frame
+	menu._open_guide()
+	await process_frame
+	var guide = menu.guide
+	var knight_row: int = guide._listed_ids().find("knight")  # the list is sorted
+	var grid: GridContainer = guide._stats_holder.get_child(0)
+	# Columns: Job, Role, then the stats (HP first).
+	var hp_cell: Label = grid.get_child((knight_row + 1) * grid.columns + 2)
+	_check(guide.editable and hp_cell.text == "150" and hp_cell.get_theme_color("font_color") == guide.CHANGED_COLOR,
+		"the main menu's Unit Guide shows changed stats in gold")
+	guide._edit_stat("knight", "wits", hp_cell)
+	guide._edit_stat("knight", "attdef", hp_cell)
+	_check(Jobs.job("knight").wits == Jobs.STAT_LIMITS.wits[1] and Jobs.job("knight").attdef == Jobs.base_job("knight").attdef,
+		"opening the stat editor changes nothing")
+	guide._editor_box.value = 20
+	guide._editor.hide()
+	await process_frame
+	_check(Jobs.job("knight").attdef == 20, "editing a stat in the Unit Guide changes it")
+	menu.queue_free()
+	var in_battle = load("res://scripts/ui/unit_guide.gd").new()
+	_check(not in_battle.editable, "the in-battle Unit Guide can't change stats")
+	in_battle.free()
+	config.reset_stats()
+	_check(Jobs.job("knight").hp == Jobs.base_job("knight").hp, "Reset puts every class's stats back")
+	config.stat_overrides = saved
+	config._save_stats()
+
+
 ## Developer Tools: sliders, saved values and formula tooltips.
 func _test_dev_tools() -> void:
 	var config := root.get_node("GameConfig")
@@ -687,6 +1092,10 @@ func _test_replay_scene(log: Array) -> void:
 	var config: Node = root.get_node("GameConfig")
 	config.mode = "ai"
 	config.replay_log = log
+	# The log was recorded without evasion or criticals (see _new_state), so
+	# the replay has to run with the same rules and seed.
+	config.replay_tuning = {"evade_multiplier": 0.0, "crit_chance_multiplier": 0.0}
+	config.replay_seed = 0
 	var scene: Node = load("res://scenes/battle.tscn").instantiate()
 	root.add_child(scene)
 	await process_frame
@@ -743,8 +1152,13 @@ func _test_scenes() -> void:
 	_check(menu.get_child_count() > 0, "main menu builds")
 	menu._open_guide()
 	await process_frame
-	var tabs: TabContainer = menu.guide.find_children("*", "TabContainer", true, false)[0]
-	_check(menu.guide.visible and tabs.get_tab_count() == Jobs.all_jobs().size() and tabs.get_tab_count() > 6, "unit guide opens from the menu with a tab per job (imported classes too)")
+	var picker: OptionButton = menu.guide._class_picker
+	_check(menu.guide.visible and picker.item_count == Jobs.all_jobs().size() and picker.item_count > 100,
+		"unit guide opens from the menu with every class in its class picker (%d)" % picker.item_count)
+	menu.guide.show_class("time_mage")
+	var shown_grid: Array = menu.guide._ability_box.find_children("Grid", "GridContainer", true, false)
+	_check(shown_grid.size() == 1 and (shown_grid[0] as GridContainer).get_child_count() == 5 * menu.guide.ABILITY_COLUMNS.size(),
+		"picking a class shows its four abilities")
 
 	# Key bindings: Move defaults to Space, and rebinding to a used key swaps.
 	var kb: Node = root.get_node("Keybinds")

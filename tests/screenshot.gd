@@ -17,7 +17,7 @@ func _initialize() -> void:
 	var args := OS.get_cmdline_user_args()
 	var out: String = args[0] if args.size() > 0 else "user://screenshot.png"
 	var seconds: float = args[1].to_float() if args.size() > 1 else 5.0
-	if args.has("menu") or args.has("setup") or args.has("options") or args.has("howto") or args.has("devtools"):
+	if args.has("menu") or args.has("setup") or args.has("options") or args.has("howto") or args.has("devtools") or args.has("editstats"):
 		# Menu screens instead of a battle.
 		var menu: Node = load("res://scenes/main_menu.tscn").instantiate()
 		root.add_child(menu)
@@ -34,6 +34,13 @@ func _initialize() -> void:
 			menu.dev_tools._refresh()
 			for key in ["wits_multiplier", "patience_multiplier", "damage_multiplier", "back_bonus", "cast_time_multiplier"]:
 				print("--- tooltip ", key, "\n", menu.dev_tools._sliders[key].tooltip_text)
+		if args.has("editstats"):
+			# The main menu's Unit Guide with a stat changed and its editor open.
+			menu._open_guide()
+			await process_frame
+			var grid: GridContainer = menu.guide._stats_holder.get_child(0)
+			var row: int = menu.guide._job_ids.find("knight")
+			menu.guide._edit_stat("knight", "wits", grid.get_child((row + 1) * grid.columns + 6))
 		if args.has("howto"):
 			menu._open_how_to()
 			menu.how_to._show_page(args[args.find("howto") + 1].to_int() if args.size() > args.find("howto") + 1 else 0)
