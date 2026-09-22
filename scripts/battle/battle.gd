@@ -524,6 +524,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_toggle_pause()
 		elif event.is_action_pressed("tm_unit_guide"):
 			hud.toggle_guide()
+		elif event.is_action_pressed("tm_log"):
+			hud.toggle_log()
 		elif event.is_action_pressed("tm_chat") and GameConfig.mode == "online" and not replaying:
 			hud.open_chat()
 		elif event.is_action_pressed("tm_center_camera"):

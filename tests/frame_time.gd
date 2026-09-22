@@ -31,7 +31,7 @@ func _initialize() -> void:
 			slow += 1
 			# What was going on: recent messages and units' states.
 			var log_lines := []
-			for line in battle.hud._log_box.get_children():
+			for line in battle.hud._log._lines.get_children().slice(-2):
 				log_lines.append(line.text)
 			var states := []
 			for u in battle.state.units:

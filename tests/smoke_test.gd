@@ -24,6 +24,7 @@ func _initialize() -> void:
 	await _test_scenes()
 	await _test_dev_tools()
 	await _test_cpu_vs_cpu()
+	await _test_log_window()
 	await _test_replay_scene(replay_log)
 	print("SMOKE TEST %s (%d failure(s))" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
@@ -560,6 +561,54 @@ func _test_cpu_vs_cpu() -> void:
 	config.mode = saved[0]
 	config.ai_difficulty = saved[1]
 	config.ai_difficulty_blue = saved[2]
+
+
+## Combat log window: keeps messages, moves, resizes, collapses, hides and
+## remembers its place. The player's saved layout is put back afterwards.
+func _test_log_window() -> void:
+	var LogWindow = load("res://scripts/ui/log_window.gd")
+	var saved_cfg := FileAccess.get_file_as_string(LogWindow.SAVE_PATH) if FileAccess.file_exists(LogWindow.SAVE_PATH) else ""
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(LogWindow.SAVE_PATH))
+	var log = LogWindow.new()
+	root.add_child(log)
+	await process_frame
+	for i in 350:
+		log.add_message("message %d" % i)
+	_check(log.line_count() == LogWindow.MAX_LINES, "combat log keeps the latest %d messages" % LogWindow.MAX_LINES)
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.global_position = Vector2(100, 110)
+	var drag := InputEventMouseMotion.new()
+	drag.global_position = Vector2(160, 150)
+	var release := press.duplicate()
+	release.pressed = false
+	var start: Vector2 = log.position
+	log._drag_input(press, "move")
+	log._drag_input(drag, "move")
+	log._drag_input(release, "move")
+	_check(log.position == start + Vector2(60, 40), "dragging the title bar moves the combat log")
+	var before: Vector2 = log.size
+	log._drag_input(press, "resize")
+	drag.global_position = Vector2(100 - 500, 110 - 500)
+	log._drag_input(drag, "resize")
+	log._drag_input(release, "resize")
+	_check(log.size == LogWindow.MIN_SIZE and before != log.size, "resizing stops at the minimum size")
+	log.toggle_collapsed()
+	_check(not log._body.visible and log.size.y < LogWindow.MIN_SIZE.y, "collapsing leaves only the title bar")
+	log.toggle_collapsed()
+	log.hide_log()
+	var again = LogWindow.new()
+	root.add_child(again)
+	await process_frame
+	_check(not again.visible and again.position == log.position, "the combat log remembers where it was and that it was hidden")
+	log.queue_free()
+	again.queue_free()
+	if saved_cfg != "":
+		var f := FileAccess.open(LogWindow.SAVE_PATH, FileAccess.WRITE)
+		f.store_string(saved_cfg)
+	else:
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(LogWindow.SAVE_PATH))
 
 
 ## Developer Tools: sliders, saved values and formula tooltips.

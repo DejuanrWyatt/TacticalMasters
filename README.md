@@ -32,6 +32,7 @@ battle vs the computer. Its log is in `%APPDATA%\Godot\app_userdata\Tactical Mas
 | Cancel | Esc |
 | Pause (not online) | P |
 | Chat (online) | T, type, Enter to send (Esc closes) |
+| Combat log | L or the Log button shows / hides it. Drag its title bar to move it, its corner to resize it; – collapses it. It keeps the whole battle's messages (scroll up for older ones) and remembers its place. |
 | Unit Guide (stats, abilities, damage) | U, or the **Units** button. Also on the main menu. Pauses the game when not online. |
 | Camera | WASD / arrows pan · R / F raise / lower · Q / E or right-drag rotate and tilt · wheel zoom · middle-drag pan · C center on the selected unit. The camera never moves by itself: press C, or click a unit's chip in the turn order (a second click on your selected unit's chip centers on it). |
 | Menu (in battle) | **Menu** button: Resume, Options, Unit Guide, How to Play, Quit to Main Menu (pauses when not online) |
@@ -57,10 +58,11 @@ deterministic, so the replay is exact), with ×1 / ×2 / ×4 speed.
 - **Each ready unit has its own countdown**: 8 s + 2 s × **Patience** (18-24 s). It appears on the unit's chip in the turn order bar
   (`READY 12s`) and above the unit's head. If it runs out, that unit's turn is lost and its TG resets to 0.
 - **Turn order bars** (top of the screen): one bar per team, Blue above Red. Each unit's chip slides along its
-  team's bar toward the READY zone at the left end, placed by the seconds until it's ready. The last seconds get the most
+  team's bar toward the READY zone at the left end, placed by the seconds until it's ready. Chips never stack: when
+  turns are close together, chips are pushed along the bar, and a small dot on the bar marks each unit's exact time. The last seconds get the most
   room, and ticks mark 1, 3, 5, 10, 20 and 30 s. A chip grows as its turn gets closer and is full size once READY.
   The seconds until ready show on the chip for 3 s after the unit's turn ends, in the last 3 s before it's ready,
-  and whenever the mouse is over the chip.
+  and while the mouse is over the chip.
 - **Stats cards:** click a unit that isn't taking orders (an enemy, or an ally that isn't READY), or its chip, to see
   its stats, gauges, statuses and abilities. Allies show on the left, enemies on the right. Click it again, click the
   ground or press × to close. Hover the numbers for their calculations.

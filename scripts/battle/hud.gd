@@ -34,22 +34,27 @@ const UiTheme = preload("res://scripts/ui/ui_theme.gd")
 const OptionsMenu = preload("res://scripts/ui/options_menu.gd")
 const HowToPlay = preload("res://scripts/ui/how_to_play.gd")
 const DevTools = preload("res://scripts/ui/dev_tools.gd")
+const LogWindow = preload("res://scripts/ui/log_window.gd")
 
 const TEXT := Color(0.92, 0.94, 1.0)
 ## Turn order timeline: two parallel bars, one per team. Chips slide along
 ## their team's bar toward its READY zone at the left end, placed by seconds
 ## until ready; far-off turns are drawn smaller.
 ## Room kept at the top right for the Units / Pause / Menu buttons.
-const TIMELINE_RIGHT_MARGIN := 240.0
+const TIMELINE_RIGHT_MARGIN := 310.0
 const TICK_SECONDS := [0, 1, 3, 5, 10, 20, 30]
 const TIMELINE_SECONDS := 30.0  # the far (right) end of the bar
-## Each team's row: its bar, with overlapping chips dropped SUBLANE_OFFSET lower.
-const ROW_HEIGHT := 62.0
-const SUBLANE_OFFSET := 20.0
-const READY_PER_LANE := 3
-const CHIP_SIZE := Vector2(92, 38)
-const CHIP_MIN_SCALE := 0.6
-const TRACK_START := READY_PER_LANE * (CHIP_SIZE.x + 4) + 10
+## Each team's row: a line of chips with the team's bar just below it.
+## Chips never stack: crowded ones are pushed along the bar, and a dot on
+## the bar marks each unit's exact time.
+const ROW_HEIGHT := 44.0
+const READY_SLOTS := 4
+const CHIP_SIZE := Vector2(66, 30)
+const CHIP_GAP := 3.0
+const CHIP_MIN_SCALE := 0.75
+const TRACK_START := READY_SLOTS * (CHIP_SIZE.x + CHIP_GAP) + 10
+## Height of a team's bar line within its row.
+const BAR_Y := CHIP_SIZE.y + 5
 ## Time until ready shows this long after a turn ends and before it's ready.
 const SHOW_TIME_SECONDS := 3.0
 const DIM := Color(0.92, 0.94, 1.0, 0.55)
@@ -57,7 +62,6 @@ const GOLD := Color(1.0, 0.82, 0.35)
 const URGENT := Color(1.0, 0.38, 0.32)
 const CAST := Color(0.75, 0.45, 1.0)
 const PANEL_BG := Color(0.06, 0.08, 0.12, 0.78)
-const LOG_SECONDS := 6.0
 
 var _root: Control
 var _timeline: Control
@@ -84,7 +88,8 @@ var _ability_buttons: Array[Button] = []
 var _end_button: Button
 var _hover_panel: PanelContainer
 var _hover: Label
-var _log_box: VBoxContainer
+var _log: LogWindow
+var _log_button: Button
 var _game_over: Control
 var _game_over_label: Label
 var _stats_grid: GridContainer
@@ -174,21 +179,21 @@ func _build_turn_order() -> void:
 func _layout_bars() -> void:
 	_bars_width = _timeline.size.x
 	for team in 2:
-		var y := team * ROW_HEIGHT + CHIP_SIZE.y * 0.5
+		var y := team * ROW_HEIGHT + BAR_Y
 		_team_bars[team].position = Vector2(TRACK_START, y - 1.5)
 		_team_bars[team].size = Vector2(maxf(0.0, _bars_width - TRACK_START), 3)
 	for tick in _bar_ticks:
 		var sec: float = tick.get_meta("seconds")
-		var y: float = tick.get_meta("team") * ROW_HEIGHT + CHIP_SIZE.y * 0.5
-		tick.position = Vector2(_bar_x(sec) - 1, y - (9 if sec == 0 else 5))
-		tick.size = Vector2(2, 18 if sec == 0 else 10)
+		var y: float = tick.get_meta("team") * ROW_HEIGHT + BAR_Y
+		tick.position = Vector2(_bar_x(sec) - 1, y - (5 if sec == 0 else 3))
+		tick.size = Vector2(2, 10 if sec == 0 else 6)
 
 
 ## Where on the bar a turn this many seconds away sits. A square-root scale
 ## gives the last seconds before READY the most room.
 func _bar_x(seconds: float) -> float:
 	var frac := sqrt(clampf(seconds / TIMELINE_SECONDS, 0.0, 1.0))
-	return TRACK_START + frac * (_bars_width - TRACK_START - CHIP_SIZE.x * CHIP_MIN_SCALE)
+	return TRACK_START + frac * (_bars_width - TRACK_START - CHIP_SIZE.x * CHIP_MIN_SCALE - 4)
 
 
 func _build_corner_buttons(can_pause: bool) -> void:
@@ -199,6 +204,8 @@ func _build_corner_buttons(can_pause: bool) -> void:
 	corner.offset_right = -10
 	corner.add_theme_constant_override("separation", 4)
 	_root.add_child(corner)
+	_log_button = _small_button(corner, "Log", toggle_log)
+	_log_button.tooltip_text = "Show or hide the combat log (drag its title to move it, its corner to resize it)"
 	_guide_button = _small_button(corner, "Units", toggle_guide)
 	_pause_button = _small_button(corner, "Pause", pause_pressed.emit)
 	_pause_button.visible = can_pause
@@ -220,6 +227,8 @@ func _build_chat() -> void:
 
 
 func open_chat() -> void:
+	# Just under the combat log (or where it would be).
+	_chat.position = Vector2(_log.position.x, _log.position.y + (_log.size.y + 4 if _log.visible else 0.0))
 	_chat.visible = true
 	_chat.text = ""
 	_chat.grab_focus()
@@ -249,14 +258,9 @@ func _on_chat_input(event: InputEvent) -> void:
 
 
 func _build_log() -> void:
-	_log_box = VBoxContainer.new()
-	_log_box.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	_log_box.offset_left = 12
-	_log_box.offset_top = 16 + 2 * ROW_HEIGHT  # below the turn order bars
-	_log_box.custom_minimum_size.x = 360
-	_log_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_log_box.add_theme_constant_override("separation", 2)
-	_root.add_child(_log_box)
+	_log = LogWindow.new()
+	_root.add_child(_log)
+	_log.visibility_toggled.connect(func(shown: bool): _set_color(_log_button, TEXT if shown else DIM))
 
 
 func _build_unit_card() -> void:
@@ -597,21 +601,11 @@ func _chip_style(team_color: Color, state_name: String) -> StyleBoxFlat:
 		elif state_name == "selected":
 			bg = Color(0.2, 0.22, 0.28, 0.92)
 		# Extra left padding leaves room for the team-colored edge (a ColorRect).
-		_chip_styles[key] = _box(bg, outline, 1 if state_name == "normal" else 2, 7, Vector2(10, 3))
+		_chip_styles[key] = _box(bg, outline, 1 if state_name == "normal" else 2, 6, Vector2(7, 1))
 	return _chip_styles[key]
 
 
 # --- Updates ---------------------------------------------------------------
-
-func _process(delta: float) -> void:
-	# Fade out old messages.
-	for child in _log_box.get_children():
-		var age: float = child.get_meta("age", 0.0) + delta
-		child.set_meta("age", age)
-		child.modulate.a = clampf((LOG_SECONDS - age) / 1.5, 0.0, 1.0)
-		if age > LOG_SECONDS:
-			child.queue_free()
-
 
 ## Turn order strip. Each entry: {"id", "name", "color", "ready", "seconds",
 ## "casting", "cast_seconds", "selected", "hidden"}, already in display order.
@@ -621,7 +615,7 @@ func _new_chip(unit_id: int) -> Button:
 	chip.focus_mode = Control.FOCUS_NONE
 	chip.size = CHIP_SIZE
 	chip.clip_text = true
-	chip.add_theme_font_size_override("font_size", 11)
+	chip.add_theme_font_size_override("font_size", 9)
 	chip.pressed.connect(func(): chip_pressed.emit(chip.get_meta("unit_id")))
 	var edge := ColorRect.new()
 	edge.name = "Edge"
@@ -635,6 +629,12 @@ func _new_chip(unit_id: int) -> Button:
 	_chips.append(chip)
 	chip.set_meta("unit_id", unit_id)
 	_chip_for[unit_id] = chip
+	# The unit's exact spot on its bar.
+	var dot := ColorRect.new()
+	dot.size = Vector2(6, 6)
+	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_timeline.add_child(dot)
+	chip.set_meta("dot", dot)
 	return chip
 
 
@@ -645,27 +645,39 @@ func set_turn_order(entries: Array) -> void:
 	if _timeline.size.x != _bars_width:
 		_layout_bars()
 	var targets := {}
-	var lane_ends := [[-INF, -INF], [-INF, -INF]]
 	var ready_count := [0, 0]
+	var on_bar := [[], []]
 	for e in entries:
 		var team: int = e.team
-		var row_top := team * ROW_HEIGHT
 		# The bar takes the team's color (from its chips).
 		_team_bars[team].color = Color(e.color, 0.45)
 		if e.ready:
 			var slot: int = ready_count[team]
 			ready_count[team] += 1
-			targets[e.id] = {"pos": Vector2((slot % READY_PER_LANE) * (CHIP_SIZE.x + 4),
-				row_top + mini(slot / READY_PER_LANE, 1) * SUBLANE_OFFSET), "scale": 1.0}
+			targets[e.id] = {"pos": Vector2(mini(slot, READY_SLOTS - 1) * (CHIP_SIZE.x + CHIP_GAP), team * ROW_HEIGHT),
+				"scale": 1.0, "dot": -1.0}
 			continue
 		var scale_now := lerpf(1.0, CHIP_MIN_SCALE, clampf(e.seconds / TIMELINE_SECONDS, 0.0, 1.0))
 		var x := _bar_x(e.seconds)
-		# On its team's bar; a chip that would cover the one before it (entries
-		# come soonest first) drops a little below it.
-		var lane := 0 if lane_ends[team][0] <= x or lane_ends[team][0] <= lane_ends[team][1] else 1
-		lane_ends[team][lane] = x + CHIP_SIZE.x * scale_now + 2
-		var y := row_top + lane * SUBLANE_OFFSET + CHIP_SIZE.y * (1.0 - scale_now) * 0.5
-		targets[e.id] = {"pos": Vector2(x, y), "scale": scale_now}
+		targets[e.id] = {"pos": Vector2(x, team * ROW_HEIGHT + CHIP_SIZE.y * (1.0 - scale_now)),
+			"scale": scale_now, "dot": x}
+		on_bar[team].append(e.id)
+	# Chips on a bar never overlap: each is pushed right past the one before it
+	# (entries come soonest first), then back left if that runs off the end.
+	var end := _bars_width
+	for team in 2:
+		var ids: Array = on_bar[team]
+		var right_edge := -INF
+		for id in ids:
+			var t: Dictionary = targets[id]
+			t.pos.x = maxf(t.pos.x, right_edge + CHIP_GAP)
+			right_edge = t.pos.x + CHIP_SIZE.x * t.scale
+		var left_edge := INF
+		for i in range(ids.size() - 1, -1, -1):
+			var t: Dictionary = targets[ids[i]]
+			var w: float = CHIP_SIZE.x * t.scale
+			t.pos.x = minf(t.pos.x, minf(end, left_edge - CHIP_GAP) - w)
+			left_edge = t.pos.x
 
 	var blend := minf(1.0, get_process_delta_time() * 12.0)
 	for chip in _chips:
@@ -683,6 +695,10 @@ func set_turn_order(entries: Array) -> void:
 			chip.position = chip.position.lerp(target.pos, blend)
 			chip.scale = chip.scale.lerp(Vector2.ONE * target.scale, blend)
 		chip.z_index = 20 if e.ready else roundi(10.0 * target.scale)
+		var dot: ColorRect = chip.get_meta("dot")
+		dot.visible = target.dot >= 0.0
+		dot.color = e.color
+		dot.position = Vector2(target.dot - 3.0, e.team * ROW_HEIGHT + BAR_Y - 3.0)
 		var status: String
 		var look := "normal"
 		if e.hidden:
@@ -826,18 +842,11 @@ func set_hover(text: String) -> void:
 
 
 func log_message(text: String) -> void:
-	var line := Label.new()
-	line.text = text
-	line.add_theme_font_size_override("font_size", 12)
-	line.add_theme_stylebox_override("normal", _box(Color(0.03, 0.04, 0.07, 0.6), Color(0, 0, 0, 0), 0, 6, Vector2(8, 2)))
-	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	line.custom_minimum_size.x = 360
-	line.set_meta("age", 0.0)
-	_log_box.add_child(line)
-	while _log_box.get_child_count() > 4:
-		var oldest := _log_box.get_child(0)
-		_log_box.remove_child(oldest)
-		oldest.queue_free()
+	_log.add_message(text)
+
+
+func toggle_log() -> void:
+	_log.toggle_shown()
 
 
 ## Victory / defeat panel with per-unit stats. `rows`: [{"name", "color",
@@ -878,6 +887,7 @@ func show_replay_bar(shown: bool) -> void:
 ## Button captions from the current key bindings.
 func _update_key_labels() -> void:
 	_guide_button.text = "Units %s" % Keybinds.key_name("unit_guide")
+	_log_button.text = "Log %s" % Keybinds.key_name("log")
 	_end_button.text = "End Turn\n%s" % Keybinds.key_name("end_turn")
 	_move_button.text = "Move\n%s" % Keybinds.key_name("move")
 	set_paused(_pause_button.text.begins_with("Resume"))

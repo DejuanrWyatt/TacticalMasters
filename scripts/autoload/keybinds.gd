@@ -25,6 +25,7 @@ const ACTIONS := [
 	["pause", "Pause", [KEY_P]],
 	["unit_guide", "Unit Guide", [KEY_U]],
 	["chat", "Chat (online)", [KEY_T]],
+	["log", "Show / hide combat log", [KEY_L]],
 	["center_camera", "Center camera on unit", [KEY_C]],
 	["cam_forward", "Camera forward", [KEY_W, KEY_UP]],
 	["cam_back", "Camera back", [KEY_S, KEY_DOWN]],
