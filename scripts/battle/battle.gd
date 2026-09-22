@@ -31,6 +31,8 @@ const MENU_SCENE := "res://scenes/main_menu.tscn"
 ## Team colors (blue/red, or blue/orange with the colorblind setting).
 var TEAM_COLORS: Array = Settings.team_colors()
 const TICK_SECONDS := 1.0 / GameState.TICKS_PER_SECOND
+## Online: how often the host sends its checksum (in ticks).
+const CHECKSUM_EVERY_TICKS := 50
 const NO_POINT := Vector2(-1000, -1000)
 
 enum Mode { NONE, MOVE, ABILITY }
@@ -85,14 +87,22 @@ var _replay_time := 0.0
 var _replay_speed := 1.0
 ## Rule numbers this battle started with (a replay starts from them too).
 var _start_tuning := {}
+## Changed class stats this battle started with.
+var _start_overrides := {}
 ## Battle tick when each unit's last turn ended (turn order timeline).
 var _turn_used_at := {}
+## Online: the host's checksums by tick, and when one was last sent.
+var _host_checksums := {}
+var _last_checksum_tick := 0
 ## Unit whose stats card is open (clicked, not taking orders), or -1.
 var inspected_id := -1
 
 
 func _ready() -> void:
-	state.setup(GameConfig.build_map(), GameConfig.battle_tuning())
+	# Class stats changed in the Unit Guide (the host's online; a replay's own).
+	Jobs.set_overrides(GameConfig.battle_overrides())
+	_start_overrides = Jobs.stat_overrides.duplicate(true)
+	state.setup(GameConfig.build_map(), GameConfig.battle_tuning(), GameConfig.battle_seed())
 	_start_tuning = state.tuning.duplicate()
 	for u in state.units:
 		stats[u.id] = {"dealt": 0, "taken": 0, "healed": 0, "kos": 0}
@@ -138,6 +148,8 @@ func _ready() -> void:
 		Net.command_received.connect(_process_inbox)
 		Net.request_received.connect(_process_requests)
 		Net.request_rejected.connect(_on_request_rejected)
+		Net.checksum_received.connect(_on_checksum_received)
+		Net.out_of_sync.connect(_on_out_of_sync)
 		Net.opponent_left.connect(_on_opponent_left)
 		Net.chat_received.connect(_on_chat_received)
 		Net.rematch_requested.connect(_on_rematch_requested)
@@ -274,6 +286,11 @@ func _process(delta: float) -> void:
 				_submit({"type": "advance", "ticks": mini(ticks, GameState.MAX_ADVANCE)})
 		for team in _ai_teams:
 			_ai_step(delta, team)
+		if GameConfig.mode == "online":
+			if Net.is_host():
+				_send_checksum_if_due()
+			elif not _host_checksums.is_empty():
+				_check_checksums()
 	_update_live_ui()
 
 
@@ -390,6 +407,35 @@ func _update_inspect() -> void:
 		TEAM_COLORS[u.team], state.seconds_left(u))
 
 
+## Draws what the ability would cover: a circle, a line from the unit, or a
+## cone (Jobs.SHAPES).
+func _show_aim_shape(sel: Unit, ab: Dictionary, aim: Dictionary) -> void:
+	var shape := GameState.shape_of(ab)
+	var from := sel.pos
+	match shape:
+		"line", "vector":
+			var along: Vector2 = aim.point - from
+			if along.length() < 0.2:
+				along = sel.facing * maxf(ab.max_range, 1.0)
+			var side := Vector2(-along.y, along.x).normalized() * maxf(ab.aoe, 0.6)
+			board.show_aoe(aim.point, 0.0, aim.ok)
+			board.show_patch(PackedVector2Array([from - side, from + side, from + along + side, from + along - side]), aim.ok)
+		"cone":
+			var facing: Vector2 = (aim.point - from).normalized() if aim.point.distance_to(from) > 0.2 else sel.facing
+			var spread: float = deg_to_rad(ab.get("angle", 60.0)) * 0.5
+			var points := PackedVector2Array([from])
+			for i in 9:
+				points.append(from + facing.rotated(lerpf(-spread, spread, i / 8.0)) * ab.max_range)
+			board.show_aoe(aim.point, 0.0, aim.ok)
+			board.show_patch(points, aim.ok)
+		"global":
+			board.hide_patch()
+			board.show_aoe(sel.pos, 0.0, aim.ok)
+		_:
+			board.hide_patch()
+			board.show_aoe(aim.point, maxf(ab.aoe, GameState.HIT_RADIUS), aim.ok)
+
+
 ## Plays the animation for an ability that just took effect. Returns the
 ## seconds until it lands.
 func _play_ability(caster: Unit, slot: int, target: Vector2, hits: Array) -> float:
@@ -460,7 +506,7 @@ func _process_inbox() -> void:
 		var cmd: Dictionary = Net.inbox.pop_front()
 		var err := state.validate(cmd)
 		if err != "":
-			hud.log_message("Out of sync with the host (%s)." % err)
+			Net.report_out_of_sync("the host played something this game can't: %s" % err)
 			continue
 		_apply(cmd)
 
@@ -481,6 +527,41 @@ func _process_requests() -> void:
 		_apply(cmd)
 
 
+## Host: every few seconds of battle, send where the game stands.
+func _send_checksum_if_due() -> void:
+	if state.tick - _last_checksum_tick < CHECKSUM_EVERY_TICKS:
+		return
+	_last_checksum_tick = state.tick
+	Net.send_checksum(state.tick, state.checksum())
+
+
+## Client: compare the host's checksum with this game's at the same tick.
+func _on_checksum_received(at_tick: int, value: int) -> void:
+	_host_checksums[at_tick] = value
+	if at_tick > state.tick:
+		return  # not there yet; checked when this game reaches that tick
+	_check_checksums()
+
+
+func _check_checksums() -> void:
+	for at_tick in _host_checksums.keys():
+		if at_tick > state.tick:
+			continue
+		if at_tick == state.tick and _host_checksums[at_tick] != state.checksum():
+			Net.report_out_of_sync("the two games no longer match at %.1f s" % (state.tick / 10.0))
+		_host_checksums.erase(at_tick)
+
+
+## The games have drifted apart: stop rather than play on separately.
+func _on_out_of_sync(detail: String) -> void:
+	if state.winner != -1:
+		return
+	paused = true
+	hud.set_paused(true)
+	hud.log_message("Out of sync: %s" % detail)
+	hud.show_game_over("Out of sync\n%s\nThe match can't continue." % detail, [], -1, false)
+
+
 func _on_request_rejected(reason: String) -> void:
 	waiting_for_host = false
 	hud.log_message(reason)
@@ -490,7 +571,7 @@ func _on_request_rejected(reason: String) -> void:
 func _on_opponent_left() -> void:
 	if state.winner == -1:
 		paused = true
-		hud.show_game_over("Opponent disconnected")
+		hud.show_game_over("Opponent disconnected", [], -1, false)
 
 
 # --- Player input ----------------------------------------------------------
@@ -851,6 +932,8 @@ func _on_tuning_changed(values: Dictionary) -> void:
 func _watch_replay() -> void:
 	GameConfig.replay_log = command_log if not replaying else _replay_log
 	GameConfig.replay_tuning = _start_tuning
+	GameConfig.replay_seed = state.seed_value
+	GameConfig.replay_overrides = _start_overrides
 	get_tree().reload_current_scene()
 
 
@@ -952,7 +1035,7 @@ func _update_targeting() -> void:
 		var ab := sel.ability(ability_slot)
 		var aim := _aim()
 		if aim.point != NO_POINT:
-			board.show_aoe(aim.point, maxf(ab.aoe, GameState.HIT_RADIUS), aim.ok)
+			_show_aim_shape(sel, ab, aim)
 		if aim.ok:
 			hud.set_hover(_forecast(sel, ability_slot, aim.point, aim.follow))
 		else:
@@ -1011,12 +1094,13 @@ func _describe_hover() -> String:
 		if t.is_casting():
 			status = "Casting %s (%.1fs)" % [t.casting.name, state.seconds_left(t)]
 		for s in t.statuses:
-			status += "   %s %.0fs" % [Jobs.STATUSES[s.id].name, ceilf(s.ticks / 10.0)]
+			status += "   %s %d turn%s" % [Jobs.STATUSES[s.id].name, s.turns, "" if s.turns == 1 else "s"]
 		var sel := _selected()
 		var dist := "   ·   %.1f m away" % sel.pos.distance_to(t.pos) if sel != null and sel != t else ""
-		return "%s %s   HP %d/%d   %s   Ultimate %d%%   AttPwr %d  MagPwr %d  AttDef %d  MagDef %d  Wits %d  Move %s m  Sight %s m%s" % [
-			GameState.TEAM_NAMES[t.team], t.job_name(), t.hp, t.max_hp(), status, t.ult,
-			t.stat("att"), t.stat("mag"), t.stat("attdef"), t.stat("magdef"), t.stat("wits"), GameState._n(state.move_of(t)), GameState._n(state.sight_of(t)), dist]
+		return "%s %s   HP %d/%d   %s   Ultimate %d%%   Power %d  AttDef %d  MagDef %d  A-Eva %d%%  M-Eva %d%%  Crit %d%%  Wits %d  Move %s m  Sight %s m%s" % [
+			GameState.TEAM_NAMES[t.team], t.job_name(), t.hp, t.max_hp(), status, t.ult, t.stat("power"),
+			t.stat("attdef"), t.stat("magdef"), t.stat("aeva"), t.stat("meva"), t.stat("crit"), t.stat("wits"),
+			GameState._n(state.move_of(t)), GameState._n(state.sight_of(t)), dist]
 	if not _point_seen(hover_point):
 		return "%s   ·   hidden by fog of war" % ground
 	return ground

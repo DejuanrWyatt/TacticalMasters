@@ -44,6 +44,7 @@ var _path_bad: StandardMaterial3D
 var _range_ring: MeshInstance3D
 var _min_ring: MeshInstance3D
 var _aoe_disc: MeshInstance3D
+var _patch: MeshInstance3D
 var _aoe_ok: StandardMaterial3D
 var _aoe_bad: StandardMaterial3D
 
@@ -341,6 +342,31 @@ func _place_ring(ring: MeshInstance3D, center: Vector2, radius: float) -> void:
 
 
 ## Area-of-effect circle at a point; grey when the point isn't a legal target.
+## The patch an ability would cover: a circle, a line from the caster, or a
+## cone. `points` are the corners for a line or cone (in meters).
+func show_patch(points: PackedVector2Array, ok: bool) -> void:
+	if _patch == null:
+		_patch = MeshInstance3D.new()
+		_patch.mesh = ImmediateMesh.new()
+		add_child(_patch)
+	_patch.visible = points.size() >= 3
+	if not _patch.visible:
+		return
+	_patch.material_override = _aoe_ok if ok else _aoe_bad
+	var mesh: ImmediateMesh = _patch.mesh
+	mesh.clear_surfaces()
+	mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in range(1, points.size() - 1):
+		for p in [points[0], points[i], points[i + 1]]:
+			mesh.surface_add_vertex(ground(p) + Vector3(0, 0.09, 0))
+	mesh.surface_end()
+
+
+func hide_patch() -> void:
+	if _patch != null:
+		_patch.visible = false
+
+
 func show_aoe(center: Vector2, radius: float, ok: bool) -> void:
 	_aoe_disc.visible = radius > 0.0
 	if not _aoe_disc.visible:
@@ -359,6 +385,7 @@ func prewarm(center: Vector2) -> void:
 	show_path([center, center + Vector2(1, 0)], true)
 	show_range(center, 1.0, 2.0)
 	show_aoe(center, 1.0, true)
+	show_patch(PackedVector2Array([center, center + Vector2(1, 0), center + Vector2(1, 1)]), true)
 
 
 func clear_targeting() -> void:
@@ -366,3 +393,4 @@ func clear_targeting() -> void:
 	show_path([], true)
 	show_range(Vector2.ZERO, 0.0, 0.0)
 	_aoe_disc.visible = false
+	hide_patch()

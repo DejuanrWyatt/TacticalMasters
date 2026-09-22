@@ -131,12 +131,15 @@ func _build_pages() -> Array:
 			+ "to see the damage forecast before you commit."],
 		["Height, facing and statuses",
 			"[b]Height:[/b] attacking from higher ground deals +10% per level (up to 30%).\n\n"
+			+ "[b]Evasion and critical hits:[/b] every unit has [b]A-Eva[/b] (chance to evade a physical ability) and "
+			+ "[b]M-Eva[/b] (harmful magic), and a [b]Crit[/b] chance that multiplies its damage. A miss shows as MISS.\n\n"
 			+ "[b]Facing:[/b] units face where they last walked or aimed. Hits from the [b]side[/b] deal +10%, from "
 			+ "[b]behind[/b] +25%.\n\n[b]Statuses[/b] show as tags over a unit's head:\n"
-			+ "  [color=#ff8033]BRN Burn[/color]: loses HP every second (from Fire)\n"
-			+ "  [color=#73ff8c]RGN Regen[/color]: recovers HP every second (Chakra, Sanctuary)\n"
+			+ "  [color=#ff8033]BRN Burn[/color]: loses 10% of max HP on each of its turns (Fire)\n"
+			+ "  [color=#73ff8c]RGN Regen[/color]: recovers 10% of max HP on each of its turns (Chakra, Sanctuary)\n"
 			+ "  [color=#80bfff]SLW Slow[/color]: Turn Gauge fills at half speed (Blizzard)\n"
-			+ "  [color=#ffe64d]STN Stun[/color]: can't act, gauge frozen (Shield Bash)\n\n"
+			+ "  [color=#ffe64d]STN Stun[/color]: loses its next turns; its gauge still fills (Shield Bash)\n\n"
+			+ "A status lasts a number of the unit's own [b]turns[/b]: it acts and counts down when that unit's turn comes.\n\n"
 			+ "[b]Fog of war:[/b] you only see what your units can see."],
 		["Knock-outs and winning",
 			"A unit at 0 HP is [b]knocked out[/b]: it lies on the field with a [b]KO[/b] countdown (%d s). " % roundi(tuning.get("ko_seconds", GameState.KO_SECONDS))

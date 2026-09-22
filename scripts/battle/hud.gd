@@ -382,9 +382,9 @@ func show_inspect(u, enemy: bool, title: String, color: Color, seconds: float) -
 	_set_gauge(c.ult, u.ult, 100, "ULT  %d%%" % u.ult, Color(1, 0.95, 0.6) if u.ult >= 100 else Color(0, 0, 0, 0))
 	var move: float = game_state.move_of(u) if game_state != null else float(u.stat("move"))
 	var sight: float = game_state.sight_of(u) if game_state != null else float(u.stat("sight"))
-	_set_text(c.stats, "AttPwr %d   MagPwr %d\nAttDef %d   MagDef %d\nWits %d   Patience %d\nMove %s m   Sight %s m" % [
-		u.stat("att"), u.stat("mag"), u.stat("attdef"), u.stat("magdef"), u.stat("wits"), u.stat("patience"),
-		GameState._n(move), GameState._n(sight)])
+	_set_text(c.stats, "Power %d   AttDef %d   MagDef %d\nA-Eva %d%%   M-Eva %d%%   Crit %d%%\nWits %d   Patience %d\nMove %s m   Sight %s m" % [
+		u.stat("power"), u.stat("attdef"), u.stat("magdef"), u.stat("aeva"), u.stat("meva"), u.stat("crit"),
+		u.stat("wits"), u.stat("patience"), GameState._n(move), GameState._n(sight)])
 	var rows: Array = c.abilities.get_children()
 	while rows.size() < 4:
 		var l := Label.new()
@@ -400,6 +400,10 @@ func show_inspect(u, enemy: bool, title: String, color: Color, seconds: float) -
 		elif u.cooldowns[i] > 0:
 			note = "  (wait %d)" % u.cooldowns[i]
 		_set_text(rows[i], "%s  %s%s" % ["U" if i == 3 else str(i + 1), ab.name, note])
+		var row_icon: String = Jobs.ability_icon_path(u.job_data().abilities[i])
+		if rows[i].get_meta("icon_path", "") != row_icon:
+			rows[i].set_meta("icon_path", row_icon)
+			(rows[i] as Label).add_theme_constant_override("line_spacing", 0)
 		_set_color(rows[i], GOLD if i == 3 and u.ult >= 100 else DIM)
 		if game_state != null:
 			_set_tip(rows[i], "%s\n\n%s" % [ab.desc, game_state.explain_ability(u, i)])
@@ -423,7 +427,11 @@ func _build_action_bar() -> void:
 	_action_bar.add_child(row)
 	_move_button = _action_button(row, move_pressed.emit)
 	for i in 4:
-		_ability_buttons.append(_action_button(row, ability_pressed.emit.bind(i)))
+		var b := _action_button(row, ability_pressed.emit.bind(i))
+		b.add_theme_constant_override("icon_max_width", 22)
+		b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+		_ability_buttons.append(b)
 	_end_button = _action_button(row, end_turn_pressed.emit)
 	_end_button.toggle_mode = false
 
@@ -845,9 +853,9 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 	_set_gauge(_ult_bar, u.ult, 100, "ULT  %d%%" % u.ult, Color(1, 0.95, 0.6) if u.ult >= 100 else Color(0, 0, 0, 0))
 	var move: float = game_state.move_of(u) if game_state != null else float(u.stat("move"))
 	var sight: float = game_state.sight_of(u) if game_state != null else float(u.stat("sight"))
-	_set_text(_stats, "ATK %d  MAG %d  DEF %d  MDF %d\nWIT %d  MOV %sm  PAT %d  SGT %sm" % [
-		u.stat("att"), u.stat("mag"), u.stat("attdef"), u.stat("magdef"),
-		u.stat("wits"), GameState._n(move), u.stat("patience"), GameState._n(sight)])
+	_set_text(_stats, "POW %d  DEF %d  MDF %d  CRIT %d%%\nAEV %d%%  MEV %d%%  WIT %d  MOV %sm  PAT %d  SGT %sm" % [
+		u.stat("power"), u.stat("attdef"), u.stat("magdef"), u.stat("crit"),
+		u.stat("aeva"), u.stat("meva"), u.stat("wits"), GameState._n(move), u.stat("patience"), GameState._n(sight)])
 	if game_state != null:
 		_set_tip(_subtitle, game_state.explain_countdown(u) + "\n" + game_state.explain_turn(u))
 		_set_tip(_tg_bar, game_state.explain_turn(u))
@@ -864,6 +872,13 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 		var ab: Dictionary = u.ability(i)
 		var b := _ability_buttons[i]
 		var details: Array[String] = [Keybinds.key_name("ability_%d" % (i + 1))]
+		var kind: String = ab.get("kind", "active")
+		if kind == "passive" or kind == "aura":
+			details = [Jobs.KINDS[kind].name.to_upper()]
+		elif kind == "toggle":
+			details.append("ON" if u.toggled.get(i, false) else "OFF")
+		elif kind == "channeled":
+			details.append("%d turns" % int(ab.get("channel", 2)))
 		if i == 3 and u.ult < 100:
 			details.append("ULT %d%%" % u.ult)
 		elif u.cooldowns[i] > 0:
@@ -871,11 +886,19 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 		elif ab.cast > 0.0:
 			details.append("%.1fs" % (game_state.cast_seconds(ab) if game_state != null else ab.cast))
 		_set_text(b, "%s\n%s" % [ab.name, "  ·  ".join(details)])
+		var icon_path: String = Jobs.ability_icon_path(u.job_data().abilities[i])
+		if b.get_meta("icon_path", "") != icon_path:
+			b.set_meta("icon_path", icon_path)
+			b.icon = _icon(icon_path)
 		# A ready ultimate stands out in gold.
 		_set_color(b, GOLD if i == 3 and u.ult >= 100 else TEXT)
 		var range_text := "self" if ab.max_range == 0 else "range %.1f-%.1f m" % [ab.min_range, ab.max_range]
 		var cast_text := "instant" if ab.cast == 0.0 else "cast %.1fs" % (game_state.cast_seconds(ab) if game_state != null else ab.cast)
-		var tip := "%s\n%s%s · %s" % [ab.desc, range_text, ", radius %.1f m" % ab.aoe if ab.aoe > 0 else "", cast_text]
+		var shape: String = GameState.shape_of(ab)
+		var tip := "%s\n%s · %s%s · %s" % [ab.desc, Jobs.KINDS[ab.get("kind", "active")].name, Jobs.SHAPES[shape].name,
+			(", radius %.1f m" % ab.aoe) if ab.aoe > 0 and shape == "circle" else "", cast_text]
+		tip = tip.replace(" · ", "  ·  ")
+		tip += "\n" + range_text
 		if game_state != null:
 			tip += "\n\n" + game_state.explain_ability(u, i)
 		_set_tip(b, tip)

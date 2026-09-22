@@ -91,7 +91,8 @@ func _ready() -> void:
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.modulate = Color(1, 1, 1, 0.7)
 	help.text = ("Design a class in Astra: tag every ability \"class:<id>\", give one Passive ability the tag \"profile\" with "
-		+ "parameters hp, att, mag, attdef, magdef, wits, move, patience and sight, and tag the 4 abilities \"slot:1\" to \"slot:4\" "
+		+ "parameters hp, attdef, magdef, wits, move, patience and sight (power, aeva, meva and crit are optional), tag it \"role:tank\" "
+		+ "(or damage / support / special, or a pair like tank/support), and tag the 4 abilities \"slot:1\" to \"slot:4\" "
 		+ "(4 = ultimate). Export the library as JSON into the classes folder, then Reload. See README for every parameter.")
 	content.add_child(help)
 	var buttons := HBoxContainer.new()
@@ -283,8 +284,9 @@ func _list_classes() -> void:
 		var names: Array[String] = []
 		for ab_id in job.abilities:
 			names.append(Jobs.ability(ab_id).name)
-		l.text = "%s  (%s)   HP %d  AttPwr %d  MagPwr %d  AttDef %d  MagDef %d  Wits %d  Move %d  Patience %d  Sight %d   ·   %s" % [
-			job.name, id, job.hp, job.att, job.mag, job.attdef, job.magdef, job.wits, job.move, job.patience, job.sight, ", ".join(names)]
+		l.text = "%s  (%s)   HP %d  Power %d  AttDef %d  MagDef %d  A-Eva %d%%  M-Eva %d%%  Crit %d%%  Wits %d  Move %d  Patience %d  Sight %d   ·   %s" % [
+			job.name, id, job.hp, job.power, job.attdef, job.magdef, job.aeva, job.meva, job.crit,
+			job.wits, job.move, job.patience, job.sight, ", ".join(names)]
 		l.add_theme_color_override("font_color", job.color.lightened(0.3))
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_classes.add_child(l)
