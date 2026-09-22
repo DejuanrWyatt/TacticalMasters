@@ -1,5 +1,7 @@
 extends Node3D
-## 3D stand-in for one unit: a team-colored body with a job-colored hat,
+## One unit on the battlefield: an animated 3D character (KayKit Adventurers,
+## CC0, in assets/characters; a colored capsule if the model is missing) with
+## its job's gear and a team-colored cape and ring,
 ## three bars over its head (HP, TG, Ultimate) that always face the camera,
 ## a status line above them (READY countdown or TG %), a name label, and a
 ## ring at its feet while it's ready (white when selected).
@@ -23,6 +25,25 @@ const TG_READY_COLOR := Color(1.0, 0.85, 0.3)
 const ULT_COLOR := Color(0.95, 0.55, 0.15)
 const ULT_FULL_COLOR := Color(1.0, 0.95, 0.6)
 const CAST_COLOR := Color(0.75, 0.4, 1.0)
+const CHARACTER_DIR := "res://assets/characters/"
+## Characters are about 2.5 units tall; this makes them ~1.3 m.
+const CHARACTER_SCALE := 0.52
+## Per job: model, the gear meshes to show (others are hidden), animations,
+## and an optional tint for the whole model.
+const JOB_LOOKS := {
+	"knight": {"model": "Knight.glb", "gear": ["1H_Sword", "Badge_Shield"],
+		"attack": "1H_Melee_Attack_Chop", "shoot": "1H_Melee_Attack_Slice_Diagonal", "cast": "Block"},
+	"squire": {"model": "Rogue.glb", "gear": ["Knife", "Knife_Offhand"],
+		"attack": "Dualwield_Melee_Attack_Stab", "shoot": "Throw", "cast": "Cheer"},
+	"archer": {"model": "Rogue_Hooded.glb", "gear": ["2H_Crossbow"],
+		"attack": "2H_Ranged_Shoot", "shoot": "2H_Ranged_Shoot", "cast": "2H_Ranged_Aiming"},
+	"monk": {"model": "Barbarian.glb", "gear": [], "idle": "Unarmed_Idle",
+		"attack": "Unarmed_Melee_Attack_Punch_A", "shoot": "Unarmed_Melee_Attack_Kick", "cast": "Cheer"},
+	"black_mage": {"model": "Mage.glb", "gear": ["2H_Staff"], "tint": Color(0.42, 0.34, 0.55),
+		"attack": "1H_Melee_Attack_Chop", "shoot": "Spellcast_Shoot", "cast": "Spellcast_Long"},
+	"white_mage": {"model": "Mage.glb", "gear": ["1H_Wand", "Spellbook_open"], "tint": Color(1.35, 1.3, 1.2),
+		"attack": "1H_Melee_Attack_Chop", "shoot": "Spellcast_Shoot", "cast": "Spellcast_Raise"},
+}
 
 var unit_id := -1
 var _model: Node3D
@@ -42,6 +63,11 @@ var _move_tween: Tween
 var _down := false
 var _gone := false
 var _tags: Array[Label3D] = []
+## The animated character (null when using the capsule fallback).
+var _character: Node3D
+var _anim: AnimationPlayer
+var _look: Dictionary = {}
+var _team_ring: MeshInstance3D
 
 
 func setup(unit, team_color: Color) -> void:
@@ -49,14 +75,90 @@ func setup(unit, team_color: Color) -> void:
 	_team_color = team_color
 	_model = Node3D.new()
 	add_child(_model)
+	_body_material = _material(team_color, false)
+	if not _load_character(unit.job, team_color):
+		_build_capsule(unit, team_color)
 
+	# Thin team-colored ring always under the unit.
+	var team_torus := TorusMesh.new()
+	team_torus.inner_radius = 0.36
+	team_torus.outer_radius = 0.42
+	_team_ring = MeshInstance3D.new()
+	_team_ring.mesh = team_torus
+	_team_ring.position.y = 0.03
+	_team_ring.material_override = _material(team_color, true)
+	add_child(_team_ring)
+	_finish_setup(unit, team_color)
+
+
+## Loads the job's animated character; false if the model isn't available.
+func _load_character(job: String, team_color: Color) -> bool:
+	_look = JOB_LOOKS.get(job, {})
+	if _look.is_empty() or not ResourceLoader.exists(CHARACTER_DIR + _look.model):
+		return false
+	var scene: PackedScene = load(CHARACTER_DIR + _look.model)
+	_character = scene.instantiate()
+	# The models face +Z; units face -Z (look_at's forward).
+	_character.rotation.y = PI
+	_character.scale = Vector3.ONE * CHARACTER_SCALE
+	_model.add_child(_character)
+	var tint: Color = _look.get("tint", Color.WHITE)
+	for mesh in _character.find_children("*", "MeshInstance3D", true, false):
+		var mi := mesh as MeshInstance3D
+		var parent_name := String(mi.get_parent().name)
+		# Only this job's gear is shown in the hands.
+		if parent_name.begins_with("handslot"):
+			mi.visible = _look.gear.has(String(mi.name))
+		if String(mi.name).ends_with("_Cape"):
+			_tint_mesh(mi, team_color.lerp(Color.WHITE, 0.15))
+		elif tint != Color.WHITE:
+			_tint_mesh(mi, tint)
+	var players := _character.find_children("*", "AnimationPlayer", true, false)
+	if not players.is_empty():
+		_anim = players[0]
+		for name in [_idle_anim(), "Walking_A", "Running_A", "Spellcasting", "Lie_Idle"]:
+			if _anim.has_animation(name):
+				_anim.get_animation(name).loop_mode = Animation.LOOP_LINEAR
+		_anim.animation_finished.connect(_on_animation_finished)
+		_play(_idle_anim())
+	return true
+
+
+## Multiplies a mesh's own colors by `color` (keeps its texture).
+static func _tint_mesh(mi: MeshInstance3D, color: Color) -> void:
+	for i in mi.get_surface_override_material_count():
+		var base := mi.get_active_material(i)
+		if base is StandardMaterial3D:
+			var m := (base as StandardMaterial3D).duplicate() as StandardMaterial3D
+			m.albedo_color = m.albedo_color * color
+			mi.set_surface_override_material(i, m)
+
+
+func _idle_anim() -> String:
+	return _look.get("idle", "Idle")
+
+
+func _play(name: String, blend := 0.2) -> void:
+	if _anim != null and _anim.has_animation(name):
+		_anim.play(name, blend)
+
+
+## One-shot actions (attacks, hits...) return to idle when they finish;
+## the knocked-out pose stays.
+func _on_animation_finished(name: StringName) -> void:
+	if _down:
+		return
+	if String(name) != _idle_anim() and not (_move_tween and _move_tween.is_running()):
+		_play(_idle_anim())
+
+
+func _build_capsule(unit, team_color: Color) -> void:
 	var capsule := CapsuleMesh.new()
 	capsule.radius = 0.28
 	capsule.height = 1.1
 	var body_mesh := MeshInstance3D.new()
 	body_mesh.mesh = capsule
 	body_mesh.position.y = 0.55
-	_body_material = _material(team_color, false)
 	body_mesh.material_override = _body_material
 	_model.add_child(body_mesh)
 
@@ -79,6 +181,8 @@ func setup(unit, team_color: Color) -> void:
 	hat.material_override = _material(unit.job_data().color, false)
 	_model.add_child(hat)
 
+
+func _finish_setup(unit, team_color: Color) -> void:
 	var torus := TorusMesh.new()
 	torus.inner_radius = 0.38
 	torus.outer_radius = 0.5
@@ -283,16 +387,21 @@ func walk(points: Array[Vector3]) -> float:
 	if total == 0.0:
 		_move_tween.kill()
 		return 0.0
-	# A little bob while walking.
-	var bob := create_tween().set_loops(maxi(1, ceili(total / 0.3)))
-	bob.tween_property(_model, "position:y", 0.08, 0.15)
-	bob.tween_property(_model, "position:y", 0.0, 0.15)
+	if _anim != null:
+		_play("Walking_A")
+		_move_tween.tween_callback(_play.bind(_idle_anim()))
+	else:
+		# A little bob while walking.
+		var bob := create_tween().set_loops(maxi(1, ceili(total / 0.3)))
+		bob.tween_property(_model, "position:y", 0.08, 0.15)
+		bob.tween_property(_model, "position:y", 0.0, 0.15)
 	return total
 
 
 ## Steps toward a target and back (melee swing).
 func lunge(target: Vector3, distance := 0.5) -> void:
 	face(target)
+	_play(_look.get("attack", ""), 0.1)
 	var dir := (target - global_position)
 	dir.y = 0
 	dir = dir.normalized() * distance
@@ -304,16 +413,34 @@ func lunge(target: Vector3, distance := 0.5) -> void:
 ## Crouches and springs up (spell casting).
 func cast(target: Vector3) -> void:
 	face(target)
+	if _anim != null:
+		_play(_look.get("shoot", ""), 0.1)
+		return
 	var t := create_tween()
 	t.tween_property(_model, "scale", Vector3(1.1, 0.85, 1.1), 0.12)
 	t.tween_property(_model, "scale", Vector3(0.95, 1.15, 0.95), 0.12)
 	t.tween_property(_model, "scale", Vector3.ONE, 0.15)
 
 
+## Charging a spell with a cast time: the job's casting pose.
+func channel() -> void:
+	if _anim != null:
+		_play(_look.get("cast", ""), 0.15)
+	else:
+		cast(global_position + _model.global_basis.z * -1.0)
+
+
 ## Flashes and shakes after `delay` seconds.
 func flinch(delay: float, color := Color(1, 0.25, 0.2)) -> void:
 	var t := create_tween()
 	t.tween_interval(delay)
+	if _anim != null:
+		# Damage plays the hit reaction; healing just a light shake.
+		if color.r > color.g:
+			t.tween_callback(_play.bind("Hit_A", 0.05))
+		t.tween_property(_model, "position:x", 0.06, 0.05)
+		t.tween_property(_model, "position:x", 0.0, 0.08)
+		return
 	t.tween_property(_body_material, "albedo_color", color, 0.05)
 	t.parallel().tween_property(_model, "position:x", 0.12, 0.05)
 	t.tween_property(_model, "position:x", -0.12, 0.06)
@@ -334,8 +461,12 @@ func knock_out(delay: float) -> void:
 	_bars.visible = false
 	for tag in _tags:
 		tag.visible = false
+	_team_ring.visible = false
 	var t := create_tween()
 	t.tween_interval(delay + 0.2)
+	if _anim != null:
+		t.tween_callback(_play.bind("Death_A", 0.1))
+		return
 	t.tween_property(_model, "rotation:x", -PI / 2, 0.35).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	t.parallel().tween_property(_body_material, "albedo_color", _team_color.darkened(0.5), 0.35)
 
@@ -343,8 +474,13 @@ func knock_out(delay: float) -> void:
 ## Revived: stands back up after `delay` seconds.
 func revive(delay: float) -> void:
 	_down = false
+	_team_ring.visible = true
 	var t := create_tween()
 	t.tween_interval(delay)
+	if _anim != null:
+		t.tween_callback(_play.bind("Lie_StandUp", 0.1))
+		t.tween_callback(func(): _bars.visible = true)
+		return
 	t.tween_property(_model, "rotation:x", 0.0, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	t.parallel().tween_property(_body_material, "albedo_color", _team_color, 0.4)
 	t.tween_callback(func(): _bars.visible = true)

@@ -87,7 +87,7 @@ func _initialize() -> void:
 		battle._refresh()
 		battle.cam.focus_on(battle.board.ground(st.units[1].pos))
 		battle.cam._target_distance = 10.0
-		for i in 60:
+		for i in 200:
 			await process_frame
 	if OS.get_cmdline_user_args().has("guide"):
 		battle.hud.toggle_guide()

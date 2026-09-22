@@ -131,7 +131,7 @@ func play(ability_id: String, caster: UnitView, from: Vector3, target: Vector3, 
 ## A glowing, pulsing circle and rising motes around a caster for the whole
 ## cast time.
 func charge(caster: UnitView, seconds: float) -> void:
-	caster.cast(caster.global_position + Vector3(0, 0, -1))
+	caster.channel()
 	var torus := TorusMesh.new()
 	torus.inner_radius = 0.55
 	torus.outer_radius = 0.68
