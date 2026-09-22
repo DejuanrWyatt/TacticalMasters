@@ -55,7 +55,14 @@ deterministic, so the replay is exact), with ×1 / ×2 / ×4 speed.
   turn every 20 s, and slower units less often. A unit with a full gauge is
   **READY** and can act right away. Several units, from both sides, can be ready at the same time, and both players act at once.
 - **Each ready unit has its own countdown**: 8 s + 2 s × **Patience** (18-24 s). It appears on the unit's chip in the turn order bar
-  (`READY 12`) and above the unit's head. If it runs out, that unit's turn is lost and its TG resets to 0.
+  (`READY 12s`) and above the unit's head. If it runs out, that unit's turn is lost and its TG resets to 0.
+- **Turn order bars** (top of the screen): one bar per team, Blue above Red. Each unit's chip slides along its
+  team's bar toward the READY zone at the left end, placed by the seconds until it's ready. The last seconds get the most
+  room, and ticks mark 1, 3, 5, 10, 20 and 30 s. A chip grows as its turn gets closer and is full size once READY.
+  The seconds until ready show on the chip only for 3 s after the unit's turn ends and in the last 3 s before it's ready.
+- **Stats cards:** click a unit that isn't taking orders (an enemy, or an ally that isn't READY), or its chip, to see
+  its stats, gauges, statuses and abilities. Allies show on the left, enemies on the right. Click it again, click the
+  ground or press × to close. Hover the numbers for their calculations.
 - On its turn a unit can **walk once** (up to its Move in meters, around water, cliffs and enemies) and **use one ability**,
   in either order. Skipping one keeps some TG, so the next turn comes sooner.
 - **Bars over every unit's head:** HP (green, red when low), TG (blue, gold when READY), Ultimate (orange, pale gold when full).

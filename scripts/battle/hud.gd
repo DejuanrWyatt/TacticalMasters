@@ -25,6 +25,7 @@ signal replay_speed_changed(speed: float)
 signal chat_submitted(text: String)
 signal chat_toggled(open: bool)
 signal tuning_changed(values: Dictionary)
+signal inspect_closed
 
 const GameState = preload("res://scripts/core/game_state.gd")
 const Jobs = preload("res://scripts/core/jobs.gd")
@@ -35,6 +36,22 @@ const HowToPlay = preload("res://scripts/ui/how_to_play.gd")
 const DevTools = preload("res://scripts/ui/dev_tools.gd")
 
 const TEXT := Color(0.92, 0.94, 1.0)
+## Turn order timeline: two parallel bars, one per team. Chips slide along
+## their team's bar toward its READY zone at the left end, placed by seconds
+## until ready; far-off turns are drawn smaller.
+## Room kept at the top right for the Units / Pause / Menu buttons.
+const TIMELINE_RIGHT_MARGIN := 240.0
+const TICK_SECONDS := [0, 1, 3, 5, 10, 20, 30]
+const TIMELINE_SECONDS := 30.0  # the far (right) end of the bar
+## Each team's row: its bar, with overlapping chips dropped SUBLANE_OFFSET lower.
+const ROW_HEIGHT := 62.0
+const SUBLANE_OFFSET := 20.0
+const READY_PER_LANE := 3
+const CHIP_SIZE := Vector2(92, 38)
+const CHIP_MIN_SCALE := 0.6
+const TRACK_START := READY_PER_LANE * (CHIP_SIZE.x + 4) + 10
+## Time until ready shows this long after a turn ends and before it's ready.
+const SHOW_TIME_SECONDS := 3.0
 const DIM := Color(0.92, 0.94, 1.0, 0.55)
 const GOLD := Color(1.0, 0.82, 0.35)
 const URGENT := Color(1.0, 0.38, 0.32)
@@ -43,8 +60,14 @@ const PANEL_BG := Color(0.06, 0.08, 0.12, 0.78)
 const LOG_SECONDS := 6.0
 
 var _root: Control
-var _chips_box: HBoxContainer
+var _timeline: Control
+var _team_bars: Array[ColorRect] = []
+var _bar_ticks: Array[ColorRect] = []
+var _bars_width := -1.0
 var _chips: Array[Button] = []
+var _chip_for := {}
+## Stats cards for an inspected unit: "left" (allies) and "right" (enemies).
+var _inspect := {}
 var _chip_styles := {}
 var _guide_button: Button
 var _pause_button: Button
@@ -120,14 +143,52 @@ static func _box(bg: Color, border := Color(0, 0, 0, 0), border_width := 0, radi
 # --- Layout ----------------------------------------------------------------
 
 func _build_turn_order() -> void:
-	var strip := HBoxContainer.new()
-	strip.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	strip.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	strip.offset_top = 8
-	strip.add_theme_constant_override("separation", 4)
-	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_root.add_child(strip)
-	_chips_box = strip
+	# Across the top, from the left edge to the corner buttons.
+	_timeline = Control.new()
+	_timeline.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_timeline.offset_left = 12
+	_timeline.offset_right = -TIMELINE_RIGHT_MARGIN
+	_timeline.offset_top = 8
+	_timeline.offset_bottom = 8 + 2 * ROW_HEIGHT
+	_timeline.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(_timeline)
+	# One bar per team (Blue on top, Red below), each running from its READY
+	# zone to the far end, with ticks at 1, 3, 5, 10, 20 and 30 s.
+	for team in 2:
+		var line := ColorRect.new()
+		line.color = Color(1, 1, 1, 0.14)
+		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_timeline.add_child(line)
+		_team_bars.append(line)
+		for sec in TICK_SECONDS:
+			var tick := ColorRect.new()
+			tick.color = GOLD if sec == 0 else Color(1, 1, 1, 0.22)
+			tick.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			tick.set_meta("seconds", sec)
+			tick.set_meta("team", team)
+			_timeline.add_child(tick)
+			_bar_ticks.append(tick)
+
+
+## Places the bars and ticks for the timeline's current width.
+func _layout_bars() -> void:
+	_bars_width = _timeline.size.x
+	for team in 2:
+		var y := team * ROW_HEIGHT + CHIP_SIZE.y * 0.5
+		_team_bars[team].position = Vector2(TRACK_START, y - 1.5)
+		_team_bars[team].size = Vector2(maxf(0.0, _bars_width - TRACK_START), 3)
+	for tick in _bar_ticks:
+		var sec: float = tick.get_meta("seconds")
+		var y: float = tick.get_meta("team") * ROW_HEIGHT + CHIP_SIZE.y * 0.5
+		tick.position = Vector2(_bar_x(sec) - 1, y - (9 if sec == 0 else 5))
+		tick.size = Vector2(2, 18 if sec == 0 else 10)
+
+
+## Where on the bar a turn this many seconds away sits. A square-root scale
+## gives the last seconds before READY the most room.
+func _bar_x(seconds: float) -> float:
+	var frac := sqrt(clampf(seconds / TIMELINE_SECONDS, 0.0, 1.0))
+	return TRACK_START + frac * (_bars_width - TRACK_START - CHIP_SIZE.x * CHIP_MIN_SCALE)
 
 
 func _build_corner_buttons(can_pause: bool) -> void:
@@ -191,7 +252,7 @@ func _build_log() -> void:
 	_log_box = VBoxContainer.new()
 	_log_box.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	_log_box.offset_left = 12
-	_log_box.offset_top = 60
+	_log_box.offset_top = 16 + 2 * ROW_HEIGHT  # below the turn order bars
 	_log_box.custom_minimum_size.x = 360
 	_log_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_log_box.add_theme_constant_override("separation", 2)
@@ -226,6 +287,112 @@ func _build_unit_card() -> void:
 	# Hovering these shows how their numbers are calculated.
 	for part in [_title, _subtitle, _hp_bar, _tg_bar, _ult_bar, _stats]:
 		part.mouse_filter = Control.MOUSE_FILTER_PASS
+
+
+## A stats card for a clicked unit that isn't taking orders: allies on the
+## left, enemies on the right.
+func _build_inspect_card(right: bool) -> Dictionary:
+	var card := PanelContainer.new()
+	card.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT if right else Control.PRESET_CENTER_LEFT)
+	card.grow_horizontal = Control.GROW_DIRECTION_BEGIN if right else Control.GROW_DIRECTION_END
+	card.grow_vertical = Control.GROW_DIRECTION_BOTH
+	if right:
+		card.offset_right = -10
+	else:
+		card.offset_left = 10
+	card.offset_top = -20
+	card.custom_minimum_size.x = 240
+	card.visible = false
+	_root.add_child(card)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 4)
+	card.add_child(box)
+	var head := HBoxContainer.new()
+	box.add_child(head)
+	var title := Label.new()
+	title.add_theme_font_size_override("font_size", 15)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.mouse_filter = Control.MOUSE_FILTER_PASS
+	head.add_child(title)
+	var close := Button.new()
+	close.text = "×"
+	close.flat = true
+	close.focus_mode = Control.FOCUS_NONE
+	close.tooltip_text = "Close"
+	close.pressed.connect(inspect_closed.emit)
+	head.add_child(close)
+	var sub := Label.new()
+	sub.add_theme_font_size_override("font_size", 11)
+	sub.add_theme_color_override("font_color", DIM)
+	sub.mouse_filter = Control.MOUSE_FILTER_PASS
+	box.add_child(sub)
+	var hp := _gauge(box, Color(0.35, 0.82, 0.4))
+	var tg := _gauge(box, Color(0.4, 0.65, 1.0))
+	var ult := _gauge(box, Color(1.0, 0.7, 0.2))
+	var stats := Label.new()
+	stats.add_theme_font_size_override("font_size", 12)
+	stats.mouse_filter = Control.MOUSE_FILTER_PASS
+	box.add_child(stats)
+	var abilities := VBoxContainer.new()
+	abilities.add_theme_constant_override("separation", 1)
+	box.add_child(abilities)
+	for part in [hp, tg, ult]:
+		part.mouse_filter = Control.MOUSE_FILTER_PASS
+	return {"card": card, "title": title, "sub": sub, "hp": hp, "tg": tg, "ult": ult, "stats": stats, "abilities": abilities}
+
+
+## Shows a unit's stats on the left (ally) or right (enemy) card; null hides both.
+func show_inspect(u, enemy: bool, title: String, color: Color, seconds: float) -> void:
+	if _inspect.is_empty():
+		_inspect = {"left": _build_inspect_card(false), "right": _build_inspect_card(true)}
+	var side := "right" if enemy else "left"
+	for key in _inspect:
+		_inspect[key].card.visible = u != null and key == side
+	if u == null:
+		return
+	var c: Dictionary = _inspect[side]
+	_set_text(c.title, title)
+	_set_color(c.title, color.lightened(0.4))
+	var sub := "KNOCKED OUT" if u.is_ko() else ("READY · %ds left" % ceili(seconds) if u.ready else "Ready in %.1fs" % seconds)
+	if u.is_casting():
+		sub += "  ·  casting %s" % u.casting.name
+	for s in u.statuses:
+		sub += "  ·  %s" % Jobs.STATUSES[s.id].tag
+	_set_text(c.sub, sub)
+	_set_gauge(c.hp, u.hp, u.max_hp(), "HP  %d / %d" % [u.hp, u.max_hp()])
+	if u.ready:
+		_set_gauge(c.tg, 1.0, 1.0, "TG  READY", GOLD)
+	else:
+		_set_gauge(c.tg, u.tg, GameState.TG_MAX, "TG  %d%%" % GameState.tg_percent(u))
+	_set_gauge(c.ult, u.ult, 100, "ULT  %d%%" % u.ult, Color(1, 0.95, 0.6) if u.ult >= 100 else Color(0, 0, 0, 0))
+	var move: float = game_state.move_of(u) if game_state != null else float(u.stat("move"))
+	var sight: float = game_state.sight_of(u) if game_state != null else float(u.stat("sight"))
+	_set_text(c.stats, "AttPwr %d   MagPwr %d\nAttDef %d   MagDef %d\nWits %d   Patience %d\nMove %s m   Sight %s m" % [
+		u.stat("att"), u.stat("mag"), u.stat("attdef"), u.stat("magdef"), u.stat("wits"), u.stat("patience"),
+		GameState._n(move), GameState._n(sight)])
+	var rows: Array = c.abilities.get_children()
+	while rows.size() < 4:
+		var l := Label.new()
+		l.add_theme_font_size_override("font_size", 11)
+		l.mouse_filter = Control.MOUSE_FILTER_PASS
+		c.abilities.add_child(l)
+		rows.append(l)
+	for i in 4:
+		var ab: Dictionary = u.ability(i)
+		var note := ""
+		if i == 3:
+			note = "  (ULT %d%%)" % u.ult if u.ult < 100 else "  (ULT ready)"
+		elif u.cooldowns[i] > 0:
+			note = "  (wait %d)" % u.cooldowns[i]
+		_set_text(rows[i], "%s  %s%s" % ["U" if i == 3 else str(i + 1), ab.name, note])
+		_set_color(rows[i], GOLD if i == 3 and u.ult >= 100 else DIM)
+		if game_state != null:
+			_set_tip(rows[i], "%s\n\n%s" % [ab.desc, game_state.explain_ability(u, i)])
+	if game_state != null:
+		_set_tip(c.tg, game_state.explain_turn(u))
+		_set_tip(c.sub, game_state.explain_countdown(u) + "\n" + game_state.explain_turn(u))
+		_set_tip(c.stats, "%s\n%s\n%s%s" % [game_state.explain_move(u), game_state.explain_sight(u),
+			game_state.explain_countdown(u), _buff_text(u)])
 
 
 func _build_action_bar() -> void:
@@ -448,44 +615,92 @@ func _process(delta: float) -> void:
 
 ## Turn order strip. Each entry: {"id", "name", "color", "ready", "seconds",
 ## "casting", "cast_seconds", "selected", "hidden"}, already in display order.
+## A turn order chip for one unit (clicking it selects or inspects the unit).
+func _new_chip(unit_id: int) -> Button:
+	var chip := Button.new()
+	chip.focus_mode = Control.FOCUS_NONE
+	chip.size = CHIP_SIZE
+	chip.clip_text = true
+	chip.add_theme_font_size_override("font_size", 11)
+	chip.pressed.connect(func(): chip_pressed.emit(chip.get_meta("unit_id")))
+	var edge := ColorRect.new()
+	edge.name = "Edge"
+	edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	edge.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
+	edge.offset_right = 4
+	edge.offset_top = 3
+	edge.offset_bottom = -3
+	chip.add_child(edge)
+	_timeline.add_child(chip)
+	_chips.append(chip)
+	chip.set_meta("unit_id", unit_id)
+	_chip_for[unit_id] = chip
+	return chip
+
+
 func set_turn_order(entries: Array) -> void:
-	while _chips.size() < entries.size():
-		var chip := Button.new()
-		chip.focus_mode = Control.FOCUS_NONE
-		chip.custom_minimum_size = Vector2(88, 38)
-		chip.add_theme_font_size_override("font_size", 11)
-		chip.pressed.connect(func(): chip_pressed.emit(chip.get_meta("unit_id")))
-		var edge := ColorRect.new()
-		edge.name = "Edge"
-		edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		edge.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
-		edge.offset_right = 4
-		edge.offset_top = 3
-		edge.offset_bottom = -3
-		chip.add_child(edge)
-		_chips_box.add_child(chip)
-		_chips.append(chip)
-	for i in _chips.size():
-		var chip := _chips[i]
-		chip.visible = i < entries.size()
-		if not chip.visible:
+
+	# Where each chip goes: READY units in the zone at the left end, the rest
+	# along the bar by seconds until ready (closer = further left and bigger).
+	if _timeline.size.x != _bars_width:
+		_layout_bars()
+	var targets := {}
+	var lane_ends := [[-INF, -INF], [-INF, -INF]]
+	var ready_count := [0, 0]
+	for e in entries:
+		var team: int = e.team
+		var row_top := team * ROW_HEIGHT
+		# The bar takes the team's color (from its chips).
+		_team_bars[team].color = Color(e.color, 0.45)
+		if e.ready:
+			var slot: int = ready_count[team]
+			ready_count[team] += 1
+			targets[e.id] = {"pos": Vector2((slot % READY_PER_LANE) * (CHIP_SIZE.x + 4),
+				row_top + mini(slot / READY_PER_LANE, 1) * SUBLANE_OFFSET), "scale": 1.0}
 			continue
-		var e: Dictionary = entries[i]
-		chip.set_meta("unit_id", e.id)
+		var scale_now := lerpf(1.0, CHIP_MIN_SCALE, clampf(e.seconds / TIMELINE_SECONDS, 0.0, 1.0))
+		var x := _bar_x(e.seconds)
+		# On its team's bar; a chip that would cover the one before it (entries
+		# come soonest first) drops a little below it.
+		var lane := 0 if lane_ends[team][0] <= x or lane_ends[team][0] <= lane_ends[team][1] else 1
+		lane_ends[team][lane] = x + CHIP_SIZE.x * scale_now + 2
+		var y := row_top + lane * SUBLANE_OFFSET + CHIP_SIZE.y * (1.0 - scale_now) * 0.5
+		targets[e.id] = {"pos": Vector2(x, y), "scale": scale_now}
+
+	var blend := minf(1.0, get_process_delta_time() * 12.0)
+	for chip in _chips:
+		chip.visible = targets.has(chip.get_meta("unit_id"))
+	for e in entries:
+		var target: Dictionary = targets[e.id]
+		# Each unit keeps its own chip, which glides rather than jumps
+		# (e.g. from READY back to the end of the bar).
+		var chip: Button = _chip_for.get(e.id)
+		if chip == null:
+			chip = _new_chip(e.id)
+			chip.position = target.pos
+			chip.scale = Vector2.ONE * target.scale
+		else:
+			chip.position = chip.position.lerp(target.pos, blend)
+			chip.scale = chip.scale.lerp(Vector2.ONE * target.scale, blend)
+		chip.z_index = 20 if e.ready else roundi(10.0 * target.scale)
 		var status: String
 		var look := "normal"
 		if e.hidden:
-			status = "?"
+			status = ""
 		elif e.ready:
-			status = "READY %d" % ceili(e.seconds)
+			# Time left before its Patience runs out.
+			status = "READY %ds" % ceili(e.seconds)
 			if e.casting != "":
 				status += " · %.1fs" % e.cast_seconds
 			look = "urgent" if e.seconds <= 5.0 else "ready"
 		elif e.casting != "":
 			status = "%s %.1fs" % [e.casting, e.cast_seconds]
 			look = "casting"
-		else:
+		elif e.seconds <= SHOW_TIME_SECONDS or e.get("since_turn", INF) <= SHOW_TIME_SECONDS:
+			# The time until ready shows only just after a turn and just before the next.
 			status = "%.1fs" % e.seconds
+		else:
+			status = ""
 		if e.selected:
 			look = "selected"
 		_set_text(chip, "%s\n%s" % [e.name, status])

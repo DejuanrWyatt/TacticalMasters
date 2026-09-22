@@ -85,6 +85,10 @@ var _replay_time := 0.0
 var _replay_speed := 1.0
 ## Rule numbers this battle started with (a replay starts from them too).
 var _start_tuning := {}
+## Battle tick when each unit's last turn ended (turn order timeline).
+var _turn_used_at := {}
+## Unit whose stats card is open (clicked, not taking orders), or -1.
+var inspected_id := -1
 
 
 func _ready() -> void:
@@ -116,6 +120,7 @@ func _ready() -> void:
 	add_child(hud)
 	hud.build(GameConfig.mode != "online")
 	hud.tuning_changed.connect(_on_tuning_changed)
+	hud.inspect_closed.connect(func(): inspected_id = -1)
 	hud.move_pressed.connect(_toggle_move)
 	hud.ability_pressed.connect(_select_ability)
 	hud.end_turn_pressed.connect(_on_end_turn_pressed)
@@ -311,6 +316,8 @@ func _apply(cmd: Dictionary) -> void:
 	if cmd.type == "move":
 		walk_path = state.path_to(actor, state.node_of(cmd.to))
 	var result := state.apply(cmd)
+	for id in result.turn_ended:
+		_turn_used_at[id] = state.tick
 
 	if cmd.type == "move":
 		var points: Array[Vector3] = []
@@ -365,6 +372,22 @@ func _apply(cmd: Dictionary) -> void:
 	if (cmd.type != "advance" or not result.became_ready.is_empty() or not result.turn_ended.is_empty()
 			or not result.resolved.is_empty()):
 		_refresh()
+
+
+## The stats card of a clicked unit: allies (of the unit you're ordering, or
+## of your team) on the left, enemies on the right.
+func _update_inspect() -> void:
+	var u := state.get_unit(inspected_id) if inspected_id != -1 else null
+	if u != null and ((not u.is_alive() and not u.is_ko()) or not _is_seen(u) or u.id == selected_id):
+		u = null
+	if u == null:
+		inspected_id = -1
+		hud.show_inspect(null, false, "", Color.WHITE, 0.0)
+		return
+	var sel := _selected()
+	var ally_team := sel.team if sel != null else (viewer_team if viewer_team != -1 else 0)
+	hud.show_inspect(u, u.team != ally_team, "%s %s" % [GameState.TEAM_NAMES[u.team], u.job_name()],
+		TEAM_COLORS[u.team], state.seconds_left(u))
 
 
 ## Plays the animation for an ability that just took effect. Returns the
@@ -554,6 +577,11 @@ func _on_click() -> void:
 	var clicked := state.get_unit(hover_unit_id)
 	if clicked != null and clicked != sel and _commandable(clicked):
 		_select_unit(clicked.id)
+	elif clicked != null and clicked != sel and _is_seen(clicked):
+		# Anyone else: open (or close) its stats card.
+		inspected_id = -1 if inspected_id == clicked.id else clicked.id
+	elif clicked == null:
+		inspected_id = -1
 
 
 ## Where the selected ability would land for the current mouse position:
@@ -601,6 +629,8 @@ func _on_chip_pressed(unit_id: int) -> void:
 		_select_unit(unit_id)
 	elif _is_seen(u):
 		cam.focus_on(board.ground(u.pos))
+		if u.id != selected_id:
+			inspected_id = u.id
 
 
 func _select_unit(id: int) -> void:
@@ -840,17 +870,20 @@ func _replay_step(delta: float) -> void:
 
 ## Everything that changes every frame: countdowns, bars, turn order.
 func _update_live_ui() -> void:
+	_update_inspect()
 	var entries := []
 	for u in state.schedule():
 		var seen := _is_seen(u)
 		entries.append({
 			"id": u.id,
+			"team": u.team,
 			"name": u.job_name() if seen else "???",
 			"color": (TEAM_COLORS[u.team] as Color).lightened(0.35),
 			"ready": u.ready,
 			"casting": u.casting.name if u.is_casting() and seen else "",
 			"cast_seconds": state.cast_seconds_left(u),
 			"seconds": state.seconds_left(u),
+			"since_turn": (state.tick - _turn_used_at[u.id]) / float(GameState.TICKS_PER_SECOND) if _turn_used_at.has(u.id) else INF,
 			"tip": "" if not _is_seen(u) else "%s\n%s" % [state.explain_turn(u), state.explain_countdown(u)],
 			"selected": u.id == selected_id,
 			"hidden": not seen,

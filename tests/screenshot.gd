@@ -9,7 +9,8 @@ extends SceneTree
 ## "-- out.png 0 victory": a fast-replayed AI battle ending on the victory screen.
 ## "-- out.png devtools": Developer Tools (prints the slider tooltips too).
 ## Add "timemage" to put the imported Time Mage first on Blue, and "tips" to
-## print the selected unit's calculation tooltips.
+## print the selected unit's calculation tooltips; "inspect <unit id>" opens
+## that unit's stats card.
 
 func _initialize() -> void:
 	await process_frame
@@ -99,6 +100,11 @@ func _initialize() -> void:
 		battle.cam.focus_on(battle.board.ground(st.units[1].pos))
 		battle.cam._target_distance = 10.0
 		for i in 200:
+			await process_frame
+	if args.has("inspect"):
+		# Open a unit's stats card: "inspect <unit id>" (0-3 Blue, 4-7 Red).
+		battle.inspected_id = args[args.find("inspect") + 1].to_int()
+		for i in 20:
 			await process_frame
 	if args.has("tips") and battle._selected() != null:
 		var hud = battle.hud
