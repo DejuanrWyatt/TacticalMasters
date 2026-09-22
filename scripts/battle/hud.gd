@@ -45,18 +45,20 @@ const TEXT := Color(0.92, 0.94, 1.0)
 const TIMELINE_RIGHT_MARGIN := 310.0
 const TICK_SECONDS := [0, 1, 3, 5, 10, 20, 30]
 const TIMELINE_SECONDS := 30.0  # the far (right) end of the bar
-## Each team's row: a line of chips with the team's bar just below it.
-## Chips never stack: crowded ones are pushed along the bar, and a dot on
-## the bar marks each unit's exact time.
-const ROW_HEIGHT := 48.0
+## Each team's row: its bar, with the icon chips sitting on it at each
+## unit's time. Icons that come close together merge into one framed group,
+## side by side around the group's average time (each still clickable).
+const ROW_HEIGHT := 42.0
+## Icons closer than this (in pixels) join a group.
+const MERGE_DISTANCE := 4.0
 const READY_SLOTS := 4
 ## Chips are uniform squares: the class icon, with a small time badge.
 const CHIP_SIZE := Vector2(36, 36)
 const CHIP_GAP := 3.0
 const CHIP_MIN_SCALE := 0.75
 const TRACK_START := READY_SLOTS * (CHIP_SIZE.x + CHIP_GAP) + 10
-## Height of a team's bar line within its row.
-const BAR_Y := CHIP_SIZE.y + 5
+## Height of a team's bar line within its row (chips are centered on it).
+const BAR_Y := CHIP_SIZE.y * 0.5 + 2
 ## Time until ready shows this long after a turn ends and before it's ready.
 const SHOW_TIME_SECONDS := 3.0
 const DIM := Color(0.92, 0.94, 1.0, 0.55)
@@ -68,6 +70,9 @@ const PANEL_BG := Color(0.06, 0.08, 0.12, 0.78)
 var _root: Control
 var _timeline: Control
 var _team_bars: Array[ColorRect] = []
+## Frames behind merged groups of chips (reused), under the chips.
+var _frame_layer: Control
+var _frames: Array[Panel] = []
 var _bar_ticks: Array[ColorRect] = []
 var _bars_width := -1.0
 var _chips: Array[Button] = []
@@ -176,6 +181,9 @@ func _build_turn_order() -> void:
 			tick.set_meta("team", team)
 			_timeline.add_child(tick)
 			_bar_ticks.append(tick)
+	_frame_layer = Control.new()
+	_frame_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_timeline.add_child(_frame_layer)
 
 
 ## Places the bars and ticks for the timeline's current width.
@@ -196,7 +204,7 @@ func _layout_bars() -> void:
 ## gives the last seconds before READY the most room.
 func _bar_x(seconds: float) -> float:
 	var frac := sqrt(clampf(seconds / TIMELINE_SECONDS, 0.0, 1.0))
-	return TRACK_START + frac * (_bars_width - TRACK_START - CHIP_SIZE.x * CHIP_MIN_SCALE - 4)
+	return TRACK_START + frac * (_bars_width - TRACK_START - CHIP_SIZE.x * 0.5)
 
 
 func _build_corner_buttons(can_pause: bool) -> void:
@@ -661,12 +669,6 @@ func _new_chip(unit_id: int) -> Button:
 	_chips.append(chip)
 	chip.set_meta("unit_id", unit_id)
 	_chip_for[unit_id] = chip
-	# The unit's exact spot on its bar.
-	var dot := ColorRect.new()
-	dot.size = Vector2(6, 6)
-	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_timeline.add_child(dot)
-	chip.set_meta("dot", dot)
 	return chip
 
 
@@ -681,35 +683,55 @@ func set_turn_order(entries: Array) -> void:
 	var on_bar := [[], []]
 	for e in entries:
 		var team: int = e.team
+		var bar_y := team * ROW_HEIGHT + BAR_Y
 		# The bar takes the team's color (from its chips).
 		_team_bars[team].color = Color(e.color, 0.45)
 		if e.ready:
 			var slot: int = ready_count[team]
 			ready_count[team] += 1
-			targets[e.id] = {"pos": Vector2(mini(slot, READY_SLOTS - 1) * (CHIP_SIZE.x + CHIP_GAP), team * ROW_HEIGHT),
-				"scale": 1.0, "dot": -1.0}
+			targets[e.id] = {"pos": Vector2(mini(slot, READY_SLOTS - 1) * (CHIP_SIZE.x + CHIP_GAP), bar_y - CHIP_SIZE.y * 0.5),
+				"scale": 1.0}
 			continue
 		var scale_now := lerpf(1.0, CHIP_MIN_SCALE, clampf(e.seconds / TIMELINE_SECONDS, 0.0, 1.0))
-		var x := _bar_x(e.seconds)
-		targets[e.id] = {"pos": Vector2(x, team * ROW_HEIGHT + CHIP_SIZE.y * (1.0 - scale_now)),
-			"scale": scale_now, "dot": x}
+		var h := CHIP_SIZE.y * scale_now
+		targets[e.id] = {"pos": Vector2(0, bar_y - h * 0.5), "scale": scale_now, "x": _bar_x(e.seconds)}
 		on_bar[team].append(e.id)
-	# Chips on a bar never overlap: each is pushed right past the one before it
-	# (entries come soonest first), then back left if that runs off the end.
+
+	# Group icons that would touch (entries come soonest first, so left to
+	# right), merging again until no two groups touch. A group sits centered
+	# on the average time of its units.
+	var groups: Array = []
 	var end := _bars_width
 	for team in 2:
-		var ids: Array = on_bar[team]
-		var right_edge := -INF
-		for id in ids:
+		var team_groups: Array = []
+		for id in on_bar[team]:
 			var t: Dictionary = targets[id]
-			t.pos.x = maxf(t.pos.x, right_edge + CHIP_GAP)
-			right_edge = t.pos.x + CHIP_SIZE.x * t.scale
-		var left_edge := INF
-		for i in range(ids.size() - 1, -1, -1):
-			var t: Dictionary = targets[ids[i]]
-			var w: float = CHIP_SIZE.x * t.scale
-			t.pos.x = minf(t.pos.x, minf(end, left_edge - CHIP_GAP) - w)
-			left_edge = t.pos.x
+			team_groups.append({"ids": [id], "center": t.x, "width": CHIP_SIZE.x * t.scale})
+		var merged := true
+		while merged:
+			merged = false
+			for i in team_groups.size() - 1:
+				var a: Dictionary = team_groups[i]
+				var b: Dictionary = team_groups[i + 1]
+				if a.center + a.width * 0.5 + MERGE_DISTANCE > b.center - b.width * 0.5:
+					var ids: Array = a.ids + b.ids
+					var width := -CHIP_GAP
+					var total := 0.0
+					for id in ids:
+						width += CHIP_SIZE.x * targets[id].scale + CHIP_GAP
+						total += targets[id].x
+					team_groups[i] = {"ids": ids, "center": total / ids.size(), "width": width}
+					team_groups.remove_at(i + 1)
+					merged = true
+					break
+		for g in team_groups:
+			var center := clampf(g.center, TRACK_START + g.width * 0.5, end - g.width * 0.5)
+			var x: float = center - g.width * 0.5
+			for id in g.ids:
+				targets[id].pos.x = x
+				x += CHIP_SIZE.x * targets[id].scale + CHIP_GAP
+			if g.ids.size() > 1:
+				groups.append(g.ids)
 
 	var blend := minf(1.0, get_process_delta_time() * 12.0)
 	for chip in _chips:
@@ -726,10 +748,6 @@ func set_turn_order(entries: Array) -> void:
 		else:
 			chip.position = chip.position.lerp(target.pos, blend)
 			chip.scale = chip.scale.lerp(Vector2.ONE * target.scale, blend)
-		var dot: ColorRect = chip.get_meta("dot")
-		dot.visible = target.dot >= 0.0
-		dot.color = e.color
-		dot.position = Vector2(target.dot - 3.0, e.team * ROW_HEIGHT + BAR_Y - 3.0)
 		var status: String
 		var look := "normal"
 		var badge_color := TEXT
@@ -777,6 +795,29 @@ func set_turn_order(entries: Array) -> void:
 			for state_name in ["normal", "hover", "pressed"]:
 				chip.add_theme_stylebox_override(state_name, style)
 			(chip.get_node("Edge") as ColorRect).color = e.color
+	_place_group_frames(groups)
+
+
+## A frame around each merged group, fitted to its chips as they glide.
+func _place_group_frames(groups: Array) -> void:
+	while _frames.size() < groups.size():
+		var frame := Panel.new()
+		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frame.add_theme_stylebox_override("panel", _box(Color(0.03, 0.04, 0.07, 0.75), Color(1, 1, 1, 0.25), 1, 7))
+		_frame_layer.add_child(frame)
+		_frames.append(frame)
+	for i in _frames.size():
+		_frames[i].visible = i < groups.size()
+		if i >= groups.size():
+			continue
+		var rect := Rect2()
+		for id in groups[i]:
+			var chip: Button = _chip_for[id]
+			var r := Rect2(chip.position, chip.size * chip.scale)
+			rect = r if rect.size == Vector2.ZERO else rect.merge(r)
+		rect = rect.grow(3.0)
+		_frames[i].position = rect.position
+		_frames[i].size = rect.size
 
 
 ## Shows the selected unit. `blocked[i]` is "" when ability i is usable.

@@ -60,8 +60,9 @@ deterministic, so the replay is exact), with ×1 / ×2 / ×4 speed.
 - **Turn order bars** (top of the screen): one bar per team, Blue above Red. Each unit's chip slides along its
   team's bar toward the READY zone at the left end, placed by the seconds until it's ready. Each chip is a uniform
   square with the unit's **class icon**; its name and any spell being cast are in its tooltip, and a small badge shows
-  the time (gold READY countdown, purple cast, or white time until ready). Chips never stack: when
-  turns are close together, chips are pushed along the bar, and a small dot on the bar marks each unit's exact time. The last seconds get the most
+  the time (gold READY countdown, purple cast, or white time until ready). The icons sit right on the bar at each
+  unit's time. When two or more come close together they merge into one framed group, side by side around their average
+  time; each icon in a group can still be clicked on its own.
   room, and ticks mark 1, 3, 5, 10, 20 and 30 s. A chip grows as its turn gets closer and is full size once READY.
   The seconds until ready show on the chip for 3 s after the unit's turn ends, in the last 3 s before it's ready,
   and while the mouse is over the chip.

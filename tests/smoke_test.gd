@@ -25,6 +25,7 @@ func _initialize() -> void:
 	await _test_dev_tools()
 	await _test_cpu_vs_cpu()
 	await _test_log_window()
+	await _test_turn_order_groups()
 	await _test_replay_scene(replay_log)
 	print("SMOKE TEST %s (%d failure(s))" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
@@ -609,6 +610,46 @@ func _test_log_window() -> void:
 		f.store_string(saved_cfg)
 	else:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(LogWindow.SAVE_PATH))
+
+
+## Turn order bars: icons sit on their team's bar; close ones merge into one
+## framed group side by side (each still its own button), far ones don't.
+func _test_turn_order_groups() -> void:
+	var hud = load("res://scripts/battle/hud.gd").new()
+	root.add_child(hud)
+	hud.build(true)
+	await process_frame
+	var entry := func(id: int, team: int, seconds: float) -> Dictionary:
+		return {"id": id, "team": team, "job": "knight", "title": "Blue Knight", "name": "Knight",
+			"color": Color(0.5, 0.7, 1.0), "ready": false, "casting": "", "cast_seconds": 0.0,
+			"seconds": seconds, "since_turn": INF, "tip": "", "selected": false, "hidden": false}
+	var entries := [entry.call(0, 0, 6.0), entry.call(1, 0, 6.2), entry.call(2, 0, 25.0), entry.call(3, 1, 6.1)]
+	for i in 60:  # let the chips glide into place
+		hud.set_turn_order(entries)
+		await process_frame
+	var a: Button = hud._chip_for[0]
+	var b: Button = hud._chip_for[1]
+	var far: Button = hud._chip_for[2]
+	var red: Button = hud._chip_for[3]
+	var a_rect := Rect2(a.position, a.size * a.scale)
+	var b_rect := Rect2(b.position, b.size * b.scale)
+	var shown := 0
+	for f in hud._frames:
+		shown += 1 if f.visible else 0
+	_check(not a_rect.intersects(b_rect) and absf(a.position.y - b.position.y) < 2.0 and shown == 1,
+		"close icons merge into one framed group, side by side")
+	_check(hud._frames[0].get_rect().encloses(a_rect) and hud._frames[0].get_rect().encloses(b_rect)
+		and not hud._frames[0].get_rect().intersects(Rect2(far.position, far.size * far.scale)),
+		"the group frame holds both icons and not a far one")
+	_check(red.position.y > a.position.y + 20.0, "each team's icons sit on their own bar")
+	var bar_y: float = hud.BAR_Y
+	_check(absf(a.position.y + a.size.y * a.scale.y * 0.5 - bar_y) < 1.0, "icons sit centered on the bar")
+	var pressed := []
+	hud.chip_pressed.connect(func(id: int): pressed.append(id))
+	a.pressed.emit()
+	b.pressed.emit()
+	_check(pressed == [0, 1], "icons in a group can still be clicked separately")
+	hud.queue_free()
 
 
 ## Developer Tools: sliders, saved values and formula tooltips.
