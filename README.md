@@ -19,7 +19,7 @@ godot --headless --export-release "Windows Desktop" build/TacticalMasters.exe
 
 (or **Project → Export** in the editor). The result is a single ~115 MB `build/TacticalMasters.exe` with everything
 embedded; copy it anywhere and double-click to play. Add `-- autostart` on the command line to jump straight into a
-battle vs the computer. Its log is in `%APPDATA%\Godotpp_userdata\Tactical Masters\logs\godot.log`.
+battle vs the computer. Its log is in `%APPDATA%\Godot\app_userdata\Tactical Masters\logs\godot.log`.
 
 ## Controls
 
