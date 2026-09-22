@@ -47,8 +47,17 @@ click an action, then press a key. If another action already uses that key, the 
   If the caster is defeated mid-cast, the spell fizzles.
 - **Ultimate:** ability 4 unlocks when the Ultimate bar is full. The bar fills when the unit uses abilities, gets hit,
   and a little each time it becomes ready.
-- **Fog of war:** you only see what is within the **Sight** radius (meters) of your units. Hidden enemies show as `???`.
+- **Fog of war:** you only see what is within the **Sight** radius (meters) of your units, and only where terrain doesn't
+  block the view (hills hide units behind them). Hidden enemies show as `???`.
 - **Height:** units can climb at most 2 levels at once. Attacking from higher ground adds 10% damage per level (max 30%).
+- **Facing:** units face where they last walked or aimed. Hits from the **side deal +10%**, from **behind +25%**.
+- **Line of sight:** ranged abilities (reach beyond 1.8 m) need a clear line over the terrain; the targeting hint says
+  "No line of sight" when a hill is in the way.
+- **Status effects** (tags over the unit's head): **Burn** (from Fire, −3% max HP per second), **Regen** (from Chakra and
+  Sanctuary, +3% per second), **Slow** (from Blizzard, Turn Gauge fills at half speed), **Stun** (from Shield Bash, can't
+  act and the Turn Gauge is frozen).
+- **Knock-outs:** a unit at 0 HP is **knocked out** for 12 s (it lies on the field with a `KO` countdown). The White
+  Mage's **Raise** (replaces Staff Strike) revives it with 30% HP; otherwise it's gone. KO'd units don't count as alive.
 
 Damage = (power stat × ability power × 2 × height bonus − AttDef (physical) or MagDef (magic)) × 0.5, minimum 1.
 There is no randomness. The final × 0.5 is `DAMAGE_MULTIPLIER` in `game_state.gd`, the quickest dial for overall damage.
@@ -70,11 +79,11 @@ Move and Sight are in meters. The map is 24 × 24 m.
 | Job | 1 | 2 | 3 | 4 (Ultimate) |
 |---|---|---|---|---|
 | Squire | Attack | Throw Stone | Focus (AttPwr up) | Brave Slash |
-| Knight | Attack | Shield Bash (TG −30%) | Guard (defense up) | Holy Blade (area, 1 s) |
+| Knight | Attack | Shield Bash (TG −30%, Stun) | Guard (defense up) | Holy Blade (area, 1 s) |
 | Archer | Bow Shot | Aimed Shot (1 s) | Pin Shot (TG −40%) | Arrow Rain (area, 2 s) |
-| Monk | Punch | Wave Fist | Chakra (area heal) | Earth Slash (area around self, 1 s) |
-| Black Mage | Staff Strike | Fire (1 s) | Blizzard (area, 2 s) | Meteor (large area, 4 s) |
-| White Mage | Staff Strike | Cure (1 s) | Haste (TG +50%, 1.5 s) | Sanctuary (large area heal, 3 s) |
+| Monk | Punch | Wave Fist | Chakra (area heal + Regen) | Earth Slash (area around self, 1 s) |
+| Black Mage | Staff Strike | Fire (Burn, 1 s) | Blizzard (area, Slow, 2 s) | Meteor (large area, 4 s) |
+| White Mage | Raise (revive, 2 s) | Cure (1 s) | Haste (TG +50%, 1.5 s) | Sanctuary (large area heal + Regen, 3 s) |
 
 Abilities without a time are instant. The in-game **Unit Guide** lists every number, including each ability's
 damage against any job you pick.

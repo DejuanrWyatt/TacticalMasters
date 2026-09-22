@@ -5,7 +5,9 @@ extends Node3D
 ## area-of-effect circles. Tile collision bodies let the battle raycast
 ## clicks to a ground point.
 
-const HEIGHT_STEP := 0.7
+const GameState = preload("res://scripts/core/game_state.gd")
+
+const HEIGHT_STEP := GameState.LEVEL_HEIGHT
 const BASE_DEPTH := 0.6
 const WATER_TOP := -0.25
 const GROUND_COLORS := [

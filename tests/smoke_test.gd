@@ -100,6 +100,128 @@ func _test_rules() -> void:
 	s2.apply(ult)
 	_check(archer.ult == 0, "ultimate empties the meter")
 	_test_casting()
+	_test_facing()
+	_test_statuses()
+	_test_ko_and_raise()
+	_test_line_of_sight()
+
+
+## Stages a ready attacker and a target at given spots.
+func _stage(state: GameState, attacker, target, attacker_pos: Vector2, target_pos: Vector2) -> void:
+	attacker.pos = attacker_pos
+	target.pos = target_pos
+	_force_ready(state, attacker)
+
+
+func _test_facing() -> void:
+	var dealt := {}
+	for side in ["front", "side", "back"]:
+		var s := _new_state()
+		var knight = s.units[0]
+		var foe = s.units[4]
+		_stage(s, knight, foe, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
+		# The attacker is on the foe's -x side: "front" means the foe faces -x.
+		foe.facing = {"front": Vector2(-1, 0), "side": Vector2(0, 1), "back": Vector2(1, 0)}[side]
+		var hp: int = foe.hp
+		s.apply({"type": "ability", "unit": knight.id, "serial": knight.serial, "slot": 0, "target": foe.pos})
+		dealt[side] = hp - foe.hp
+	_check(dealt.back > dealt.side and dealt.side > dealt.front, "back > side > front damage (%s)" % dealt)
+	var s2 := _new_state()
+	var u = _wait_for_ready(s2)
+	var to := Vector2(u.pos.x + 2.0, u.pos.y)
+	s2.apply({"type": "move", "unit": u.id, "serial": u.serial, "to": to})
+	_check(u.facing.x > 0.5, "a unit faces the way it walked")
+
+
+func _test_statuses() -> void:
+	# Fire burns: HP keeps dropping each second, then it wears off.
+	var s := _new_state()
+	var mage = s.units[2]
+	var foe = s.units[4]
+	_stage(s, mage, foe, Vector2(10.25, 10.25), Vector2(10.25, 14.25))
+	s.apply({"type": "ability", "unit": mage.id, "serial": mage.serial, "slot": 1, "target": foe.pos, "follow": foe.id})
+	s.apply({"type": "advance", "ticks": 10})  # 1 s cast
+	_check(foe.has_status("burn"), "Fire leaves Burn")
+	var hp_after_hit: int = foe.hp
+	s.apply({"type": "advance", "ticks": 20})
+	_check(foe.hp < hp_after_hit, "Burn deals damage over time")
+	s.apply({"type": "advance", "ticks": 50})
+	_check(not foe.has_status("burn"), "Burn wears off after 6 s")
+
+	# Slow halves Turn Gauge filling; Stun freezes it and blocks orders.
+	var s2 := _new_state()
+	var u = s2.units[0]
+	u.tg = 0
+	var normal: int = s2.ticks_to_ready(u)
+	s2._add_status(u, "slow", 30.0)
+	_check(s2.ticks_to_ready(u) > normal * 1.8, "Slow roughly halves Turn Gauge speed")
+	u.statuses.clear()
+	var tg_before: int = u.tg
+	s2._add_status(u, "stun", 1.0)
+	s2.apply({"type": "advance", "ticks": 5})
+	_check(u.tg == tg_before, "Stun freezes the Turn Gauge")
+	u.statuses.clear()
+	_force_ready(s2, u)
+	s2._add_status(u, "stun", 2.0)
+	_check(s2.validate({"type": "end_turn", "unit": u.id, "serial": u.serial}) != "", "a stunned unit can't take orders")
+
+	# Shield Bash stuns.
+	var s3 := _new_state()
+	var knight = s3.units[0]
+	foe = s3.units[4]
+	_stage(s3, knight, foe, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
+	s3.apply({"type": "ability", "unit": knight.id, "serial": knight.serial, "slot": 1, "target": foe.pos})
+	_check(foe.has_status("stun"), "Shield Bash stuns")
+
+
+func _test_ko_and_raise() -> void:
+	var s := _new_state()
+	var knight = s.units[0]
+	var healer = s.units[3]  # White Mage
+	var foe = s.units[4]
+	_stage(s, foe, knight, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
+	knight.hp = 1
+	s.apply({"type": "ability", "unit": foe.id, "serial": foe.serial, "slot": 0, "target": knight.pos})
+	_check(knight.is_ko() and not knight.is_alive(), "a unit at 0 HP is knocked out, not gone")
+	_check(not s.team_units(0).has(knight), "KO'd units don't count as alive")
+	healer.pos = Vector2(10.25, 13.25)
+	_force_ready(s, healer)
+	var raise := {"type": "ability", "unit": healer.id, "serial": healer.serial, "slot": 0, "target": knight.pos, "follow": knight.id}
+	_check(s.validate(raise) == "", "Raise can target a knocked-out ally (%s)" % s.validate(raise))
+	s.apply(raise)
+	s.apply({"type": "advance", "ticks": 20})  # 2 s cast
+	_check(knight.is_alive() and knight.hp == roundi(knight.max_hp() * 0.3), "Raise revives with 30% HP")
+
+	# Without help, a KO'd unit is gone after KO_SECONDS.
+	var s2 := _new_state()
+	var victim = s2.units[1]
+	var hitter = s2.units[4]
+	_stage(s2, hitter, victim, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
+	victim.hp = 1
+	s2.apply({"type": "ability", "unit": hitter.id, "serial": hitter.serial, "slot": 0, "target": victim.pos})
+	for i in roundi(GameState.KO_SECONDS * GameState.TICKS_PER_SECOND) + 1:
+		s2.apply({"type": "advance", "ticks": 1})
+	_check(not victim.is_ko() and not victim.is_alive(), "a KO'd unit is gone after %ds" % GameState.KO_SECONDS)
+
+	# Snapshots copy the new state.
+	var s3 := _new_state()
+	s3._add_status(s3.units[1], "burn", 3.0)
+	var snap = s3.snapshot()
+	_check(snap.units[1].has_status("burn") and snap.units[1].facing == s3.units[1].facing, "snapshot copies statuses and facing")
+
+
+func _test_line_of_sight() -> void:
+	var s := _new_state()
+	# Row y=1 m crosses the level-3 hill (x 8-12 m) between two level-1 spots.
+	_check(not s.has_line_of_sight(Vector2(2.75, 1.25), Vector2(15.25, 1.25)), "a tall hill blocks line of sight")
+	# Row y=7 m is flat ground.
+	_check(s.has_line_of_sight(Vector2(2.75, 7.25), Vector2(15.25, 7.25)), "flat ground doesn't block line of sight")
+	var archer = s.units[1]
+	var foe = s.units[4]
+	_stage(s, archer, foe, Vector2(2.75, 1.25), Vector2(11.25, 1.75))
+	foe.pos = Vector2(14.75, 1.25)
+	_check(s.validate({"type": "ability", "unit": archer.id, "serial": archer.serial, "slot": 0, "target": foe.pos}) != "",
+		"can't shoot through a hill")
 
 
 ## Makes a unit ready right now, for staging a situation.

@@ -93,6 +93,12 @@ func play(ability_id: String, caster: UnitView, from: Vector3, target: Vector3, 
 			pillar(target, HOLY, radius, 0.1)
 			burst(target + up, radius, HOLY, 0.5, 0.25)
 			return 0.25
+		"raise":
+			caster.cast(target)
+			pillar(target, HOLY, 0.8, 0.05)
+			sparkles(target, 0.8, HOLY, 0.15)
+			ring(target + Vector3(0, 0.1, 0), 1.4, HOLY, 0.6, 0.2)
+			return 0.3
 		"cure":
 			caster.cast(target)
 			sparkles(target, 0.6, HEAL, 0.15)

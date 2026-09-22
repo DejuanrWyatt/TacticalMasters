@@ -26,9 +26,27 @@ extends RefCounted
 ##   cast       seconds from starting the ability until it takes effect (0 = instant).
 ##              Move before casting: a unit can't move after starting a cast (only after
 ##              instant abilities). Its TG doesn't fill until the cast is done.
-##   target     "enemy" or "ally" (allies include yourself)
+##   target     "enemy", "ally" (allies include yourself) or "ko_ally" (a knocked-out ally)
 ##   tg         optional change (in %) to each affected unit's Turn Gauge
 ##   buffs      optional [{"stat", "amount", "turns"}] applied to each affected unit
+##   status     optional {"id", "seconds"}: a timed status (see STATUSES) on each unit hit
+##
+## effect "revive" brings a knocked-out ally back with `power` × max HP.
+
+## Timed status effects (they tick in real time, not turns).
+##   per_second  HP change per second as a fraction of max HP (negative = damage)
+##   tg_factor   multiplier on Turn Gauge filling (0 = frozen)
+##   no_orders   the unit can't be given orders while it lasts
+const STATUSES := {
+	"burn": {"name": "Burn", "tag": "BRN", "color": Color(1.0, 0.5, 0.2), "per_second": -0.03,
+		"desc": "Loses 3% of max HP every second."},
+	"regen": {"name": "Regen", "tag": "RGN", "color": Color(0.45, 1.0, 0.55), "per_second": 0.03,
+		"desc": "Recovers 3% of max HP every second."},
+	"slow": {"name": "Slow", "tag": "SLW", "color": Color(0.5, 0.75, 1.0), "tg_factor": 0.5,
+		"desc": "Turn Gauge fills at half speed."},
+	"stun": {"name": "Stun", "tag": "STN", "color": Color(1.0, 0.9, 0.3), "tg_factor": 0.0, "no_orders": true,
+		"desc": "Can't act and Turn Gauge is frozen (a READY countdown keeps running)."},
+}
 
 const DEFAULT_ROSTER := ["knight", "archer", "black_mage", "white_mage"]
 
@@ -67,7 +85,7 @@ const JOBS := {
 		"name": "White Mage", "color": Color(0.95, 0.95, 0.95),
 		"hp": 65, "att": 5, "mag": 15, "attdef": 5, "magdef": 13,
 		"wits": 8, "move": 6, "patience": 8, "sight": 10,
-		"abilities": ["staff", "cure", "haste", "sanctuary"],
+		"abilities": ["raise", "cure", "haste", "sanctuary"],
 	},
 }
 
@@ -83,8 +101,9 @@ const ABILITIES := {
 	"brave_slash": {"name": "Brave Slash", "desc": "ULTIMATE: a devastating blow.",
 		"effect": "damage", "scale": "att", "power": 2.6, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "enemy"},
 	# Knight
-	"shield_bash": {"name": "Shield Bash", "desc": "Hit and stagger an enemy, lowering its TG by 30%.",
-		"effect": "damage", "scale": "att", "power": 1.3, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 2, "cast": 0.0, "target": "enemy", "tg": -30},
+	"shield_bash": {"name": "Shield Bash", "desc": "Hit and stun an enemy for 1.5 s, lowering its TG by 30%.",
+		"effect": "damage", "scale": "att", "power": 1.3, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 2, "cast": 0.0, "target": "enemy", "tg": -30,
+		"status": {"id": "stun", "seconds": 1.5}},
 	"guard": {"name": "Guard", "desc": "Raise your AttDef by 8 and MagDef by 6 for 2 turns.",
 		"effect": "support", "scale": "att", "power": 0.0, "min_range": 0.0, "max_range": 0.0, "aoe": 0.0, "cooldown": 3, "cast": 0.0, "target": "ally",
 		"buffs": [{"stat": "attdef", "amount": 8, "turns": 2}, {"stat": "magdef", "amount": 6, "turns": 2}]},
@@ -104,23 +123,29 @@ const ABILITIES := {
 		"effect": "damage", "scale": "att", "power": 1.2, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "enemy"},
 	"wave_fist": {"name": "Wave Fist", "desc": "A shockwave that hits an enemy 2-5 m away.",
 		"effect": "damage", "scale": "att", "power": 1.0, "min_range": 2.0, "max_range": 5.0, "aoe": 0.0, "cooldown": 1, "cast": 0.0, "target": "enemy"},
-	"chakra": {"name": "Chakra", "desc": "Heal yourself and allies within 2.5 m (uses AttPwr).",
-		"effect": "heal", "scale": "att", "power": 0.9, "min_range": 0.0, "max_range": 0.0, "aoe": 2.5, "cooldown": 3, "cast": 0.0, "target": "ally"},
+	"chakra": {"name": "Chakra", "desc": "Heal yourself and allies within 2.5 m, and give them Regen for 5 s (uses AttPwr).",
+		"effect": "heal", "scale": "att", "power": 0.9, "min_range": 0.0, "max_range": 0.0, "aoe": 2.5, "cooldown": 3, "cast": 0.0, "target": "ally",
+		"status": {"id": "regen", "seconds": 5.0}},
 	"earth_slash": {"name": "Earth Slash", "desc": "ULTIMATE: shatter the ground, hitting every enemy within 3.5 m.",
 		"effect": "damage", "scale": "att", "power": 1.8, "min_range": 0.0, "max_range": 0.0, "aoe": 3.5, "cooldown": 0, "cast": 1.0, "target": "enemy"},
 	# Mages
 	"staff": {"name": "Staff Strike", "desc": "A weak strike to an enemy within reach.",
 		"effect": "damage", "scale": "att", "power": 0.6, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "enemy"},
-	"fire": {"name": "Fire", "desc": "Hurl a fireball at an enemy 2-8 m away.",
-		"effect": "damage", "scale": "mag", "power": 1.4, "min_range": 2.0, "max_range": 8.0, "aoe": 0.0, "cooldown": 0, "cast": 1.0, "target": "enemy"},
-	"blizzard": {"name": "Blizzard", "desc": "Freeze every enemy within 2 m of a point 2-8 m away.",
-		"effect": "damage", "scale": "mag", "power": 1.0, "min_range": 2.0, "max_range": 8.0, "aoe": 2.0, "cooldown": 2, "cast": 2.0, "target": "enemy"},
+	"fire": {"name": "Fire", "desc": "Hurl a fireball at an enemy 2-8 m away; it Burns for 6 s.",
+		"effect": "damage", "scale": "mag", "power": 1.4, "min_range": 2.0, "max_range": 8.0, "aoe": 0.0, "cooldown": 0, "cast": 1.0, "target": "enemy",
+		"status": {"id": "burn", "seconds": 6.0}},
+	"blizzard": {"name": "Blizzard", "desc": "Freeze every enemy within 2 m of a point 2-8 m away, Slowing them for 6 s.",
+		"effect": "damage", "scale": "mag", "power": 1.0, "min_range": 2.0, "max_range": 8.0, "aoe": 2.0, "cooldown": 2, "cast": 2.0, "target": "enemy",
+		"status": {"id": "slow", "seconds": 6.0}},
 	"meteor": {"name": "Meteor", "desc": "ULTIMATE: a meteor strikes every enemy within 3.5 m of a point 3-10 m away.",
 		"effect": "damage", "scale": "mag", "power": 2.2, "min_range": 3.0, "max_range": 10.0, "aoe": 3.5, "cooldown": 0, "cast": 4.0, "target": "enemy"},
 	"cure": {"name": "Cure", "desc": "Heal an ally (or yourself) up to 6 m away.",
 		"effect": "heal", "scale": "mag", "power": 1.6, "min_range": 0.0, "max_range": 6.0, "aoe": 0.0, "cooldown": 0, "cast": 1.0, "target": "ally"},
 	"haste": {"name": "Haste", "desc": "Raise an ally's TG by 50% so it acts sooner.",
 		"effect": "support", "scale": "mag", "power": 0.0, "min_range": 0.0, "max_range": 6.0, "aoe": 0.0, "cooldown": 3, "cast": 1.5, "target": "ally", "tg": 50},
-	"sanctuary": {"name": "Sanctuary", "desc": "ULTIMATE: heal every ally within 3.5 m of a point up to 8 m away.",
-		"effect": "heal", "scale": "mag", "power": 2.0, "min_range": 0.0, "max_range": 8.0, "aoe": 3.5, "cooldown": 0, "cast": 3.0, "target": "ally"},
+	"sanctuary": {"name": "Sanctuary", "desc": "ULTIMATE: heal every ally within 3.5 m of a point up to 8 m away, with Regen for 8 s.",
+		"effect": "heal", "scale": "mag", "power": 2.0, "min_range": 0.0, "max_range": 8.0, "aoe": 3.5, "cooldown": 0, "cast": 3.0, "target": "ally",
+		"status": {"id": "regen", "seconds": 8.0}},
+	"raise": {"name": "Raise", "desc": "Revive a knocked-out ally up to 5 m away with 30% HP.",
+		"effect": "revive", "scale": "mag", "power": 0.3, "min_range": 0.0, "max_range": 5.0, "aoe": 0.0, "cooldown": 4, "cast": 2.0, "target": "ko_ally"},
 }

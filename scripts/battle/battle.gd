@@ -25,6 +25,7 @@ const UnitView = preload("res://scripts/battle/unit_view.gd")
 const CameraRig = preload("res://scripts/battle/camera_rig.gd")
 const Hud = preload("res://scripts/battle/hud.gd")
 const Fx = preload("res://scripts/battle/fx.gd")
+const Jobs = preload("res://scripts/core/jobs.gd")
 
 const MENU_SCENE := "res://scenes/main_menu.tscn"
 const TEAM_COLORS := [Color(0.25, 0.5, 0.9), Color(0.85, 0.25, 0.22)]
@@ -224,10 +225,6 @@ func _apply(cmd: Dictionary) -> void:
 	var walk_path: Array[Vector2] = []
 	if cmd.type == "move":
 		walk_path = state.path_to(actor, state.node_of(cmd.to))
-	var alive_before := {}
-	for u in state.units:
-		alive_before[u.id] = u.is_alive()
-
 	var result := state.apply(cmd)
 
 	if cmd.type == "move":
@@ -247,9 +244,12 @@ func _apply(cmd: Dictionary) -> void:
 	for e in result.events:
 		if _point_seen(e.pos):
 			_popup(e, delay if e.get("impact", false) else 0.0)
-	for u in state.units:
-		if alive_before[u.id] and not u.is_alive():
-			unit_views[u.id].die(delay)
+	for id in result.knocked_out:
+		unit_views[id].knock_out(delay)
+	for id in result.revived:
+		unit_views[id].revive(delay)
+	for id in result.gone:
+		unit_views[id].vanish()
 	for line in result.logs:
 		hud.log_message(line)
 	if state.winner != -1:
@@ -478,14 +478,25 @@ func _aim() -> Dictionary:
 	var point := state.snap(hover_point)
 	var follow := -1
 	var t := state.get_unit(hover_unit_id)
-	if t != null and (t.team != sel.team) == (ab.target == "enemy"):
+	if t != null and _fits_target(sel, ab, t):
 		point = t.pos
 		follow = t.id
+	elif ab.target == "ko_ally":
+		return {"point": point, "follow": -1, "ok": false, "why": "Pick a knocked-out ally."}
 	if not state.in_ability_range(sel, ability_slot, sel.pos, point):
 		return {"point": point, "follow": follow, "ok": false, "why": "Out of range."}
 	if not state.can_see(sel.team, point):
 		return {"point": point, "follow": follow, "ok": false, "why": "You can't see that spot."}
+	if GameState.needs_line_of_sight(ab) and not state.has_line_of_sight(sel.pos, point):
+		return {"point": point, "follow": follow, "ok": false, "why": "No line of sight (terrain in the way)."}
 	return {"point": point, "follow": follow, "ok": true, "why": ""}
+
+
+## Whether a unit is the kind of target this ability takes.
+func _fits_target(sel: Unit, ab: Dictionary, t: Unit) -> bool:
+	if ab.target == "ko_ally":
+		return t.is_ko() and t.team == sel.team
+	return t.is_alive() and (t.team != sel.team) == (ab.target == "enemy")
 
 
 ## Clicking a chip selects that unit if it can act; clicking it again (or
@@ -646,6 +657,10 @@ func _update_live_ui() -> void:
 		})
 		unit_views[u.id].set_status(u, state.seconds_left(u))
 	hud.set_turn_order(entries)
+	# Knocked-out units aren't in the turn order but show a revive countdown.
+	for u in state.units:
+		if u.is_ko():
+			unit_views[u.id].set_status(u, 0.0)
 	_update_cast_markers()
 
 	var sel := _selected()
@@ -719,7 +734,14 @@ func _forecast(sel: Unit, slot: int, point: Vector2, follow: int) -> String:
 		var who := "%s %s" % [GameState.TEAM_NAMES[t.team], t.job_name()]
 		match ab.effect:
 			"damage":
-				parts.append("%s: %d damage (HP %d → %d)" % [who, hit.amount, t.hp, maxi(0, t.hp - hit.amount)])
+				var flank := ""
+				if hit.flank >= GameState.BACK_BONUS:
+					flank = " from behind +%d%%" % roundi((GameState.BACK_BONUS - 1.0) * 100)
+				elif hit.flank >= GameState.SIDE_BONUS:
+					flank = " from the side +%d%%" % roundi((GameState.SIDE_BONUS - 1.0) * 100)
+				parts.append("%s: %d damage%s (HP %d → %d)" % [who, hit.amount, flank, t.hp, maxi(0, t.hp - hit.amount)])
+			"revive":
+				parts.append("%s: revive with %d HP" % [who, hit.amount])
 			"heal":
 				parts.append("%s: heal %d (HP %d → %d)" % [who, hit.amount, t.hp, t.hp + hit.amount])
 			_:
@@ -739,10 +761,14 @@ func _describe_hover() -> String:
 		return ""
 	var ground := "Water" if state.is_water(hover_point) else "Height %d" % state.level_at(hover_point)
 	var t := state.get_unit(hover_unit_id)
+	if t != null and t.is_ko() and _is_seen(t):
+		return "%s %s   KNOCKED OUT: can be revived for %ds" % [GameState.TEAM_NAMES[t.team], t.job_name(), ceili(t.ko_ticks / 10.0)]
 	if t != null and _is_seen(t):
 		var status := "READY (%ds left)" % ceili(state.seconds_left(t)) if t.ready else "TG %d%%" % GameState.tg_percent(t)
 		if t.is_casting():
 			status = "Casting %s (%.1fs)" % [t.casting.name, state.seconds_left(t)]
+		for s in t.statuses:
+			status += "   %s %.0fs" % [Jobs.STATUSES[s.id].name, ceilf(s.ticks / 10.0)]
 		var sel := _selected()
 		var dist := "   ·   %.1f m away" % sel.pos.distance_to(t.pos) if sel != null and sel != t else ""
 		return "%s %s   HP %d/%d   %s   Ultimate %d%%   AttPwr %d  MagPwr %d  AttDef %d  MagDef %d  Wits %d  Move %d m  Sight %d m%s" % [

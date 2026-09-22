@@ -29,6 +29,14 @@ var acted := false
 var casting := {}
 ## Active buffs: [{"stat": String, "amount": int, "turns": int}]
 var buffs: Array[Dictionary] = []
+## Timed status effects: [{"id": String (see Jobs.STATUSES), "ticks": ticks left}]
+var statuses: Array[Dictionary] = []
+## Direction the unit faces on the ground (unit vector). Hits from behind or
+## the side deal extra damage.
+var facing := Vector2(0, 1)
+## While knocked out (hp 0): ticks left before the unit is gone for good.
+## It can be revived until then.
+var ko_ticks := 0
 
 
 func _init(p_id: int, p_job: String, p_team: int, p_pos: Vector2) -> void:
@@ -78,6 +86,9 @@ func copy():
 	c.acted = acted
 	c.casting = casting.duplicate()
 	c.buffs = buffs.duplicate(true)
+	c.statuses = statuses.duplicate(true)
+	c.facing = facing
+	c.ko_ticks = ko_ticks
 	return c
 
 
@@ -87,3 +98,31 @@ func is_casting() -> bool:
 
 func is_alive() -> bool:
 	return hp > 0
+
+
+## Knocked out: down on the field and can still be revived.
+func is_ko() -> bool:
+	return hp <= 0 and ko_ticks > 0
+
+
+func has_status(status_id: String) -> bool:
+	for s in statuses:
+		if s.id == status_id:
+			return true
+	return false
+
+
+## Multiplier on Turn Gauge filling from statuses (slow, stun).
+func tg_factor() -> float:
+	var f := 1.0
+	for s in statuses:
+		f *= Jobs.STATUSES[s.id].get("tg_factor", 1.0)
+	return f
+
+
+## Whether a status stops this unit from taking orders (stun).
+func is_stunned() -> bool:
+	for s in statuses:
+		if Jobs.STATUSES[s.id].get("no_orders", false):
+			return true
+	return false

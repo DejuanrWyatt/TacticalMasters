@@ -29,6 +29,14 @@ func _initialize() -> void:
 		worst = maxf(worst, ms)
 		if ms > 50.0:
 			slow += 1
+			# What was going on: recent messages and units' states.
+			var log_lines := []
+			for line in battle.hud._log_box.get_children():
+				log_lines.append(line.text)
+			var states := []
+			for u in battle.state.units:
+				states.append("%s%s%s%s" % [u.job.left(3), "R" if u.ready else "", "C" if u.is_casting() else "", "K" if u.is_ko() else ""])
+			print("SLOW FRAME %.0f ms at tick %d | units %s | log %s" % [ms, battle.state.tick, states, log_lines])
 	frames.sort()
 	var orders: int = battle.state.tick
 	print("frames=%d  median=%.1f ms  p99=%.1f ms  worst=%.1f ms  frames over 50 ms=%d  (battle tick %d)" % [

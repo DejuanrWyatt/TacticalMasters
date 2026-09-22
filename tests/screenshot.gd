@@ -33,6 +33,22 @@ func _initialize() -> void:
 			var shot_at := Time.get_ticks_msec() + int(args[3].to_float() * 1000)
 			while Time.get_ticks_msec() < shot_at:
 				await process_frame
+	if OS.get_cmdline_user_args().has("statuses"):
+		# Stage: statuses on two units, one knocked out, all near the camera.
+		var st = battle.state
+		var blue = st.units[0]
+		st._add_status(st.units[1], "burn", 30.0)
+		st._add_status(st.units[1], "slow", 30.0)
+		st._add_status(st.units[2], "regen", 30.0)
+		st._add_status(st.units[3], "stun", 30.0)
+		var result := {"logs": [], "knocked_out": []}
+		st._knock_out(blue, "Blue Knight", result)
+		battle.unit_views[blue.id].knock_out(0.0)
+		battle._refresh()
+		battle.cam.focus_on(battle.board.ground(st.units[1].pos))
+		battle.cam._target_distance = 10.0
+		for i in 60:
+			await process_frame
 	if OS.get_cmdline_user_args().has("guide"):
 		battle.hud.toggle_guide()
 		for i in 20:

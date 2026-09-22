@@ -3,14 +3,18 @@ extends Node3D
 ## three bars over its head (HP, TG, Ultimate) that always face the camera,
 ## a status line above them (READY countdown or TG %), a name label, and a
 ## ring at its feet while it's ready (white when selected).
-## Animations: walking a path, lunging at a target, casting, flinching when
-## hit, and collapsing when defeated. Its collision body carries a "unit"
+## Status effects show as small colored tags above the bars. Animations:
+## walking a path, lunging at a target, casting, flinching when hit,
+## toppling when knocked out, standing back up when revived, and sinking
+## away when gone. Its collision body carries a "unit"
 ## meta so clicks on it can be picked.
 
 const GameState = preload("res://scripts/core/game_state.gd")
+const Jobs = preload("res://scripts/core/jobs.gd")
 
 const WALK_SPEED := 4.5
 const BAR_WIDTH := 1.1
+const TAG_SPACING := 0.55
 const BAR_HEIGHT := 0.1
 const HP_COLOR := Color(0.35, 0.85, 0.35)
 const HP_LOW_COLOR := Color(0.95, 0.3, 0.25)
@@ -34,9 +38,10 @@ var _ring_ready: StandardMaterial3D
 var _ring_selected: StandardMaterial3D
 var _body: StaticBody3D
 var _move_tween: Tween
-var _dead := false
-## The death animation has finished; stay hidden.
+## Knocked out (lying down) / gone for good (sunk out of sight).
+var _down := false
 var _gone := false
+var _tags: Array[Label3D] = []
 
 
 func setup(unit, team_color: Color) -> void:
@@ -107,8 +112,20 @@ func setup(unit, team_color: Color) -> void:
 		_fills.append(fill)
 		_fill_materials.append(fill_material)
 
-	_status = _label3d(36, 2.15)
-	_label = _label3d(32, 2.42)
+	# Up to 4 status tags in a row just above the bars (they face the camera with the bars).
+	for i in 4:
+		var tag := Label3D.new()
+		tag.no_depth_test = true
+		tag.pixel_size = 0.006
+		tag.font_size = 40
+		tag.outline_size = 12
+		tag.position = Vector3(0, 0.24, 0)
+		tag.visible = false
+		_bars.add_child(tag)
+		_tags.append(tag)
+
+	_status = _label3d(36, 2.36)
+	_label = _label3d(32, 2.62)
 	_label.modulate = team_color.lightened(0.5)
 
 	var shape := CollisionShape3D.new()
@@ -158,19 +175,30 @@ func _process(_delta: float) -> void:
 # --- State -----------------------------------------------------------------
 
 func refresh(unit, is_selected: bool, shown: bool) -> void:
-	visible = shown and (unit.is_alive() or (_dead and not _gone))
+	visible = shown and not _gone and (unit.is_alive() or unit.is_ko() or _down)
 	# Hidden units must not block or reveal themselves to mouse picking.
-	_body.collision_layer = 1 if shown and unit.is_alive() else 0
+	# Knocked-out units stay pickable so Raise can target them.
+	_body.collision_layer = 1 if shown and (unit.is_alive() or unit.is_ko()) else 0
 	_ring.visible = unit.ready and unit.is_alive()
 	_ring.material_override = _ring_selected if is_selected else _ring_ready
 	if _label.text != unit.job_name():
 		_label.text = unit.job_name()
+	# Keep the model turned the way the unit faces (unless it's mid-walk).
+	if unit.is_alive() and not (_move_tween and _move_tween.is_running()):
+		face(global_position + Vector3(unit.facing.x, 0, unit.facing.y))
 
 
 ## Updates the bars and the status line; called every frame.
 func set_status(unit, seconds_left: float) -> void:
+	if unit.is_ko():
+		var ko_text := "KO %d" % ceili(unit.ko_ticks / 10.0)
+		if _status.text != ko_text:
+			_status.text = ko_text
+		_status.modulate = Color(0.8, 0.8, 0.85, 0.9)
+		return
 	if not unit.is_alive():
 		return
+	_set_tags(unit)
 	var hp: float = float(unit.hp) / unit.max_hp()
 	_set_bar(0, hp, HP_COLOR if hp > 0.3 else HP_LOW_COLOR)
 	if unit.is_casting():
@@ -198,6 +226,22 @@ func set_status(unit, seconds_left: float) -> void:
 	if _status.text != text:
 		_status.text = text
 	_status.modulate = color
+
+
+## Shows one colored tag per active status (e.g. BRN, SLW), centered in a row.
+func _set_tags(unit) -> void:
+	var count := mini(unit.statuses.size(), _tags.size())
+	for i in _tags.size():
+		var tag := _tags[i]
+		tag.position.x = (i - (count - 1) / 2.0) * TAG_SPACING
+		if i < count:
+			var info: Dictionary = Jobs.STATUSES[unit.statuses[i].id]
+			if tag.text != info.tag:
+				tag.text = info.tag
+			tag.modulate = info.color
+			tag.visible = true
+		else:
+			tag.visible = false
 
 
 func _set_bar(i: int, fraction: float, color: Color) -> void:
@@ -277,19 +321,39 @@ func flinch(delay: float, color := Color(1, 0.25, 0.2)) -> void:
 	t.tween_property(_body_material, "albedo_color", _team_color, 0.2)
 
 
-## Topples over and sinks out of sight after `delay` seconds.
-func die(delay: float) -> void:
-	_dead = true
+## Knocked out: topples over after `delay` seconds and lies there (it can
+## still be revived).
+func knock_out(delay: float) -> void:
+	_down = true
 	_ring.visible = false
 	_bars.visible = false
-	_status.visible = false
+	for tag in _tags:
+		tag.visible = false
 	var t := create_tween()
 	t.tween_interval(delay + 0.2)
 	t.tween_property(_model, "rotation:x", -PI / 2, 0.35).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-	t.tween_property(_model, "position:y", -1.2, 0.8).set_delay(0.3)
-	t.tween_callback(func():
+	t.parallel().tween_property(_body_material, "albedo_color", _team_color.darkened(0.5), 0.35)
+
+
+## Revived: stands back up after `delay` seconds.
+func revive(delay: float) -> void:
+	_down = false
+	var t := create_tween()
+	t.tween_interval(delay)
+	t.tween_property(_model, "rotation:x", 0.0, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(_body_material, "albedo_color", _team_color, 0.4)
+	t.tween_callback(func(): _bars.visible = true)
+
+
+## Gone for good: sinks out of sight.
+func vanish() -> void:
+	_status.visible = false
+	var t := create_tween()
+	t.tween_property(_model, "position:y", -1.2, 0.8)
+	var hide_it := func() -> void:
 		_gone = true
-		visible = false)
+		visible = false
+	t.tween_callback(hide_it)
 
 
 static func _material(color: Color, unshaded: bool) -> StandardMaterial3D:

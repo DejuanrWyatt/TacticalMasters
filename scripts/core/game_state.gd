@@ -28,6 +28,19 @@ extends RefCounted
 ## be placed where an enemy is expected to walk, and targets can walk out of
 ## it. A caster defeated mid-cast loses the spell.
 ##
+## Facing: units face where they last walked or aimed. Hits from the side
+## deal SIDE_BONUS damage, from behind BACK_BONUS.
+##
+## Line of sight: ranged abilities (beyond MELEE_RANGE) and vision need a
+## clear line over the terrain, from eye height to target height.
+##
+## Statuses (Jobs.STATUSES) tick in real time: Burn and Regen change HP every
+## second, Slow halves Turn Gauge filling, Stun freezes it and blocks orders.
+##
+## Knock-out: a unit reduced to 0 HP is knocked out (KO) for KO_SECONDS. It
+## can't act and doesn't count as alive, but Raise can revive it until then;
+## afterwards it is gone. A team with no living units loses.
+##
 ## Every change goes through a command dictionary:
 ##   {"type": "advance", "ticks": n}     time passes
 ##   {"type": "move", "unit": id, "serial": s, "to": Vector2}
@@ -39,6 +52,7 @@ extends RefCounted
 ## same commands always produces the same game. Online play relies on this.
 
 const Unit = preload("res://scripts/core/unit.gd")
+const Jobs = preload("res://scripts/core/jobs.gd")
 
 const TEAM_NAMES := ["Blue", "Red"]
 
@@ -57,18 +71,28 @@ const UNIT_SPACING := 0.9
 const HIT_RADIUS := 0.6
 ## Largest height difference (in levels) a unit can step up or down.
 const JUMP := 2
+## Meters per ground height level.
+const LEVEL_HEIGHT := 0.7
+## Line of sight runs from EYE_HEIGHT above the viewer's ground to
+## TARGET_HEIGHT above the target's ground, sampled every LOS_STEP meters.
+const EYE_HEIGHT := 1.2
+const TARGET_HEIGHT := 1.0
+const LOS_STEP := 0.5
+## Abilities reaching farther than this need line of sight.
+const MELEE_RANGE := 1.8
 
 # Time
 const TICKS_PER_SECOND := 10
 ## A full Turn Gauge. Shown to players as a percentage (see tg_percent).
-const TG_MAX := 2000
+## (Fine-grained so that Slow's half speed stays a whole number for any Wits.)
+const TG_MAX := 4000
 ## TG gained per tick per point of Wits (Wits 10 fills the gauge in 20 seconds).
-const TG_PER_WITS := 1
+const TG_PER_WITS := 2
 ## Head start at the beginning of a battle, per point of Wits (Wits 10 starts 80% full).
-const START_TG_PER_WITS := 160
+const START_TG_PER_WITS := 320
 ## TG kept after a turn where the unit only moved or only acted (20%) / did neither (40%).
-const TG_KEEP_ONE := 400
-const TG_KEEP_NONE := 800
+const TG_KEEP_ONE := 800
+const TG_KEEP_NONE := 1600
 ## Countdown while ready, in seconds = CLOCK_BASE + CLOCK_PER_PATIENCE * Patience.
 const CLOCK_BASE := 8.0
 const CLOCK_PER_PATIENCE := 2.0
@@ -87,6 +111,11 @@ const DAMAGE_MULTIPLIER := 0.5
 const HEAL_SCALE := 1.5
 ## Damage bonus per height level above the target (penalty when below), up to 3 levels.
 const HEIGHT_BONUS := 0.1
+## Damage multipliers for hitting a unit from the side / from behind.
+const SIDE_BONUS := 1.1
+const BACK_BONUS := 1.25
+## Seconds a knocked-out unit stays on the field, revivable.
+const KO_SECONDS := 12.0
 
 var tiles_x := 0
 var tiles_y := 0
@@ -141,6 +170,7 @@ func setup(map: Dictionary) -> void:
 	for entry in map["units"]:
 		var u := Unit.new(units.size(), entry[0], entry[1], entry[2])
 		u.tg = mini(TG_MAX - 1, u.stat("wits") * START_TG_PER_WITS)
+		u.facing = (size_meters() * 0.5 - u.pos).normalized()
 		units.append(u)
 	spawn_points.assign(map["spawn_points"])
 
@@ -174,6 +204,31 @@ func level_at(p: Vector2) -> int:
 
 func is_water(p: Vector2) -> bool:
 	return level_at(p) == 0
+
+
+## Height of the ground surface in meters (water counts as 0).
+func ground_height(p: Vector2) -> float:
+	return level_at(p) * LEVEL_HEIGHT
+
+
+## Whether terrain leaves a clear line from a viewer at `a` to a target at `b`.
+func has_line_of_sight(a: Vector2, b: Vector2) -> bool:
+	var d := a.distance_to(b)
+	if d <= LOS_STEP * 2.0:
+		return true
+	var from_h := ground_height(a) + EYE_HEIGHT
+	var to_h := ground_height(b) + TARGET_HEIGHT
+	var steps := int(d / LOS_STEP)
+	for i in range(1, steps):
+		var t := float(i) / steps
+		if ground_height(a.lerp(b, t)) > lerpf(from_h, to_h, t):
+			return false
+	return true
+
+
+## Whether an ability needs line of sight (ranged, not centered on the caster).
+static func needs_line_of_sight(ab: Dictionary) -> bool:
+	return ab.max_range > MELEE_RANGE
 
 
 # --- Units -----------------------------------------------------------------
@@ -440,7 +495,8 @@ func _heap_swap(a: int, b: int) -> void:
 ## Whether any unit of `team` (other than `exclude_id`) can see the point.
 func can_see(team: int, p: Vector2, exclude_id := -1) -> bool:
 	for u in units:
-		if u.is_alive() and u.team == team and u.id != exclude_id and u.pos.distance_to(p) <= u.stat("sight"):
+		if u.is_alive() and u.team == team and u.id != exclude_id and u.pos.distance_to(p) <= u.stat("sight") \
+				and has_line_of_sight(u.pos, p):
 			return true
 	return false
 
@@ -452,7 +508,8 @@ func visible_tiles(team: int) -> Dictionary:
 		for x in tiles_x:
 			var center := (Vector2(x, y) + Vector2(0.5, 0.5)) * TILE_SIZE
 			for u in units:
-				if u.is_alive() and u.team == team and u.pos.distance_to(center) <= u.stat("sight") + TILE_SIZE * 0.5:
+				if u.is_alive() and u.team == team and u.pos.distance_to(center) <= u.stat("sight") + TILE_SIZE * 0.5 \
+						and has_line_of_sight(u.pos, center):
 					out[Vector2i(x, y)] = true
 					break
 	return out
@@ -474,8 +531,15 @@ func ticks_to_ready(u: Unit) -> int:
 	if u.ready:
 		return 0
 	var cast_ticks: int = u.casting.ticks if u.is_casting() else 0
-	var gain := maxi(1, u.stat("wits") * TG_PER_WITS)
+	var gain := _tg_gain(u)
+	if gain <= 0:
+		gain = maxi(1, u.stat("wits") * TG_PER_WITS)  # stunned: estimate as if not
 	return cast_ticks + maxi(0, ceili(float(TG_MAX - u.tg) / gain))
+
+
+## Turn Gauge gained per tick, after Slow / Stun.
+func _tg_gain(u: Unit) -> int:
+	return roundi(maxi(1, u.stat("wits") * TG_PER_WITS) * u.tg_factor())
 
 
 ## Seconds left to act if ready, seconds until the spell goes off if
@@ -543,14 +607,16 @@ func preview(u: Unit, slot: int, from: Vector2, target: Vector2) -> Array[Dictio
 	var ab := u.ability(slot)
 	var out: Array[Dictionary] = []
 	for t in units:
-		if not t.is_alive():
+		if ab.target == "ko_ally":
+			if not t.is_ko() or t.team != u.team:
+				continue
+		elif not t.is_alive() or (t.team != u.team) != (ab.target == "enemy"):
 			continue
 		var t_pos := from if t == u else t.pos
 		if t_pos.distance_to(target) > ab.aoe + HIT_RADIUS:
 			continue
-		if (t.team != u.team) != (ab.target == "enemy"):
-			continue
-		out.append({"unit": t, "amount": _amount(u, ab, from, t, t_pos), "distance": t_pos.distance_to(target)})
+		out.append({"unit": t, "amount": _amount(u, ab, from, t, t_pos), "distance": t_pos.distance_to(target),
+			"flank": flank_bonus(t, t_pos, from) if ab.effect == "damage" else 1.0})
 	if ab.aoe == 0.0 and out.size() > 1:
 		# A single-target ability only hits the unit closest to the point.
 		var closest: Dictionary = out[0]
@@ -567,11 +633,28 @@ func _amount(u: Unit, ab: Dictionary, from: Vector2, t: Unit, t_pos: Vector2) ->
 		"damage":
 			var def := t.stat("attdef" if ab.scale == "att" else "magdef")
 			var levels := clampi(level_at(from) - level_at(t_pos), -3, 3)
-			var dmg := roundi(power * DAMAGE_SCALE * (1.0 + HEIGHT_BONUS * levels)) - def
+			var bonus := (1.0 + HEIGHT_BONUS * levels) * flank_bonus(t, t_pos, from)
+			var dmg := roundi(power * DAMAGE_SCALE * bonus) - def
 			return maxi(1, roundi(dmg * DAMAGE_MULTIPLIER))
 		"heal":
 			return mini(roundi(power * HEAL_SCALE), t.max_hp() - t.hp)
+		"revive":
+			return maxi(1, roundi(t.max_hp() * ab.power))
 	return 0
+
+
+## Damage multiplier for where the attacker stands relative to the target's
+## facing: BACK_BONUS from behind, SIDE_BONUS from the side, 1 from the front.
+func flank_bonus(t: Unit, t_pos: Vector2, from: Vector2) -> float:
+	var to_attacker := from - t_pos
+	if to_attacker.length() < 0.01:
+		return 1.0
+	var dot := t.facing.dot(to_attacker.normalized())
+	if dot < -0.5:
+		return BACK_BONUS
+	if dot < 0.5:
+		return SIDE_BONUS
+	return 1.0
 
 
 # --- Commands --------------------------------------------------------------
@@ -590,6 +673,8 @@ func validate(cmd: Dictionary) -> String:
 		return "No such unit."
 	if not u.ready:
 		return "%s isn't ready." % u.job_name()
+	if u.is_stunned():
+		return "%s is stunned." % u.job_name()
 	var serial = cmd.get("serial")
 	if not (serial is int) or serial != u.serial:
 		return "That order was for an earlier turn."
@@ -617,12 +702,16 @@ func validate(cmd: Dictionary) -> String:
 				return "That target is out of range."
 			if not can_see(u.team, target):
 				return "You can't see that spot."
+			var ab := u.ability(slot)
+			if needs_line_of_sight(ab) and not has_line_of_sight(u.pos, target):
+				return "No line of sight."
 			var follow = cmd.get("follow", -1)
 			if not (follow is int):
 				return "Bad target."
 			if follow != -1:
 				var t := get_unit(follow)
-				if t == null or not t.is_alive() or t.pos.distance_to(target) > HIT_RADIUS:
+				var ok_state := t != null and (t.is_ko() if ab.target == "ko_ally" else t.is_alive())
+				if not ok_state or t.pos.distance_to(target) > HIT_RADIUS:
 					return "Bad target."
 			return ""
 		"end_turn":
@@ -634,17 +723,25 @@ func validate(cmd: Dictionary) -> String:
 ## {"logs": [String], "events": [{"pos": Vector2, "text", "color", "impact": bool}],
 ##  "became_ready": [unit id], "turn_ended": [unit id],
 ##  "cast_started": [unit id],
-##  "resolved": [{"unit": id, "slot": int, "target": Vector2, "hits": [unit id]}]}.
+##  "resolved": [{"unit": id, "slot": int, "target": Vector2, "hits": [unit id]}],
+##  "knocked_out": [unit id], "revived": [unit id], "gone": [unit id]}.
 ## Events with "impact" come from an ability landing.
 func apply(cmd: Dictionary) -> Dictionary:
-	var result := {"logs": [], "events": [], "became_ready": [], "turn_ended": [], "cast_started": [], "resolved": []}
+	var result := {"logs": [], "events": [], "became_ready": [], "turn_ended": [], "cast_started": [], "resolved": [],
+		"knocked_out": [], "revived": [], "gone": []}
 	match cmd["type"]:
 		"advance":
 			for i in cmd["ticks"]:
 				_tick(result)
 		"move":
 			var u := get_unit(cmd["unit"])
-			u.pos = cmd["to"]
+			var to: Vector2 = cmd["to"]
+			# Face the direction of the last step of the walk.
+			var path := path_to(u, node_of(to))
+			var step := (path[-1] - path[-2]) if path.size() >= 2 else (to - u.pos)
+			if step.length() > 0.001:
+				u.facing = step.normalized()
+			u.pos = to
 			u.moved = true
 		"ability":
 			_use_ability(get_unit(cmd["unit"]), cmd["slot"], cmd["target"], cmd.get("follow", -1), result)
@@ -658,7 +755,18 @@ func _tick(result: Dictionary) -> void:
 		return
 	tick += 1
 	for u in units:
+		if u.is_ko():
+			u.ko_ticks -= 1
+			if u.ko_ticks <= 0:
+				result.gone.append(u.id)
+				result.logs.append("%s %s is gone." % [TEAM_NAMES[u.team], u.job_name()])
+			continue
 		if not u.is_alive():
+			continue
+		_tick_statuses(u, result)
+		if not u.is_alive():
+			if winner != -1:
+				return
 			continue
 		var was_casting := u.is_casting()
 		if was_casting:
@@ -680,9 +788,70 @@ func _tick(result: Dictionary) -> void:
 			if u.clock <= 0:
 				_end_turn(u, true, result)
 		elif not was_casting:
-			u.tg = mini(TG_MAX, u.tg + maxi(1, u.stat("wits") * TG_PER_WITS))
+			u.tg = mini(TG_MAX, u.tg + _tg_gain(u))
 			if u.tg >= TG_MAX:
 				_become_ready(u, result)
+
+
+## Counts down a unit's statuses; Burn and Regen act once per second.
+func _tick_statuses(u: Unit, result: Dictionary) -> void:
+	if u.statuses.is_empty():
+		return
+	var kept: Array[Dictionary] = []
+	for s in u.statuses:
+		s.ticks -= 1
+		var info: Dictionary = Jobs.STATUSES[s.id]
+		var per_second: float = info.get("per_second", 0.0)
+		if per_second != 0.0 and s.ticks % TICKS_PER_SECOND == 0 and u.is_alive():
+			var amount := maxi(1, roundi(u.max_hp() * absf(per_second)))
+			if per_second < 0.0:
+				u.hp = maxi(0, u.hp - amount)
+				result.events.append({"pos": u.pos, "text": "-%d" % amount, "color": info.color})
+				if not u.is_alive():
+					_knock_out(u, "%s %s" % [TEAM_NAMES[u.team], u.job_name()], result)
+					_check_winner()
+					return
+			else:
+				var healed := mini(amount, u.max_hp() - u.hp)
+				if healed > 0:
+					u.hp += healed
+					result.events.append({"pos": u.pos, "text": "+%d" % healed, "color": info.color})
+		if s.ticks > 0:
+			kept.append(s)
+	u.statuses = kept
+
+
+## Puts (or refreshes) a timed status on a unit.
+func _add_status(u: Unit, status_id: String, seconds: float) -> void:
+	var ticks := roundi(seconds * TICKS_PER_SECOND)
+	for s in u.statuses:
+		if s.id == status_id:
+			s.ticks = maxi(s.ticks, ticks)
+			return
+	u.statuses.append({"id": status_id, "ticks": ticks})
+
+
+## A unit drops to 0 HP: it's knocked out and can be revived for KO_SECONDS.
+func _knock_out(t: Unit, who: String, result: Dictionary) -> void:
+	t.hp = 0
+	t.ko_ticks = roundi(KO_SECONDS * TICKS_PER_SECOND)
+	t.ready = false
+	t.clock = 0
+	t.moved = false
+	t.acted = false
+	t.statuses.clear()
+	if t.is_casting():
+		result.logs.append("%s's %s fizzles." % [who, t.casting.name])
+		t.casting = {}
+	result.knocked_out.append(t.id)
+	result.logs.append("%s is knocked out! (%ds to revive)" % [who, roundi(KO_SECONDS)])
+
+
+func _check_winner() -> void:
+	for team in 2:
+		if team_units(team).is_empty():
+			winner = 1 - team
+			return
 
 
 func _become_ready(u: Unit, result: Dictionary) -> void:
@@ -732,6 +901,8 @@ func _use_ability(u: Unit, slot: int, target: Vector2, follow: int, result: Dict
 		u.ult = mini(ULT_MAX, u.ult + ULT_PER_ACTION)
 	u.cooldowns[slot] = ab.cooldown + 1 if ab.cooldown > 0 else 0
 	u.acted = true
+	if target.distance_to(u.pos) > 0.01:
+		u.facing = (target - u.pos).normalized()
 	var cast_ticks := roundi(ab.get("cast", 0.0) * TICKS_PER_SECOND)
 	if cast_ticks <= 0:
 		_resolve_ability(u, slot, target, result)
@@ -765,12 +936,22 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 				t.hp += amount
 				result.events.append({"pos": t.pos, "text": "+%d" % amount, "color": Color(0.45, 1, 0.5), "impact": true})
 				parts.append("%s +%d" % [who, amount])
+			"revive":
+				t.hp = amount
+				t.ko_ticks = 0
+				t.tg = 0
+				t.ready = false
+				result.revived.append(t.id)
+				result.events.append({"pos": t.pos, "text": "Revived!", "color": Color(1, 0.95, 0.6), "impact": true})
+				parts.append("%s revived with %d HP" % [who, amount])
 		if not t.is_alive():
-			t.ready = false
-			if t.is_casting():
-				result.logs.append("%s's %s fizzles." % [who, t.casting.name])
-				t.casting = {}
+			if not t.is_ko():
+				_knock_out(t, who, result)
 			continue
+		if ab.has("status"):
+			_add_status(t, ab.status.id, ab.status.seconds)
+			var info: Dictionary = Jobs.STATUSES[ab.status.id]
+			result.events.append({"pos": t.pos, "text": info.name, "color": info.color, "impact": true})
 		# TG changes only affect units still filling their gauge.
 		if ab.has("tg") and not t.ready:
 			t.tg = clampi(t.tg + ab.tg * TG_MAX / 100, 0, TG_MAX)
@@ -784,7 +965,4 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 
 	result.logs.append("%s %s uses %s%s" % [TEAM_NAMES[u.team], u.job_name(), ab.name,
 		": " + ", ".join(parts) if not parts.is_empty() else " (no effect)"])
-
-	for team in 2:
-		if team_units(team).is_empty():
-			winner = 1 - team
+	_check_winner()

@@ -59,4 +59,12 @@ func _initialize() -> void:
 		worst.us / 1000.0, worst.job, worst.cmd])
 	for k in parts:
 		print("  %-16s avg %.1f ms" % [k, parts[k] / 1000.0 / maxi(1, calls[k])])
+
+	# Main-thread cost: the fog of war is recomputed when things change.
+	var fresh := GameState.new()
+	fresh.setup(MapData.highlands())
+	var t1 := Time.get_ticks_usec()
+	for i in 20:
+		fresh.visible_tiles(0)
+	print("  visible_tiles    avg %.1f ms (main thread, per fog refresh)" % ((Time.get_ticks_usec() - t1) / 20000.0))
 	quit()

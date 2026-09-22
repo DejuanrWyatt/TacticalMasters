@@ -21,6 +21,7 @@ signal chip_pressed(unit_id: int)
 signal overlay_changed(open: bool)
 
 const GameState = preload("res://scripts/core/game_state.gd")
+const Jobs = preload("res://scripts/core/jobs.gd")
 const UnitGuide = preload("res://scripts/ui/unit_guide.gd")
 const OptionsMenu = preload("res://scripts/ui/options_menu.gd")
 
@@ -421,7 +422,10 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 		part.visible = true
 	_set_text(_title, title)
 	_set_color(_title, color.lightened(0.4))
-	_set_text(_subtitle, "READY · %ds left" % ceili(seconds) if u.ready else "Ready in %.1fs" % seconds)
+	var sub := "READY · %ds left" % ceili(seconds) if u.ready else "Ready in %.1fs" % seconds
+	for s in u.statuses:
+		sub += "  ·  %s" % Jobs.STATUSES[s.id].tag
+	_set_text(_subtitle, sub)
 	_set_color(_subtitle, (URGENT if seconds <= 5.0 else GOLD) if u.ready else DIM)
 	_set_gauge(_hp_bar, u.hp, u.max_hp(), "HP  %d / %d" % [u.hp, u.max_hp()])
 	if u.is_casting():

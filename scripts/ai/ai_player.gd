@@ -77,8 +77,14 @@ func _best_action(state, u, reach: Dictionary) -> Dictionary:
 		# the rest of the team already sees them: both independent of the spot.
 		var candidates := []
 		for t in state.units:
-			if t.is_alive() and (t.team != u.team) == (ab.target == "enemy"):
+			var fits: bool
+			if ab.target == "ko_ally":
+				fits = t.is_ko() and t.team == u.team
+			else:
+				fits = t.is_alive() and (t.team != u.team) == (ab.target == "enemy")
+			if fits:
 				candidates.append([t, t == u or state.can_see(u.team, t.pos, u.id)])
+		var needs_los: bool = state.needs_line_of_sight(ab)
 		for spot in spots:
 			var aims: Array[Vector2] = []
 			if max_r == 0.0:
@@ -91,7 +97,11 @@ func _best_action(state, u, reach: Dictionary) -> Dictionary:
 					# Cheap checks first: range, then vision.
 					if d < min_r or d > max_r:
 						continue
-					if d <= sight or c[1]:
+					# Then the (costlier) terrain checks.
+					var clear: bool = not needs_los or state.has_line_of_sight(spot, t_pos)
+					if not clear:
+						continue
+					if c[1] or (d <= sight and (needs_los or state.has_line_of_sight(spot, t_pos))):
 						aims.append(t_pos)
 			for target in aims:
 				var score := _score(u, ab, state.preview(u, slot, spot, target))
@@ -134,6 +144,8 @@ func _score(u, ab: Dictionary, hits: Array) -> float:
 					score += 30.0
 			"heal":
 				score += amount * 1.2
+			"revive":
+				score += 70.0 + amount
 			"support":
 				# Haste only helps an ally still filling its gauge.
 				if ab.has("tg") and t != u and not t.ready:

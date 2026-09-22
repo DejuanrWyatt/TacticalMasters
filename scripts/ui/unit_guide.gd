@@ -90,6 +90,18 @@ func _ready() -> void:
 	body.add_child(_tabs)
 	_fill_ability_tabs()
 
+	body.add_child(_section("Status effects"))
+	var statuses := GridContainer.new()
+	statuses.columns = 3
+	statuses.add_theme_constant_override("h_separation", 22)
+	statuses.add_theme_constant_override("v_separation", 6)
+	for id in Jobs.STATUSES:
+		var info: Dictionary = Jobs.STATUSES[id]
+		_cell(statuses, info.tag, info.color)
+		_cell(statuses, info.name, info.color, 90)
+		_cell(statuses, info.desc)
+	body.add_child(statuses)
+
 	var notes := Label.new()
 	notes.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	notes.modulate = Color(1, 1, 1, 0.65)
@@ -97,9 +109,12 @@ func _ready() -> void:
 		+ "Damage = (Base × height bonus − the target's AttDef (physical) or MagDef (magic)) × %s, minimum 1. "
 		+ "The height bonus is +%d%% per level above the target (−%d%% per level below), up to 3 levels. "
 		+ "Abilities with a cast time go off when the cast finishes. Move first: only instant abilities let a unit move afterwards. "
+		+ "Hits from the side deal +%d%%, from behind +%d%%. Ranged abilities and vision need line of sight over the terrain. "
+		+ "A unit at 0 HP is knocked out for %ds and can be revived with Raise before it's gone. "
 		+ "The ultimate (4) needs a full Ultimate meter.") % [
 			GameState.DAMAGE_SCALE, GameState.HEAL_SCALE, GameState.DAMAGE_MULTIPLIER,
-			roundi(GameState.HEIGHT_BONUS * 100), roundi(GameState.HEIGHT_BONUS * 100)]
+			roundi(GameState.HEIGHT_BONUS * 100), roundi(GameState.HEIGHT_BONUS * 100),
+			roundi((GameState.SIDE_BONUS - 1.0) * 100), roundi((GameState.BACK_BONUS - 1.0) * 100), roundi(GameState.KO_SECONDS)]
 	body.add_child(notes)
 
 
@@ -187,6 +202,8 @@ func _ability_row(grid: GridContainer, job: Dictionary, slot: int, target: Dicti
 	var effect: String = ab.effect.capitalize()
 	if ab.effect == "damage":
 		effect = "Physical" if ab.scale == "att" else "Magic"
+	if ab.has("status"):
+		effect += " + %s" % Jobs.STATUSES[ab.status.id].name
 	_cell(grid, effect)
 	_cell(grid, "Self" if ab.max_range == 0.0 else "%s-%s m" % [_num(ab.min_range), _num(ab.max_range)])
 	_cell(grid, "—" if ab.aoe == 0.0 else "%s m" % _num(ab.aoe))
@@ -206,6 +223,9 @@ func _ability_row(grid: GridContainer, job: Dictionary, slot: int, target: Dicti
 		"heal":
 			base = "+%d" % roundi(stat * ab.power * GameState.HEAL_SCALE)
 			versus = "heals"
+		"revive":
+			base = "%d%% HP" % roundi(ab.power * 100)
+			versus = "revives"
 		_:
 			base = "—"
 			versus = "—"
