@@ -25,6 +25,9 @@ func _ready() -> void:
 	Net.status_changed.connect(_set_status)
 	Net.game_started.connect(_on_game_started)
 	_build_ui()
+	# "-- autostart" on the command line jumps straight into a battle vs the computer.
+	if OS.get_cmdline_user_args().has("autostart"):
+		_start_local.call_deferred("ai")
 
 
 func _build_ui() -> void:

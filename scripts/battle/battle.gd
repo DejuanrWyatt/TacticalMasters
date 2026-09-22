@@ -139,6 +139,11 @@ func _ready() -> void:
 	get_tree().create_timer(0.3).timeout.connect(_refresh)
 	Audio.sfx_enabled = true
 	Audio.play_music(Audio.BATTLE_MUSIC)
+	var models := 0
+	for view in unit_views.values():
+		if view._character != null:
+			models += 1
+	print("Battle: %s, %d/%d units with animated models" % [GameConfig.map_id, models, unit_views.size()])
 	if GameConfig.mode == "online" and not replaying:
 		_process_inbox()
 		_process_requests()

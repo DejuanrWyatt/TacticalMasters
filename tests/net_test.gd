@@ -35,6 +35,10 @@ func _initialize() -> void:
 	config = root.get_node("GameConfig")
 	net.game_started.connect(func(): starts += 1)
 	net.chat_received.connect(func(text: String): chat_got = text)
+	var on_rejected := func(reason: String) -> void:
+		print("CLIENT REQUEST REJECTED: %s" % reason)
+		waiting = false
+	net.request_rejected.connect(on_rejected)
 	net.status_changed.connect(func(text: String): last_status = text)
 	var args := OS.get_cmdline_user_args()
 	if args.has("host_refuse") or args.has("old_client"):
@@ -65,17 +69,25 @@ func _initialize() -> void:
 		if role == "host":
 			while not net.requests.is_empty():
 				var req: Dictionary = net.requests.pop_front()
-				if state.validate(req) == "" and state.get_unit(req.unit).team != config.local_team:
+				var req_err := state.validate(req)
+				if req_err == "" and state.get_unit(req.unit).team != config.local_team:
 					net.broadcast(req)
 					state.apply(req)
 				else:
-					net.reject("rejected")
+					net.reject("rejected: %s" % req_err)
 			var mine := state.ready_units(config.local_team)
-			if not mine.is_empty():
+			if state.winner != -1:
+				pass
+			elif not mine.is_empty():
+				# Like the real game: validate before sending and applying.
 				var cmd: Dictionary = ai.next_command(state, mine[0])
+				var err_text := state.validate(cmd)
+				if err_text != "":
+					print("HOST AI ORDER REJECTED (%s): %s" % [err_text, cmd])
+					cmd = {"type": "end_turn", "unit": mine[0].id, "serial": mine[0].serial}
 				net.broadcast(cmd)
 				state.apply(cmd)
-			elif state.winner == -1:
+			else:
 				var step := {"type": "advance", "ticks": 5}
 				net.broadcast(step)
 				state.apply(step)
@@ -102,14 +114,20 @@ func _initialize() -> void:
 	if not await _wait(func(): return starts >= 2, 15.0):
 		_finish(role, "rematch didn't start", summary)
 		return
+	# Keep running briefly so the restart message reaches the other side.
+	for i in 60:
+		await process_frame
 	_finish(role, "", summary + " rematch=ok chat=ok")
 
 
 func _drain_inbox() -> void:
 	while not net.inbox.is_empty():
 		var cmd: Dictionary = net.inbox.pop_front()
-		if state.validate(cmd) == "":
+		var err_text := state.validate(cmd)
+		if err_text == "":
 			state.apply(cmd)
+		else:
+			print("CLIENT DROPPED HOST COMMAND (%s): %s" % [err_text, cmd])
 		if cmd.type != "advance":
 			waiting = false
 

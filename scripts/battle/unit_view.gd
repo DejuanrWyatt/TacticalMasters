@@ -95,6 +95,7 @@ func setup(unit, team_color: Color) -> void:
 func _load_character(job: String, team_color: Color) -> bool:
 	_look = JOB_LOOKS.get(job, {})
 	if _look.is_empty() or not ResourceLoader.exists(CHARACTER_DIR + _look.model):
+		push_warning("No character model for job '%s': using the simple stand-in." % job)
 		return false
 	var scene: PackedScene = load(CHARACTER_DIR + _look.model)
 	_character = scene.instantiate()

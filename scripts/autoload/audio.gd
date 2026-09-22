@@ -22,6 +22,7 @@ var _rng := RandomNumberGenerator.new()
 func _ready() -> void:
 	_rng.randomize()
 	_load_sounds()
+	print("Audio: %d sounds loaded" % _streams.size())
 	for i in MAX_2D_VOICES:
 		var p := AudioStreamPlayer.new()
 		p.bus = "SFX"

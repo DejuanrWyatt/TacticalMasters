@@ -9,6 +9,18 @@ and Baldur's Gate 3 (free movement, ranges in meters). Built with **Godot 4.3+**
 2. Choose **Import** and select `project.godot` in this folder.
 3. Press **F5** (Run Project).
 
+### Building a Windows .exe
+
+The Godot 4.7.2 export templates are installed, and `export_presets.cfg` has a "Windows Desktop" preset. Build with:
+
+```
+godot --headless --export-release "Windows Desktop" build/TacticalMasters.exe
+```
+
+(or **Project → Export** in the editor). The result is a single ~115 MB `build/TacticalMasters.exe` with everything
+embedded; copy it anywhere and double-click to play. Add `-- autostart` on the command line to jump straight into a
+battle vs the computer. Its log is in `%APPDATA%\Godotpp_userdata\Tactical Masters\logs\godot.log`.
+
 ## Controls
 
 | Action | Keys / mouse |
