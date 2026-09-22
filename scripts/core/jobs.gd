@@ -49,6 +49,7 @@ const STATUSES := {
 }
 
 const DEFAULT_ROSTER := ["knight", "archer", "black_mage", "white_mage"]
+const GENERIC_ICON := "res://assets/icons/generic.svg"
 
 const JOBS := {
 	"squire": {
@@ -176,6 +177,19 @@ static func job(id: String) -> Dictionary:
 
 static func ability(id: String) -> Dictionary:
 	return custom_abilities[id] if custom_abilities.has(id) else ABILITIES[id]
+
+
+## The class icon (assets/icons/<id>.svg; an imported class can name one with
+## the Astra tag "icon:<name>"); classes without one get the generic icon.
+static func icon_path(id: String) -> String:
+	var path := "res://assets/icons/%s.svg" % id
+	if ResourceLoader.exists(path):
+		return path
+	if custom_jobs.has(id) and custom_jobs[id].has("icon"):
+		path = "res://assets/icons/%s.svg" % custom_jobs[id].icon
+		if ResourceLoader.exists(path):
+			return path
+	return GENERIC_ICON
 
 
 static func is_custom(id: String) -> bool:

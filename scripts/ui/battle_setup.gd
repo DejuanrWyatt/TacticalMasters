@@ -177,8 +177,10 @@ func _team_column(team: int) -> VBoxContainer:
 		var picker := OptionButton.new()
 		picker.focus_mode = Control.FOCUS_NONE
 		picker.custom_minimum_size.y = 38
+		picker.add_theme_constant_override("icon_max_width", 22)
+		picker.get_popup().add_theme_constant_override("icon_max_width", 22)
 		for id in _job_ids:
-			picker.add_item(Jobs.job(id).name)
+			picker.add_icon_item(load(Jobs.icon_path(id)), Jobs.job(id).name)
 		box.add_child(picker)
 		_slots[team].append(picker)
 	var buttons := HBoxContainer.new()

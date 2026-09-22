@@ -1,9 +1,10 @@
 extends CanvasLayer
 ## All 2D battle UI, kept compact so the battlefield stays visible:
-##   top center    turn order strip (one chip per unit: READY countdown,
-##                 cast in progress, or time until ready)
-##   top right     Units / Pause / Menu buttons
-##   top left      recent messages, fading out
+##   top           turn order bars, one per team (an icon chip per unit with
+##                 a time badge: READY countdown, cast, or time until ready)
+##   top right     Log / Units / Pause / Menu buttons
+##   left          the combat log window (movable, resizable) and the stats
+##                 card of a clicked ally; a clicked enemy's card is on the right
 ##   bottom left   the selected unit's card: HP / TG / Ultimate bars and stats
 ##   bottom center action bar (Move, abilities 1-4, End Turn), with the
 ##                 hover preview floating just above it
@@ -47,9 +48,10 @@ const TIMELINE_SECONDS := 30.0  # the far (right) end of the bar
 ## Each team's row: a line of chips with the team's bar just below it.
 ## Chips never stack: crowded ones are pushed along the bar, and a dot on
 ## the bar marks each unit's exact time.
-const ROW_HEIGHT := 44.0
+const ROW_HEIGHT := 48.0
 const READY_SLOTS := 4
-const CHIP_SIZE := Vector2(66, 30)
+## Chips are uniform squares: the class icon, with a small time badge.
+const CHIP_SIZE := Vector2(36, 36)
 const CHIP_GAP := 3.0
 const CHIP_MIN_SCALE := 0.75
 const TRACK_START := READY_SLOTS * (CHIP_SIZE.x + CHIP_GAP) + 10
@@ -70,6 +72,7 @@ var _bar_ticks: Array[ColorRect] = []
 var _bars_width := -1.0
 var _chips: Array[Button] = []
 var _chip_for := {}
+var _icons := {}
 ## Stats cards for an inspected unit: "left" (allies) and "right" (enemies).
 var _inspect := {}
 var _chip_styles := {}
@@ -601,7 +604,7 @@ func _chip_style(team_color: Color, state_name: String) -> StyleBoxFlat:
 		elif state_name == "selected":
 			bg = Color(0.2, 0.22, 0.28, 0.92)
 		# Extra left padding leaves room for the team-colored edge (a ColorRect).
-		_chip_styles[key] = _box(bg, outline, 1 if state_name == "normal" else 2, 6, Vector2(7, 1))
+		_chip_styles[key] = _box(bg, outline, 1 if state_name == "normal" else 2, 6, Vector2(2, 2))
 	return _chip_styles[key]
 
 
@@ -609,22 +612,51 @@ func _chip_style(team_color: Color, state_name: String) -> StyleBoxFlat:
 
 ## Turn order strip. Each entry: {"id", "name", "color", "ready", "seconds",
 ## "casting", "cast_seconds", "selected", "hidden"}, already in display order.
+## Loaded icon textures by path.
+func _icon(path: String) -> Texture2D:
+	if not _icons.has(path):
+		_icons[path] = load(path)
+	return _icons[path]
+
+
 ## A turn order chip for one unit (clicking it selects or inspects the unit).
 func _new_chip(unit_id: int) -> Button:
 	var chip := Button.new()
 	chip.focus_mode = Control.FOCUS_NONE
 	chip.size = CHIP_SIZE
-	chip.clip_text = true
-	chip.add_theme_font_size_override("font_size", 9)
 	chip.pressed.connect(func(): chip_pressed.emit(chip.get_meta("unit_id")))
+	var icon := TextureRect.new()
+	icon.name = "Icon"
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	icon.offset_left = 6
+	icon.offset_top = 3
+	icon.offset_right = -3
+	icon.offset_bottom = -3
+	chip.add_child(icon)
 	var edge := ColorRect.new()
 	edge.name = "Edge"
 	edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	edge.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
-	edge.offset_right = 4
+	edge.offset_right = 3
 	edge.offset_top = 3
 	edge.offset_bottom = -3
 	chip.add_child(edge)
+	# Time badge along the bottom (READY countdown, cast or time until ready).
+	var badge := Label.new()
+	badge.name = "Badge"
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	badge.add_theme_font_size_override("font_size", 9)
+	badge.add_theme_stylebox_override("normal", _box(Color(0.02, 0.03, 0.05, 0.8), Color(0, 0, 0, 0), 0, 3, Vector2(1, 0)))
+	badge.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	badge.offset_top = -12
+	badge.offset_bottom = 1
+	badge.offset_left = 2
+	badge.offset_right = -1
+	chip.add_child(badge)
 	_timeline.add_child(chip)
 	_chips.append(chip)
 	chip.set_meta("unit_id", unit_id)
@@ -694,24 +726,24 @@ func set_turn_order(entries: Array) -> void:
 		else:
 			chip.position = chip.position.lerp(target.pos, blend)
 			chip.scale = chip.scale.lerp(Vector2.ONE * target.scale, blend)
-		chip.z_index = 20 if e.ready else roundi(10.0 * target.scale)
 		var dot: ColorRect = chip.get_meta("dot")
 		dot.visible = target.dot >= 0.0
 		dot.color = e.color
 		dot.position = Vector2(target.dot - 3.0, e.team * ROW_HEIGHT + BAR_Y - 3.0)
 		var status: String
 		var look := "normal"
+		var badge_color := TEXT
 		if e.hidden:
 			status = ""
 		elif e.ready:
 			# Time left before its Patience runs out.
-			status = "READY %ds" % ceili(e.seconds)
-			if e.casting != "":
-				status += " · %.1fs" % e.cast_seconds
+			status = "%ds" % ceili(e.seconds)
 			look = "urgent" if e.seconds <= 5.0 else "ready"
+			badge_color = URGENT if look == "urgent" else GOLD
 		elif e.casting != "":
-			status = "%s %.1fs" % [e.casting, e.cast_seconds]
+			status = "%.1fs" % e.cast_seconds
 			look = "casting"
+			badge_color = CAST.lightened(0.3)
 		elif e.seconds <= SHOW_TIME_SECONDS or e.get("since_turn", INF) <= SHOW_TIME_SECONDS or chip.is_hovered():
 			# The time until ready shows only just after a turn, just before the
 			# next, and while the mouse is over the chip.
@@ -720,8 +752,23 @@ func set_turn_order(entries: Array) -> void:
 			status = ""
 		if e.selected:
 			look = "selected"
-		_set_text(chip, "%s\n%s" % [e.name, status])
-		_set_tip(chip, e.get("tip", ""))
+		var badge: Label = chip.get_node("Badge")
+		_set_text(badge, status)
+		badge.visible = status != ""
+		_set_color(badge, badge_color)
+		var icon: TextureRect = chip.get_node("Icon")
+		var icon_path: String = "res://assets/icons/hidden.svg" if e.hidden else Jobs.icon_path(e.job)
+		if icon.get_meta("path", "") != icon_path:
+			icon.set_meta("path", icon_path)
+			icon.texture = _icon(icon_path)
+			# The generic icon of an imported class takes the class color.
+			icon.modulate = Jobs.job(e.job).color.lightened(0.3) if icon_path == Jobs.GENERIC_ICON else Color.WHITE
+		var tip: String = "Hidden by the fog of war" if e.hidden else e.title
+		if e.casting != "":
+			tip += "\nCasting %s" % e.casting
+		if not e.hidden and e.get("tip", "") != "":
+			tip += "\n\n" + e.tip
+		_set_tip(chip, tip)
 		# Restyle only when the look changes: theme overrides are costly.
 		var look_key := "%s/%s" % [look, e.color.to_html()]
 		if chip.get_meta("look", "") != look_key:
@@ -729,8 +776,6 @@ func set_turn_order(entries: Array) -> void:
 			var style := _chip_style(e.color, look)
 			for state_name in ["normal", "hover", "pressed"]:
 				chip.add_theme_stylebox_override(state_name, style)
-			chip.add_theme_color_override("font_color", TEXT if look != "normal" else DIM)
-			chip.add_theme_color_override("font_hover_color", Color.WHITE)
 			(chip.get_node("Edge") as ColorRect).color = e.color
 
 

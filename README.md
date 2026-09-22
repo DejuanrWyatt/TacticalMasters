@@ -58,7 +58,9 @@ deterministic, so the replay is exact), with ×1 / ×2 / ×4 speed.
 - **Each ready unit has its own countdown**: 8 s + 2 s × **Patience** (18-24 s). It appears on the unit's chip in the turn order bar
   (`READY 12s`) and above the unit's head. If it runs out, that unit's turn is lost and its TG resets to 0.
 - **Turn order bars** (top of the screen): one bar per team, Blue above Red. Each unit's chip slides along its
-  team's bar toward the READY zone at the left end, placed by the seconds until it's ready. Chips never stack: when
+  team's bar toward the READY zone at the left end, placed by the seconds until it's ready. Each chip is a uniform
+  square with the unit's **class icon**; its name and any spell being cast are in its tooltip, and a small badge shows
+  the time (gold READY countdown, purple cast, or white time until ready). Chips never stack: when
   turns are close together, chips are pushed along the bar, and a small dot on the bar marks each unit's exact time. The last seconds get the most
   room, and ticks mark 1, 3, 5, 10, 20 and 30 s. A chip grows as its turn gets closer and is full size once READY.
   The seconds until ready show on the chip for 3 s after the unit's turn ends, in the last 3 s before it's ready,
@@ -191,6 +193,8 @@ host sends the class to the other player. The rules, in `scripts/core/astra_impo
 - One **Passive** entry tagged `profile` holds the class stats as parameters with formula keys `hp`, `att`, `mag`,
   `attdef`, `magdef`, `wits`, `move`, `patience`, `sight`. Its name and color are the class name and color.
   Tag it `look:<job>` to choose a built-in character model (tinted with the class color).
+  The class icon is `assets/icons/<id>.svg`. Tag the profile `icon:<name>` to use another icon from that folder.
+  Without one, the class gets a generic star in its color.
 - Four abilities are tagged `slot:1` to `slot:4`; slot 4 is the ultimate. Their parameters are read at **rank 1**, and
   distances are in meters:
 

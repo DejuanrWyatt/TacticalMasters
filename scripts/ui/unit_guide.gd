@@ -93,6 +93,7 @@ func _ready() -> void:
 
 	_tabs = TabContainer.new()
 	_tabs.custom_minimum_size.y = 250
+	_tabs.add_theme_constant_override("icon_max_width", 20)
 	body.add_child(_tabs)
 	_fill_ability_tabs()
 
@@ -225,6 +226,7 @@ func _fill_ability_tabs() -> void:
 		grid.name = "Grid"
 		pad.add_child(grid)
 		_tabs.add_child(pad)
+		_tabs.set_tab_icon(_tabs.get_tab_count() - 1, load(Jobs.icon_path(id)))
 	if current >= 0 and current < _tabs.get_tab_count():
 		_tabs.current_tab = current
 

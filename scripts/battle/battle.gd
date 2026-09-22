@@ -879,6 +879,8 @@ func _update_live_ui() -> void:
 		entries.append({
 			"id": u.id,
 			"team": u.team,
+			"job": u.job,
+			"title": "%s %s" % [GameState.TEAM_NAMES[u.team], u.job_name()],
 			"name": u.job_name() if seen else "???",
 			"color": (TEAM_COLORS[u.team] as Color).lightened(0.35),
 			"ready": u.ready,

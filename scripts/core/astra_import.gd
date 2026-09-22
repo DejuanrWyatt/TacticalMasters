@@ -13,6 +13,9 @@ extends RefCounted
 ##                  built-in character model to use (default black_mage).
 ##   "slot:1".."slot:4"  the class's 4 abilities; slot 4 is its ultimate.
 ##   "fx:<ability>"      optional: borrow a built-in ability's animation.
+##   "icon:<name>"       optional, on the profile: the class icon
+##                       (assets/icons/<name>.svg; default the class id's icon,
+##                       else a generic icon in the class color).
 ##   "revive"            optional: the ability revives a knocked-out ally.
 ##
 ## Ability parameters (formula keys), read at rank 1, distances in meters:
@@ -118,6 +121,8 @@ static func _import_class(id: String, entries: Array, out: Dictionary) -> String
 	for tag in profile.tags:
 		if tag is String and tag.begins_with("look:") and BUILT_IN_LOOKS.has(tag.substr(5)):
 			job["look"] = tag.substr(5)
+		if tag is String and tag.begins_with("icon:") and RegEx.create_from_string("^[a-z0-9_]{1,40}$").search(tag.substr(5)):
+			job["icon"] = tag.substr(5)
 	var values := _values(profile)
 	if values.has("error"):
 		return "profile: " + values.error
