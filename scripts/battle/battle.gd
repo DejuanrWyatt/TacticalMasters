@@ -69,7 +69,7 @@ var _paused_by_guide := false
 
 
 func _ready() -> void:
-	state.setup(MapData.highlands())
+	state.setup(GameConfig.build_map())
 	match GameConfig.mode:
 		"ai":
 			viewer_team = 1 - GameConfig.ai_team

@@ -2,7 +2,8 @@ extends SceneTree
 ## Two-process online test on localhost. Run both at once:
 ##   godot --headless --script res://tests/net_test.gd -- host
 ##   godot --headless --script res://tests/net_test.gd -- client
-## Uses the real Net flow in fast-forward: the host moves time forward and
+## The host picks a map and teams, which must arrive at the client. Then it
+## uses the real Net flow in fast-forward: the host moves time forward and
 ## both sides let the AI order their own ready units (the client through
 ## requests to the host). At the end both print a checksum of their game;
 ## the checksums must match.
@@ -24,9 +25,12 @@ func _initialize() -> void:
 	await process_frame  # autoloads enter the tree after _initialize starts
 	net = root.get_node("Net")
 	config = root.get_node("GameConfig")
-	state.setup(MapData.highlands())
 	net.game_started.connect(func(): started = true)
 	var role := "host" if OS.get_cmdline_user_args().has("host") else "client"
+	if role == "host":
+		# The host's Battle Setup choices must reach the client.
+		config.map_id = "river"
+		config.rosters = [["monk", "archer", "squire", "white_mage"], ["knight", "black_mage", "archer", "monk"]]
 	var err: int = net.host(PORT) if role == "host" else net.join("127.0.0.1", PORT)
 	if err != OK:
 		_finish(role, "could not start (%d)" % err)
@@ -38,6 +42,10 @@ func _initialize() -> void:
 	if not started:
 		_finish(role, "never connected")
 		return
+	if config.map_id != "river" or config.rosters[0][0] != "monk":
+		_finish(role, "host settings didn't arrive (map %s)" % config.map_id)
+		return
+	state.setup(config.build_map())
 
 	deadline = Time.get_ticks_msec() + 120000
 	while state.winner == -1 and Time.get_ticks_msec() < deadline:

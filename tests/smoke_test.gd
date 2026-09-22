@@ -15,6 +15,7 @@ func _initialize() -> void:
 	await process_frame  # let autoloads enter the tree
 	_test_rules()
 	_test_ai_battle()
+	_test_maps()
 	await _test_scenes()
 	print("SMOKE TEST %s (%d failure(s))" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
@@ -315,6 +316,30 @@ func _test_casting() -> void:
 	_check(not mage.is_alive() and not mage.is_casting(), "defeated caster's spell fizzles")
 
 
+func _test_maps() -> void:
+	var ai := AIPlayer.new("hard")
+	for id in MapData.map_ids():
+		var state := GameState.new()
+		state.setup(MapData.build(id, ["knight", "monk", "archer", "black_mage"], ["squire", "white_mage", "archer", "knight"]))
+		_check(state.units.size() == 8, "%s: 8 units" % id)
+		for u in state.units:
+			_check(not state.is_water(u.pos) and u.pos == state.snap(u.pos), "%s: unit %d starts on land" % [id, u.id])
+			_check(state.reachable_nodes(u).size() > 20, "%s: unit %d can move from its start" % [id, u.id])
+		_check(state.units[1].job == "monk" and state.units[5].job == "white_mage", "%s: rosters applied" % id)
+		# A short AI-vs-AI skirmish: every order must be legal on every map.
+		while state.winner == -1 and state.tick < 3000:
+			var ready := state.ready_units()
+			if ready.is_empty():
+				state.apply({"type": "advance", "ticks": 1})
+				continue
+			var cmd := ai.next_command(state, ready[0])
+			var err := state.validate(cmd)
+			_check(err == "", "%s: AI order legal (%s)" % [id, err])
+			if err != "":
+				break
+			state.apply(cmd)
+
+
 func _test_ai_battle() -> void:
 	var ai := AIPlayer.new()
 	var state := _new_state()
@@ -375,6 +400,7 @@ func _test_scenes() -> void:
 	for path in ["res://scripts/battle/battle.gd", "res://scripts/battle/hud.gd", "res://scripts/battle/board_view.gd",
 			"res://scripts/battle/unit_view.gd", "res://scripts/battle/fx.gd", "res://scripts/battle/camera_rig.gd",
 			"res://scripts/ui/unit_guide.gd", "res://scripts/ui/options_menu.gd", "res://scripts/main_menu.gd",
+			"res://scripts/ui/battle_setup.gd", "res://scripts/ui/ui_theme.gd",
 			"res://scripts/autoload/net.gd", "res://scripts/autoload/keybinds.gd"]:
 		var script: Script = load(path)
 		_check(script != null and script.can_instantiate(), "%s compiles" % path)
@@ -426,4 +452,13 @@ func _test_scenes() -> void:
 	menu._open_options()
 	await process_frame
 	_check(menu.options.visible, "options menu opens from the main menu")
+	menu._open_setup("ai")
+	await process_frame
+	menu.setup._select_map("fortress")
+	menu.setup._randomize(1)
+	menu.setup._on_start()
+	var config: Node = root.get_node("GameConfig")
+	_check(config.map_id == "fortress" and config.rosters[1].size() == 4, "battle setup writes map and rosters to GameConfig")
+	config.map_id = MapData.DEFAULT_MAP
+	config.rosters = [["knight", "archer", "black_mage", "white_mage"], ["knight", "archer", "black_mage", "white_mage"]]
 	menu.queue_free()

@@ -5,12 +5,28 @@ extends SceneTree
 ## ability slot, that ability is selected and aimed at an enemy; with
 ## cast_after, it is also used and the shot taken that many seconds later.
 ## Add "guide" anywhere after "--" to open the Unit Guide before the shot.
+## Menus instead: "-- out.png menu" (title screen) or "-- out.png setup <map_id>".
 
 func _initialize() -> void:
 	await process_frame
 	var args := OS.get_cmdline_user_args()
 	var out: String = args[0] if args.size() > 0 else "user://screenshot.png"
 	var seconds: float = args[1].to_float() if args.size() > 1 else 5.0
+	if args.has("menu") or args.has("setup"):
+		# Menu screens instead of a battle.
+		var menu: Node = load("res://scenes/main_menu.tscn").instantiate()
+		root.add_child(menu)
+		await process_frame
+		if args.has("setup"):
+			menu._open_setup("ai")
+			await process_frame
+			menu.setup._select_map(args[args.find("setup") + 1] if args.size() > args.find("setup") + 1 else "highlands")
+		for i in 20:
+			await process_frame
+		root.get_viewport().get_texture().get_image().save_png(out)
+		print("saved ", out)
+		quit()
+		return
 	root.get_node("GameConfig").mode = "ai"
 	var battle: Node = load("res://scenes/battle.tscn").instantiate()
 	root.add_child(battle)

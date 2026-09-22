@@ -8,7 +8,7 @@ extends CanvasLayer
 ##   bottom center action bar (Move, abilities 1-4, End Turn), with the
 ##                 hover preview floating just above it
 ## plus the game-over panel and the overlays: in-game menu, Options and the
-## Unit Guide. Everything shares one theme (see _make_theme). Key names on
+## Unit Guide. Everything shares one theme (ui_theme.gd). Key names on
 ## buttons follow the player's key bindings.
 
 signal move_pressed
@@ -23,6 +23,7 @@ signal overlay_changed(open: bool)
 const GameState = preload("res://scripts/core/game_state.gd")
 const Jobs = preload("res://scripts/core/jobs.gd")
 const UnitGuide = preload("res://scripts/ui/unit_guide.gd")
+const UiTheme = preload("res://scripts/ui/ui_theme.gd")
 const OptionsMenu = preload("res://scripts/ui/options_menu.gd")
 
 const TEXT := Color(0.92, 0.94, 1.0)
@@ -64,7 +65,7 @@ func build(can_pause: bool) -> void:
 	_root = Control.new()
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_root.theme = _make_theme()
+	_root.theme = UiTheme.build()
 	add_child(_root)
 
 	_build_turn_order()
@@ -93,31 +94,6 @@ static func _box(bg: Color, border := Color(0, 0, 0, 0), border_width := 0, radi
 	s.content_margin_bottom = pad.y
 	s.anti_aliasing = true
 	return s
-
-
-func _make_theme() -> Theme:
-	var t := Theme.new()
-	t.default_font_size = 14
-	t.set_stylebox("panel", "PanelContainer", _box(PANEL_BG, Color(1, 1, 1, 0.07), 1, 10, Vector2(12, 10)))
-	t.set_stylebox("panel", "Panel", _box(PANEL_BG, Color(1, 1, 1, 0.07), 1, 10))
-
-	t.set_stylebox("normal", "Button", _box(Color(0.12, 0.15, 0.21, 0.92), Color(1, 1, 1, 0.08), 1, 8))
-	t.set_stylebox("hover", "Button", _box(Color(0.17, 0.21, 0.29, 0.95), Color(GOLD, 0.7), 1, 8))
-	t.set_stylebox("pressed", "Button", _box(Color(0.32, 0.25, 0.09, 0.95), GOLD, 2, 8))
-	t.set_stylebox("hover_pressed", "Button", _box(Color(0.36, 0.28, 0.1, 0.95), GOLD, 2, 8))
-	t.set_stylebox("disabled", "Button", _box(Color(0.09, 0.11, 0.15, 0.7), Color(1, 1, 1, 0.04), 1, 8))
-	t.set_stylebox("focus", "Button", StyleBoxEmpty.new())
-	t.set_color("font_color", "Button", TEXT)
-	t.set_color("font_hover_color", "Button", Color.WHITE)
-	t.set_color("font_pressed_color", "Button", GOLD)
-	t.set_color("font_hover_pressed_color", "Button", GOLD)
-	t.set_color("font_disabled_color", "Button", Color(1, 1, 1, 0.3))
-	t.set_font_size("font_size", "Button", 13)
-
-	t.set_color("font_color", "Label", TEXT)
-	t.set_color("font_outline_color", "Label", Color(0, 0, 0, 0.8))
-	t.set_stylebox("background", "ProgressBar", _box(Color(0, 0, 0, 0.55), Color(1, 1, 1, 0.06), 1, 4, Vector2.ZERO))
-	return t
 
 
 # --- Layout ----------------------------------------------------------------

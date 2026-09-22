@@ -62,10 +62,26 @@ click an action, then press a key. If another action already uses that key, the 
 Damage = (power stat × ability power × 2 × height bonus − AttDef (physical) or MagDef (magic)) × 0.5, minimum 1.
 There is no randomness. The final × 0.5 is `DAMAGE_MULTIPLIER` in `game_state.gd`, the quickest dial for overall damage.
 
+## Battle Setup: maps and teams
+
+Every game starts with **Battle Setup**: pick the **map**, each side's **4 jobs** (any of the 6, repeats allowed; **Random**
+and **Default** buttons), and the computer's **difficulty**. A host picks for both sides, and the joining player gets the
+same settings.
+
+| Map | What it's like |
+|---|---|
+| **Highlands** | Rolling hills with a high ridge on each flank. Take the high ground. |
+| **River Crossing** | A river splits the field; two narrow bridges are the only way across. |
+| **Fortress** | A raised central plateau reachable only by ramps; stone pillars block line of sight. |
+| **Open Plains** | Flat and open with a few low hills. |
+
+Maps are 24 × 24 m and point-symmetric (fair for both sides). They're defined as height rows in `scripts/core/map_data.gd`
+(`MAPS`); adding a map is adding an entry there.
+
 ## Jobs
 
-Each team starts with Knight, Archer, Black Mage and White Mage (`Jobs.DEFAULT_ROSTER`). Squire and Monk are also defined.
-Move and Sight are in meters. The map is 24 × 24 m.
+The default team is Knight, Archer, Black Mage and White Mage (`Jobs.DEFAULT_ROSTER`); Squire and Monk are also
+available in Battle Setup. Move and Sight are in meters.
 
 | Job | HP | AttPwr | MagPwr | AttDef | MagDef | Wits | Move | Patience | Sight |
 |---|---|---|---|---|---|---|---|---|---|
@@ -97,7 +113,7 @@ All numbers are in `scripts/core/jobs.gd` (jobs and abilities) and at the top of
 ## Game modes
 
 - **Play vs Computer:** you are Blue, and the computer plays Red. The computer only targets what its units can see.
-  Pick its **difficulty** on the main menu:
+  Pick its **difficulty** in Battle Setup:
   - **Easy:** reacts in about 2.5 s, pauses 1.2 s between orders, and 45% of the time settles for one of its 5 best options.
   - **Medium** (default): about 1.3 s, 0.9 s, and 20% of the time one of its 3 best.
   - **Hard:** about 0.4 s, 0.6 s, and always its best option.
@@ -132,7 +148,7 @@ scripts/core/           the rules, no graphics: game_state, unit, jobs, map_data
 scripts/ai/             ai_player.gd: the computer opponent
 scripts/battle/         battle.gd (time, input, orders), camera_rig, board_view, unit_view, fx (ability animations), hud
 scripts/autoload/       GameConfig (chosen mode), Net (online play)
-scripts/ui/unit_guide.gd  Unit Guide (stats / abilities / damage table), used by the menu and the battle
+scripts/ui/              Battle Setup, Unit Guide, Options, shared theme (ui_theme.gd)
 scripts/main_menu.gd    title screen
 tests/                  headless tests and the screenshot tool
 ```

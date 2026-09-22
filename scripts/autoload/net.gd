@@ -87,7 +87,7 @@ func _on_peer_connected(id: int) -> void:
 		return  # clients wait for the host's _start_game
 	opponent_id = id
 	GameConfig.start_online(0)
-	_start_game.rpc_id(id, 1)
+	_start_game.rpc_id(id, 1, {"map_id": GameConfig.map_id, "rosters": GameConfig.rosters})
 	game_started.emit()
 
 
@@ -110,9 +110,14 @@ func _on_server_disconnected() -> void:
 
 
 @rpc("authority", "call_remote", "reliable")
-func _start_game(team: int) -> void:
+func _start_game(team: int, settings: Dictionary) -> void:
 	opponent_id = 1
 	GameConfig.start_online(team)
+	# Play on the host's map with the host's chosen teams.
+	GameConfig.map_id = settings.get("map_id", GameConfig.map_id)
+	var rosters = settings.get("rosters")
+	if rosters is Array and rosters.size() == 2:
+		GameConfig.rosters = rosters
 	game_started.emit()
 
 
