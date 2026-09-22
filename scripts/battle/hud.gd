@@ -696,8 +696,9 @@ func set_turn_order(entries: Array) -> void:
 		elif e.casting != "":
 			status = "%s %.1fs" % [e.casting, e.cast_seconds]
 			look = "casting"
-		elif e.seconds <= SHOW_TIME_SECONDS or e.get("since_turn", INF) <= SHOW_TIME_SECONDS:
-			# The time until ready shows only just after a turn and just before the next.
+		elif e.seconds <= SHOW_TIME_SECONDS or e.get("since_turn", INF) <= SHOW_TIME_SECONDS or chip.is_hovered():
+			# The time until ready shows only just after a turn, just before the
+			# next, and while the mouse is over the chip.
 			status = "%.1fs" % e.seconds
 		else:
 			status = ""
