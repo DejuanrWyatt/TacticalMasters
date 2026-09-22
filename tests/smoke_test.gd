@@ -451,7 +451,7 @@ func _test_scenes() -> void:
 			"res://scripts/battle/unit_view.gd", "res://scripts/battle/fx.gd", "res://scripts/battle/camera_rig.gd",
 			"res://scripts/ui/unit_guide.gd", "res://scripts/ui/options_menu.gd", "res://scripts/main_menu.gd",
 			"res://scripts/ui/battle_setup.gd", "res://scripts/ui/ui_theme.gd", "res://scripts/ui/how_to_play.gd",
-			"res://scripts/autoload/settings.gd",
+			"res://scripts/autoload/settings.gd", "res://scripts/autoload/audio.gd",
 			"res://scripts/autoload/net.gd", "res://scripts/autoload/keybinds.gd"]:
 		var script: Script = load(path)
 		_check(script != null and script.can_instantiate(), "%s compiles" % path)
@@ -506,6 +506,13 @@ func _test_scenes() -> void:
 	menu._open_how_to()
 	await process_frame
 	_check(menu.how_to.visible and menu.how_to._pages.size() >= 6, "How to Play opens with its pages")
+	var audio: Node = root.get_node("Audio")
+	for sound in ["hit_metal", "swing", "magic", "heal", "ready", "turn_lost", "click", "step", "victory", "defeat", "charge"]:
+		_check(audio.has_sound(sound), "sound '%s' is loaded" % sound)
+	# load(), not preload(): fx.gd uses autoloads, which exist only at runtime.
+	var fx_script: GDScript = load("res://scripts/battle/fx.gd")
+	for id in preload("res://scripts/core/jobs.gd").ABILITIES:
+		_check(fx_script.SOUNDS.has(id), "ability '%s' has sounds" % id)
 	var settings: Node = root.get_node("Settings")
 	var was: bool = settings.colorblind
 	settings.set_value("colorblind", true)

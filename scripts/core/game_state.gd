@@ -728,7 +728,7 @@ func validate(cmd: Dictionary) -> String:
 ## Events with "impact" come from an ability landing.
 func apply(cmd: Dictionary) -> Dictionary:
 	var result := {"logs": [], "events": [], "became_ready": [], "turn_ended": [], "cast_started": [], "resolved": [],
-		"knocked_out": [], "revived": [], "gone": []}
+		"knocked_out": [], "revived": [], "gone": [], "timed_out": []}
 	match cmd["type"]:
 		"advance":
 			for i in cmd["ticks"]:
@@ -878,6 +878,7 @@ func _end_turn(u: Unit, timed_out: bool, result: Dictionary) -> void:
 	if timed_out:
 		u.tg = 0
 		result.logs.append("%s %s ran out of time!" % [TEAM_NAMES[u.team], u.job_name()])
+		result.timed_out.append(u.id)
 	elif u.moved and u.acted:
 		u.tg = 0
 	elif u.moved or u.acted:

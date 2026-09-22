@@ -387,6 +387,12 @@ func walk(points: Array[Vector3]) -> float:
 	if total == 0.0:
 		_move_tween.kill()
 		return 0.0
+	# Footsteps every ~0.4 s along the way.
+	if visible:
+		var steps := create_tween()
+		for i in maxi(1, floori(total / 0.4)):
+			steps.tween_interval(0.4 if i > 0 else 0.05)
+			steps.tween_callback(func(): Audio.play_at("step", global_position, -8.0))
 	if _anim != null:
 		_play("Walking_A")
 		_move_tween.tween_callback(_play.bind(_idle_anim()))

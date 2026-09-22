@@ -110,7 +110,7 @@ func _ready() -> void:
 	hud.overlay_changed.connect(_on_overlay_changed)
 	hud.rematch_pressed.connect(_rematch)
 	hud.replay_pressed.connect(_watch_replay)
-	hud.replay_speed_changed.connect(func(speed: float): _replay_speed = speed)
+	hud.replay_speed_changed.connect(_set_replay_speed)
 	if replaying:
 		hud.show_replay_bar(true)
 		hud.log_message("Watching the replay.")
@@ -137,6 +137,8 @@ func _ready() -> void:
 	for view in unit_views.values():
 		view.prewarm()
 	get_tree().create_timer(0.3).timeout.connect(_refresh)
+	Audio.sfx_enabled = true
+	Audio.play_music(Audio.BATTLE_MUSIC)
 	if GameConfig.mode == "online" and not replaying:
 		_process_inbox()
 		_process_requests()
@@ -302,6 +304,9 @@ func _apply(cmd: Dictionary) -> void:
 			_popup(e, delay if e.get("impact", false) else 0.0)
 	for id in result.knocked_out:
 		unit_views[id].knock_out(delay)
+		if _is_seen(state.get_unit(id)):
+			get_tree().create_timer(delay + 0.3).timeout.connect(Audio.play_at.bind("knock_out", unit_views[id].global_position))
+	_play_turn_sounds(result)
 	for id in result.revived:
 		unit_views[id].revive(delay)
 	for id in result.gone:
@@ -679,7 +684,27 @@ func _on_overlay_changed(open: bool) -> void:
 			_toggle_pause()
 
 
+## A chime when one of your units becomes ready; a buzz when one runs out of time.
+func _play_turn_sounds(result: Dictionary) -> void:
+	for id in result.became_ready:
+		if _controller(state.get_unit(id).team) == "local":
+			Audio.play("ready", -4.0)
+			break
+	for id in result.timed_out:
+		if _controller(state.get_unit(id).team) == "local":
+			Audio.play("turn_lost", -4.0)
+			break
+
+
+func _set_replay_speed(speed: float) -> void:
+	_replay_speed = speed
+	# Fast-forwarded replays would be a wall of noise.
+	Audio.sfx_enabled = speed <= 2.0
+
+
 func _back_to_menu() -> void:
+	Audio.stop_music()
+	Audio.sfx_enabled = true
 	Net.close()
 	get_tree().change_scene_to_file(MENU_SCENE)
 
@@ -704,6 +729,9 @@ func _game_over() -> void:
 			best = st.dealt + st.healed
 			mvp = rows.size() - 1
 	hud.show_game_over(text, rows, mvp, true)
+	Audio.stop_music()
+	Audio.sfx_enabled = true
+	Audio.play("defeat" if text == "Defeat" else "victory")
 	_refresh()
 
 

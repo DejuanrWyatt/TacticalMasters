@@ -157,6 +157,14 @@ godot --script res://tests/frame_time.gd -- [seconds] [difficulty]   # real-wind
 The computer decides on a background thread, working on a snapshot of the battle (`GameState.snapshot()`), so its
 thinking never stalls the game. Its order is then checked against the live battle like any other.
 
+## Credits
+
+All third-party assets are **CC0** (public domain), bundled in `assets/`:
+
+- **Characters:** KayKit Adventurers Character Pack by Kay Lousberg (www.kaylousberg.com)
+- **Sound effects:** Kenney (www.kenney.nl): RPG Audio, Impact Sounds, Interface Sounds, Music Jingles
+- **Music:** "Battle Theme A" by cynicmusic (cynicmusic.com, pixelsphere.org), via OpenGameArt.org
+
 ## Project layout
 
 ```
@@ -164,7 +172,8 @@ scenes/                 main_menu.tscn, battle.tscn (everything else is built in
 scripts/core/           the rules, no graphics: game_state, unit, jobs, map_data
 scripts/ai/             ai_player.gd: the computer opponent
 scripts/battle/         battle.gd (time, input, orders), camera_rig, board_view, unit_view, fx (ability animations), hud
-scripts/autoload/       GameConfig (chosen mode), Net (online play)
+scripts/autoload/       GameConfig (chosen mode/map/teams), Net (online), Keybinds, Settings, Audio
+assets/                 characters (KayKit), audio (Kenney sounds, battle music)
 scripts/ui/              Battle Setup, Unit Guide, Options, shared theme (ui_theme.gd)
 scripts/main_menu.gd    title screen
 tests/                  headless tests and the screenshot tool

@@ -21,9 +21,31 @@ const HASTE := Color(0.45, 0.75, 1.0)
 const STONE := Color(0.55, 0.55, 0.55)
 
 
+## Sounds per ability: [on launch, on impact] ("" = none).
+const SOUNDS := {
+	"attack": ["swing", "hit_metal"], "staff": ["swing", "hit_punch"], "punch": ["swing", "hit_punch"],
+	"shield_bash": ["swing", "hit_heavy"], "brave_slash": ["swing", "hit_heavy"], "holy_blade": ["swing", "magic"],
+	"throw_stone": ["swing", "hit_stone"], "bow_shot": ["shoot", "hit_arrow"], "aimed_shot": ["shoot", "hit_arrow"],
+	"pin_shot": ["shoot", "hit_arrow"], "arrow_rain": ["shoot", "hit_arrow"], "wave_fist": ["swing", "hit_punch"],
+	"earth_slash": ["", "boom"], "fire": ["", "magic"], "blizzard": ["", "ice"], "meteor": ["", "boom"],
+	"cure": ["", "heal"], "chakra": ["", "heal"], "sanctuary": ["", "heal"], "raise": ["", "revive"],
+	"haste": ["", "buff"], "focus": ["", "buff"], "guard": ["", "buff"],
+}
+
+
 ## `caster` is the caster's view; `from` its chest position; `target` the
 ## ground point aimed at; `radius` the ability's area radius in meters.
 func play(ability_id: String, caster: UnitView, from: Vector3, target: Vector3, radius: float) -> float:
+	var impact := _play_visuals(ability_id, caster, from, target, radius)
+	var sounds: Array = SOUNDS.get(ability_id, ["", ""])
+	if sounds[0] != "":
+		Audio.play_at(sounds[0], from)
+	if sounds[1] != "":
+		get_tree().create_timer(impact).timeout.connect(Audio.play_at.bind(sounds[1], target))
+	return impact
+
+
+func _play_visuals(ability_id: String, caster: UnitView, from: Vector3, target: Vector3, radius: float) -> float:
 	var up := Vector3(0, 0.8, 0)
 	match ability_id:
 		"attack", "staff", "punch":
@@ -132,6 +154,7 @@ func play(ability_id: String, caster: UnitView, from: Vector3, target: Vector3, 
 ## cast time.
 func charge(caster: UnitView, seconds: float) -> void:
 	caster.channel()
+	Audio.play_at("charge", caster.global_position)
 	var torus := TorusMesh.new()
 	torus.inner_radius = 0.55
 	torus.outer_radius = 0.68
