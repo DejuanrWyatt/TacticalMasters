@@ -149,3 +149,53 @@ const ABILITIES := {
 	"raise": {"name": "Raise", "desc": "Revive a knocked-out ally up to 5 m away with 30% HP.",
 		"effect": "revive", "scale": "mag", "power": 0.3, "min_range": 0.0, "max_range": 5.0, "aoe": 0.0, "cooldown": 4, "cast": 2.0, "target": "ko_ally"},
 }
+
+
+# --- Registry: built-in jobs plus imported classes (see AstraImport) --------
+
+## Imported classes and their abilities, added at startup (and, online, sent
+## by the host). Same shapes as JOBS / ABILITIES.
+static var custom_jobs := {}
+static var custom_abilities := {}
+
+
+## Every job id -> data, built-in first.
+static func all_jobs() -> Dictionary:
+	var out := JOBS.duplicate()
+	out.merge(custom_jobs, true)
+	return out
+
+
+static func has_job(id: String) -> bool:
+	return JOBS.has(id) or custom_jobs.has(id)
+
+
+static func job(id: String) -> Dictionary:
+	return custom_jobs[id] if custom_jobs.has(id) else JOBS[id]
+
+
+static func ability(id: String) -> Dictionary:
+	return custom_abilities[id] if custom_abilities.has(id) else ABILITIES[id]
+
+
+static func is_custom(id: String) -> bool:
+	return custom_jobs.has(id)
+
+
+## Adds classes: {"jobs": {id: job}, "abilities": {id: ability}}.
+static func register(classes: Dictionary) -> void:
+	custom_abilities.merge(classes.get("abilities", {}), true)
+	custom_jobs.merge(classes.get("jobs", {}), true)
+
+
+## The definitions of the imported classes used in these rosters, for
+## sending to the other player online.
+static func classes_for(rosters: Array) -> Dictionary:
+	var out := {"jobs": {}, "abilities": {}}
+	for roster in rosters:
+		for id in roster:
+			if custom_jobs.has(id):
+				out.jobs[id] = custom_jobs[id]
+				for ab_id in custom_jobs[id].abilities:
+					out.abilities[ab_id] = custom_abilities[ab_id]
+	return out

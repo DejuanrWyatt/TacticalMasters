@@ -65,7 +65,7 @@ func _spots(state, u, reach: Dictionary) -> Array[Vector2]:
 func _best_action(state, u, reach: Dictionary) -> Dictionary:
 	var options: Array[Dictionary] = []
 	var spots := _spots(state, u, reach)
-	var sight: float = u.stat("sight")
+	var sight: float = state.sight_of(u)
 	for slot in 4:
 		if state.ability_blocked_reason(u, slot) != "":
 			continue
@@ -152,6 +152,9 @@ func _score(u, ab: Dictionary, hits: Array) -> float:
 					score += 12.0
 				if ab.has("buffs"):
 					score += 8.0
+		# A fresh status (Slow, Stun, Burn, Regen) on the unit is worth something.
+		if ab.has("status") and t.is_alive() and not t.has_status(ab.status.id):
+			score += 20.0 if ab.status.id == "stun" else 10.0
 	return score
 
 

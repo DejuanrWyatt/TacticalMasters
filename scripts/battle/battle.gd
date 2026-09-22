@@ -78,10 +78,13 @@ var _replay_log: Array = []
 var _replay_i := 0
 var _replay_time := 0.0
 var _replay_speed := 1.0
+## Rule numbers this battle started with (a replay starts from them too).
+var _start_tuning := {}
 
 
 func _ready() -> void:
-	state.setup(GameConfig.build_map())
+	state.setup(GameConfig.build_map(), GameConfig.battle_tuning())
+	_start_tuning = state.tuning.duplicate()
 	for u in state.units:
 		stats[u.id] = {"dealt": 0, "taken": 0, "healed": 0, "kos": 0}
 	if not GameConfig.replay_log.is_empty():
@@ -99,8 +102,13 @@ func _ready() -> void:
 		viewer_team = -1  # replays show everything
 	_build_world()
 	hud = Hud.new()
+	hud.game_state = state
+	# Developer Tools changes apply at once, except online (the host's rule
+	# numbers hold for the match) and in replays (they replay the recorded ones).
+	hud.dev_tools_live = GameConfig.mode != "online" and not replaying
 	add_child(hud)
 	hud.build(GameConfig.mode != "online")
+	hud.tuning_changed.connect(_on_tuning_changed)
 	hud.move_pressed.connect(_toggle_move)
 	hud.ability_pressed.connect(_select_ability)
 	hud.end_turn_pressed.connect(_on_end_turn_pressed)
@@ -335,7 +343,7 @@ func _apply(cmd: Dictionary) -> void:
 		ability_slot = -1
 		if not sel.moved:
 			_enter_move_mode()
-	elif sel != null and mode == Mode.MOVE and cmd.type == "move":
+	elif sel != null and mode == Mode.MOVE and (cmd.type == "move" or cmd.type == "tune"):
 		reachable = state.reachable_nodes(sel)  # someone else moved; paths may change
 	if selected_id == -1:
 		_auto_select()
@@ -352,7 +360,8 @@ func _play_ability(caster: Unit, slot: int, target: Vector2, hits: Array) -> flo
 	var ab := caster.ability(slot)
 	var view: UnitView = unit_views[caster.id]
 	var target_3d := board.ground(target)
-	var delay := fx.play(caster.job_data().abilities[slot], view, board.ground(caster.pos) + Vector3(0, 0.9, 0), target_3d, ab.aoe)
+	# Imported abilities borrow a built-in animation ("fx").
+	var delay := fx.play(ab.get("fx", caster.job_data().abilities[slot]), view, board.ground(caster.pos) + Vector3(0, 0.9, 0), target_3d, ab.aoe)
 	for id in hits:
 		var t := state.get_unit(id)
 		if t.is_alive() and _is_seen(t):
@@ -379,7 +388,7 @@ func _ai_step(delta: float) -> void:
 		return
 	var unit: Unit = null
 	var now := Time.get_ticks_msec()
-	for u in state.ready_units(GameConfig.ai_team):
+	for u in state.orderable_units(GameConfig.ai_team):
 		# The computer takes a moment to react to a unit becoming ready.
 		var key := "%d/%d" % [u.id, u.serial]
 		if not _ai_ready_at.has(key):
@@ -421,8 +430,8 @@ func _process_requests() -> void:
 	while not Net.requests.is_empty():
 		var cmd: Dictionary = Net.requests.pop_front()
 		var err := state.validate(cmd)
-		if err == "" and cmd.get("type") == "advance":
-			err = "Only the host moves time forward."
+		if err == "" and cmd.get("type") in ["advance", "tune"]:
+			err = "Only the host moves time forward or changes the rules."
 		if err == "" and state.get_unit(cmd.unit).team == GameConfig.local_team:
 			err = "That isn't your unit."
 		if err != "":
@@ -781,9 +790,18 @@ func _on_chat_received(text: String) -> void:
 	hud.log_message("Opponent: %s" % text)
 
 
+## Developer Tools: new rule numbers take effect through a recorded "tune"
+## command, so a replay of this battle changes them at the same moment.
+func _on_tuning_changed(values: Dictionary) -> void:
+	if GameConfig.mode == "online" or replaying or state.winner != -1:
+		return
+	_submit({"type": "tune", "values": values})
+
+
 ## Replays this battle from its recorded commands.
 func _watch_replay() -> void:
 	GameConfig.replay_log = command_log if not replaying else _replay_log
+	GameConfig.replay_tuning = _start_tuning
 	get_tree().reload_current_scene()
 
 
@@ -816,6 +834,7 @@ func _update_live_ui() -> void:
 			"casting": u.casting.name if u.is_casting() and seen else "",
 			"cast_seconds": state.cast_seconds_left(u),
 			"seconds": state.seconds_left(u),
+			"tip": "" if not _is_seen(u) else "%s\n%s" % [state.explain_turn(u), state.explain_countdown(u)],
 			"selected": u.id == selected_id,
 			"hidden": not seen,
 		})
@@ -870,7 +889,7 @@ func _update_targeting() -> void:
 			_hover_node = node
 			if reachable.has(node):
 				board.show_path(state.path_to(sel, node), true)
-				hud.set_hover("Walk here: %.1f m of %d m" % [reachable[node], sel.stat("move")])
+				hud.set_hover("Walk here: %.1f m of %.1f m   (%s)" % [reachable[node], state.move_of(sel), state.explain_move(sel)])
 				return
 			board.show_path([], true)
 		if reachable.has(node):
@@ -899,10 +918,10 @@ func _forecast(sel: Unit, slot: int, point: Vector2, follow: int) -> String:
 		match ab.effect:
 			"damage":
 				var flank := ""
-				if hit.flank >= GameState.BACK_BONUS:
-					flank = " from behind +%d%%" % roundi((GameState.BACK_BONUS - 1.0) * 100)
-				elif hit.flank >= GameState.SIDE_BONUS:
-					flank = " from the side +%d%%" % roundi((GameState.SIDE_BONUS - 1.0) * 100)
+				if hit.flank > 1.0 and hit.flank >= state.tune("back_bonus"):
+					flank = " from behind +%d%%" % roundi((hit.flank - 1.0) * 100)
+				elif hit.flank > 1.0:
+					flank = " from the side +%d%%" % roundi((hit.flank - 1.0) * 100)
 				parts.append("%s: %d damage%s (HP %d → %d)" % [who, hit.amount, flank, t.hp, maxi(0, t.hp - hit.amount)])
 			"revive":
 				parts.append("%s: revive with %d HP" % [who, hit.amount])
@@ -915,9 +934,15 @@ func _forecast(sel: Unit, slot: int, point: Vector2, follow: int) -> String:
 		var aim := "follows its target" if follow != -1 and ab.max_range > 0.0 else "lands on this spot"
 		if ab.max_range == 0.0:
 			aim = "centered on the caster"
-		cast = "   (cast %.1fs, %s)" % [ab.cast, aim]
+		cast = "   (cast %.1fs, %s)" % [state.cast_seconds(ab), aim]
 	var who := "; ".join(parts) if not parts.is_empty() else "ground: hits whoever is here when it lands"
-	return "%s → %s%s" % [ab.name, who, cast]
+	# How the number was worked out, for the first target shown.
+	var math := ""
+	for hit in state.preview(sel, slot, sel.pos, point):
+		if _is_seen(hit.unit) and ab.effect != "support":
+			math = "\n%s: %s" % [hit.unit.job_name(), state.explain_hit(sel, slot, sel.pos, hit.unit).replace("\n", "  ")]
+			break
+	return "%s → %s%s%s" % [ab.name, who, cast, math]
 
 
 func _describe_hover() -> String:
@@ -935,9 +960,9 @@ func _describe_hover() -> String:
 			status += "   %s %.0fs" % [Jobs.STATUSES[s.id].name, ceilf(s.ticks / 10.0)]
 		var sel := _selected()
 		var dist := "   ·   %.1f m away" % sel.pos.distance_to(t.pos) if sel != null and sel != t else ""
-		return "%s %s   HP %d/%d   %s   Ultimate %d%%   AttPwr %d  MagPwr %d  AttDef %d  MagDef %d  Wits %d  Move %d m  Sight %d m%s" % [
+		return "%s %s   HP %d/%d   %s   Ultimate %d%%   AttPwr %d  MagPwr %d  AttDef %d  MagDef %d  Wits %d  Move %s m  Sight %s m%s" % [
 			GameState.TEAM_NAMES[t.team], t.job_name(), t.hp, t.max_hp(), status, t.ult,
-			t.stat("att"), t.stat("mag"), t.stat("attdef"), t.stat("magdef"), t.stat("wits"), t.stat("move"), t.stat("sight"), dist]
+			t.stat("att"), t.stat("mag"), t.stat("attdef"), t.stat("magdef"), t.stat("wits"), GameState._n(state.move_of(t)), GameState._n(state.sight_of(t)), dist]
 	if not _point_seen(hover_point):
 		return "%s   ·   hidden by fog of war" % ground
 	return ground

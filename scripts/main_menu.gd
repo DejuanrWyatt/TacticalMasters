@@ -8,6 +8,7 @@ const OptionsMenu = preload("res://scripts/ui/options_menu.gd")
 const BattleSetup = preload("res://scripts/ui/battle_setup.gd")
 const UiTheme = preload("res://scripts/ui/ui_theme.gd")
 const HowToPlay = preload("res://scripts/ui/how_to_play.gd")
+const DevTools = preload("res://scripts/ui/dev_tools.gd")
 
 var address_edit: LineEdit
 var port_edit: LineEdit
@@ -16,6 +17,7 @@ var guide: Control
 var options: Control
 var setup: Control
 var how_to: Control
+var dev_tools: Control
 ## While hosting: the host's address line, kept above network status messages.
 var _host_info := ""
 
@@ -67,6 +69,7 @@ func _build_ui() -> void:
 	_add_button(row_tools, "How to Play", _open_how_to).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_add_button(row_tools, "Unit Guide", _open_guide).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_add_button(row_tools, "Options", _open_options).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_add_button(box, "Developer Tools", _open_dev_tools)
 
 	box.add_child(_spacer(8))
 	var online_panel := PanelContainer.new()
@@ -128,10 +131,23 @@ func _add_button(parent: Control, text: String, action: Callable, big := false) 
 
 
 func _open_guide() -> void:
+	# Rebuilt when Developer Tools changed the rule numbers it shows.
+	if guide != null and guide.tuning != GameConfig.tuning:
+		guide.queue_free()
+		guide = null
 	if guide == null:
 		guide = UnitGuide.new()
+		guide.tuning = GameConfig.tuning.duplicate()
 		add_child(guide)
 	guide.visible = true
+
+
+func _open_dev_tools() -> void:
+	if dev_tools == null:
+		dev_tools = DevTools.new()
+		add_child(dev_tools)
+	dev_tools.show_values(GameConfig.tuning)
+	dev_tools.visible = true
 
 
 func _open_how_to() -> void:

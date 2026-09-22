@@ -94,6 +94,11 @@ func setup(unit, team_color: Color) -> void:
 ## Loads the job's animated character; false if the model isn't available.
 func _load_character(job: String, team_color: Color) -> bool:
 	_look = JOB_LOOKS.get(job, {})
+	if _look.is_empty() and Jobs.has_job(job):
+		# An imported class borrows a built-in look, tinted with its color.
+		var data := Jobs.job(job)
+		_look = JOB_LOOKS.get(data.get("look", "black_mage"), JOB_LOOKS.black_mage).duplicate()
+		_look["tint"] = Color.WHITE.lerp(data.color, 0.6)
 	if _look.is_empty() or not ResourceLoader.exists(CHARACTER_DIR + _look.model):
 		push_warning("No character model for job '%s': using the simple stand-in." % job)
 		return false

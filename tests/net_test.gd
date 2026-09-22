@@ -2,7 +2,8 @@ extends SceneTree
 ## Two-process online test on localhost. Run a host and a client at once:
 ##   godot --headless --script res://tests/net_test.gd -- host
 ##   godot --headless --script res://tests/net_test.gd -- client
-## The host picks a map and teams, which must arrive at the client; the
+## The host picks a map, teams (with an imported class the client is made to
+## forget) and Developer Tools rule numbers, which must arrive at the client; the
 ## client sends a chat message the host must receive. Then it uses the real
 ## Net flow in fast-forward: the host moves time forward and both sides let
 ## the AI order their own ready units (the client through requests to the
@@ -17,6 +18,7 @@ extends SceneTree
 const GameState = preload("res://scripts/core/game_state.gd")
 const MapData = preload("res://scripts/core/map_data.gd")
 const AIPlayer = preload("res://scripts/ai/ai_player.gd")
+const Jobs = preload("res://scripts/core/jobs.gd")
 const PORT := 7791
 
 var net: Node
@@ -48,7 +50,12 @@ func _initialize() -> void:
 	if role == "host":
 		# The host's Battle Setup choices must reach the client.
 		config.map_id = "river"
-		config.rosters = [["monk", "archer", "squire", "white_mage"], ["knight", "black_mage", "archer", "monk"]]
+		config.rosters = [["monk", "archer", "time_mage", "white_mage"], ["knight", "black_mage", "archer", "monk"]]
+		config.tuning = {"wits_multiplier": 1.3, "damage_multiplier": 0.7}  # in memory only
+	else:
+		# The client must get the class and the rule numbers from the host.
+		Jobs.custom_jobs.erase("time_mage")
+		config.tuning = {}
 	var err: int = net.host(PORT, false) if role == "host" else net.join("127.0.0.1", PORT)
 	if err != OK:
 		_finish(role, "could not start (%d)" % err)
@@ -60,7 +67,10 @@ func _initialize() -> void:
 	if config.map_id != "river" or config.rosters[0][0] != "monk":
 		_finish(role, "host settings didn't arrive (map %s)" % config.map_id)
 		return
-	state.setup(config.build_map())
+	if config.online_tuning.get("wits_multiplier") != 1.3 or not Jobs.has_job("time_mage"):
+		_finish(role, "host tuning or class didn't arrive (%s, time_mage=%s)" % [config.online_tuning, Jobs.has_job("time_mage")])
+		return
+	state.setup(config.build_map(), config.battle_tuning())
 	if role == "client":
 		net.send_chat("gl hf")
 
@@ -75,7 +85,7 @@ func _initialize() -> void:
 					state.apply(req)
 				else:
 					net.reject("rejected: %s" % req_err)
-			var mine := state.ready_units(config.local_team)
+			var mine := state.orderable_units(config.local_team)
 			if state.winner != -1:
 				pass
 			elif not mine.is_empty():
@@ -93,7 +103,7 @@ func _initialize() -> void:
 				state.apply(step)
 		else:
 			_drain_inbox()
-			var mine := state.ready_units(config.local_team)
+			var mine := state.orderable_units(config.local_team)
 			if not mine.is_empty() and not waiting and state.winner == -1:
 				waiting = true
 				net.send_request(ai.next_command(state, mine[0]))
@@ -155,7 +165,7 @@ func _summary(role: String) -> String:
 	var sums := []
 	for u in state.units:
 		sums.append("%d:%s:%d:%d" % [u.id, u.pos, u.hp, u.tg])
-	return "%s team=%d winner=%d tick=%d checksum=%d" % [role, config.local_team, state.winner, state.tick, str(sums).hash()]
+	return "%s team=%d winner=%d tick=%d tuning=%s checksum=%d" % [role, config.local_team, state.winner, state.tick, state.tune("wits_multiplier"), str(sums).hash()]
 
 
 func _finish(role: String, error: String, summary := "") -> void:

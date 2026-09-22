@@ -26,10 +26,13 @@ signal chat_received(text: String)
 ## The opponent asked for a rematch (they're waiting for us).
 signal rematch_requested
 
+const GameState = preload("res://scripts/core/game_state.gd")
+const Jobs = preload("res://scripts/core/jobs.gd")
+
 const DEFAULT_PORT := 7777
 ## Bump when the rules or the network messages change: players on different
 ## versions can't play each other (their games would drift apart).
-const PROTOCOL_VERSION := 3
+const PROTOCOL_VERSION := 4
 const MAX_CHAT_LENGTH := 120
 
 var inbox: Array[Dictionary] = []
@@ -163,7 +166,9 @@ func _start_as_host() -> void:
 	_want_rematch = false
 	_opponent_wants_rematch = false
 	GameConfig.start_online(0)
-	_start_game.rpc_id(opponent_id, 1, {"map_id": GameConfig.map_id, "rosters": GameConfig.rosters})
+	GameConfig.online_tuning = GameConfig.tuning.duplicate()
+	_start_game.rpc_id(opponent_id, 1, {"map_id": GameConfig.map_id, "rosters": GameConfig.rosters,
+		"tuning": GameConfig.online_tuning, "classes": Jobs.classes_for(GameConfig.rosters)})
 	game_started.emit()
 
 
@@ -196,6 +201,12 @@ func _start_game(team: int, settings: Dictionary) -> void:
 	# Play on the host's map with the host's chosen teams.
 	GameConfig.map_id = settings.get("map_id", GameConfig.map_id)
 	var rosters = settings.get("rosters")
+	# The host's Developer Tools rule numbers and any imported classes it uses.
+	var tuning = settings.get("tuning", {})
+	GameConfig.online_tuning = GameState.clean_tuning(tuning) if tuning is Dictionary else {}
+	var classes = settings.get("classes", {})
+	if classes is Dictionary:
+		Jobs.register(classes)
 	if rosters is Array and rosters.size() == 2:
 		GameConfig.rosters = rosters
 	game_started.emit()

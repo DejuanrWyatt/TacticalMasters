@@ -29,7 +29,7 @@ var _rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
 	_rng.randomize()
-	_job_ids = Jobs.JOBS.keys()
+	_job_ids = Jobs.all_jobs().keys()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	theme = UiTheme.build()
@@ -169,7 +169,7 @@ func _team_column(team: int) -> VBoxContainer:
 		picker.focus_mode = Control.FOCUS_NONE
 		picker.custom_minimum_size.y = 38
 		for id in _job_ids:
-			picker.add_item(Jobs.JOBS[id].name)
+			picker.add_item(Jobs.job(id).name)
 		box.add_child(picker)
 		_slots[team].append(picker)
 	var buttons := HBoxContainer.new()

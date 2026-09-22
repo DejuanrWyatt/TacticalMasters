@@ -7,6 +7,8 @@ extends SceneTree
 const GameState = preload("res://scripts/core/game_state.gd")
 const MapData = preload("res://scripts/core/map_data.gd")
 const AIPlayer = preload("res://scripts/ai/ai_player.gd")
+const Jobs = preload("res://scripts/core/jobs.gd")
+const AstraImport = preload("res://scripts/core/astra_import.gd")
 
 var failures := 0
 
@@ -17,7 +19,10 @@ func _initialize() -> void:
 	_test_ai_battle()
 	_test_maps()
 	var replay_log := _test_replay_determinism()
+	_test_tuning()
+	_test_astra_import()
 	await _test_scenes()
+	await _test_dev_tools()
 	await _test_replay_scene(replay_log)
 	print("SMOKE TEST %s (%d failure(s))" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
@@ -330,7 +335,7 @@ func _test_maps() -> void:
 		_check(state.units[1].job == "monk" and state.units[5].job == "white_mage", "%s: rosters applied" % id)
 		# A short AI-vs-AI skirmish: every order must be legal on every map.
 		while state.winner == -1 and state.tick < 3000:
-			var ready := state.ready_units()
+			var ready := state.orderable_units()
 			if ready.is_empty():
 				state.apply({"type": "advance", "ticks": 1})
 				continue
@@ -348,7 +353,7 @@ func _test_replay_determinism() -> Array:
 	var state := _new_state()
 	var log := []
 	while state.winner == -1 and state.tick < 20000:
-		var ready := state.ready_units()
+		var ready := state.orderable_units()
 		var cmd: Dictionary
 		if ready.is_empty():
 			cmd = {"type": "advance", "ticks": 1}
@@ -372,7 +377,7 @@ func _test_ai_battle() -> void:
 	var orders := 0
 	var start := Time.get_ticks_msec()
 	while state.winner == -1 and state.tick < 20000:
-		var ready := state.ready_units()
+		var ready := state.orderable_units()
 		if ready.is_empty():
 			state.apply({"type": "advance", "ticks": 1})
 			continue
@@ -405,7 +410,7 @@ func _test_ai_battle() -> void:
 	for game in 3:
 		state = _new_state()
 		while state.winner == -1 and state.tick < 30000:
-			var ready := state.ready_units()
+			var ready := state.orderable_units()
 			if ready.is_empty():
 				state.apply({"type": "advance", "ticks": 1})
 				continue
@@ -419,6 +424,140 @@ func _test_ai_battle() -> void:
 			wins[state.winner] += 1
 	print("Easy (Blue) vs Hard (Red) over 3 games: easy %d, hard %d" % wins)
 	_check(wins[1] >= wins[0], "hard beats easy at least as often as it loses")
+
+
+## Developer Tools rule numbers ("tuning") and the "tune" command.
+func _test_tuning() -> void:
+	var plain := _new_state()
+	_check(plain.tune("wits_multiplier") == 1.0 and plain.tune("patience_multiplier") == GameState.CLOCK_PER_PATIENCE,
+		"default tuning matches the rule constants")
+	var fast := GameState.new()
+	fast.setup(MapData.highlands(), {"wits_multiplier": 2.0, "patience_multiplier": 3.0, "bogus": 5, "move_multiplier": 99.0})
+	var u = fast.units[0]
+	_check(fast._tg_gain(u) == 2 * plain._tg_gain(plain.units[0]), "Wits multiplier doubles Turn Gauge speed")
+	_check(fast.clock_ticks(u) == roundi((GameState.CLOCK_BASE + 3.0 * u.stat("patience")) * 10), "Patience multiplier sets the countdown")
+	_check(not fast.tuning.has("bogus") and fast.tune("move_multiplier") == GameState.TUNING.move_multiplier[2],
+		"unknown tuning keys are dropped and values clamped")
+	_check(fast.snapshot().tuning == fast.tuning, "snapshot copies the tuning")
+	_check(fast.reachable_nodes(u).size() > plain.reachable_nodes(plain.units[0]).size(), "Move multiplier widens the walk area")
+	_check(plain.validate({"type": "tune", "values": {"nope": 1}}) != "", "a tune with an unknown key is rejected")
+	_check(plain.validate({"type": "tune", "values": {"damage_multiplier": 1.0}}) == "", "a valid tune is accepted")
+
+	# Explanations use the same numbers as the rules.
+	var a = plain.units[0]
+	var t = plain.units[4]
+	var from: Vector2 = t.pos + t.facing * 0.3
+	var amount: int = plain._amount(a, a.ability(0), from, t, t.pos)
+	_check(plain.explain_hit(a, 0, from, t).contains("= %d" % amount), "damage explanation ends in the real damage (%d)" % amount)
+	plain.apply({"type": "tune", "values": {"damage_multiplier": 1.0}})
+	var doubled: int = plain._amount(a, a.ability(0), from, t, t.pos)
+	_check(doubled > amount and plain.explain_hit(a, 0, from, t).contains("= %d" % doubled), "a tune changes damage and its explanation")
+	_check(plain.explain_turn(a).contains("Wits %d" % a.stat("wits")) and plain.explain_countdown(a).contains("Patience"),
+		"turn and countdown explanations name their stats")
+
+	# A tune in the middle of a battle replays exactly.
+	var ai := AIPlayer.new()
+	var state := _new_state()
+	var log: Array = []
+	while state.winner == -1 and state.tick < 20000:
+		if state.tick == 300 and log.size() > 0 and log[-1].type != "tune":
+			var tune := {"type": "tune", "values": {"wits_multiplier": 1.5, "damage_multiplier": 0.8, "cast_time_multiplier": 0.5}}
+			log.append(tune)
+			state.apply(tune)
+		var ready := state.orderable_units()
+		var cmd: Dictionary = {"type": "advance", "ticks": 1} if ready.is_empty() else ai.next_command(state, ready[0])
+		log.append(cmd)
+		state.apply(cmd)
+	var replayed := _new_state()
+	for cmd in log:
+		replayed.apply(cmd)
+	var same := replayed.winner == state.winner and replayed.tick == state.tick and replayed.tuning == state.tuning
+	for i in state.units.size():
+		same = same and replayed.units[i].hp == state.units[i].hp and replayed.units[i].pos == state.units[i].pos
+	_check(same and state.winner != -1, "a battle with a mid-battle tune finishes and replays exactly")
+
+	var ko := GameState.new()
+	ko.setup(MapData.highlands(), {"ko_seconds": 0.0})
+	var result := {"logs": [], "gone": [], "knocked_out": []}
+	ko._knock_out(ko.units[0], "x", result)
+	_check(result.gone.has(ko.units[0].id) and not ko.units[0].is_ko(), "KO time 0 removes a unit at once")
+
+
+## Classes made in Astra Ability Creator.
+func _test_astra_import() -> void:
+	var vars := {"a": 2.0, "b": 3.0}
+	_check(AstraImport.evaluate("1 + 2 * 3", {}) == 7.0, "Astra formula: precedence")
+	_check(AstraImport.evaluate("(a + b) * 10%", vars) == 0.5, "Astra formula: variables, parentheses, %")
+	_check(AstraImport.evaluate("-a - -b", vars) == 1.0, "Astra formula: unary minus")
+	_check(AstraImport.evaluate("a +", vars) is String and AstraImport.evaluate("x * 2", vars) is String
+		and AstraImport.evaluate("1 / 0", vars) is String and AstraImport.evaluate("a; b", vars) is String,
+		"Astra formula: bad input gives an error, never a crash")
+	var p := {"base": 10, "step": 20, "mode": "% increase", "every": 2, "floorZero": true, "overrides": {"4": "rank * 3"}}
+	_check(AstraImport.rank_value(p, 1) == "10" and AstraImport.rank_value(p, 3) == "12" and AstraImport.rank_value(p, 4) == "rank * 3",
+		"Astra rank values: steps every N ranks, overrides win")
+
+	var text := FileAccess.get_file_as_string("res://data/classes/time_mage.astra.json")
+	var parsed := AstraImport.parse(text)
+	_check(parsed.errors.is_empty() and parsed.jobs.has("time_mage"), "Time Mage imports from its Astra export (%s)" % [parsed.errors])
+	_check(Jobs.has_job("time_mage"), "imported classes are registered at startup")
+	if not Jobs.has_job("time_mage"):
+		return
+	var tm: Dictionary = Jobs.job("time_mage")
+	_check(tm.wits == 12 and tm.mag == 16 and tm.abilities.size() == 4, "Time Mage stats come from its profile")
+	var bolt: Dictionary = Jobs.ability(tm.abilities[0])
+	_check(bolt.effect == "damage" and bolt.cast == 0.0 and bolt.power == 1.0 and bolt.tg == -10, "Chrono Bolt: instant damage, formula power, TG -10%")
+	var stop: Dictionary = Jobs.ability(tm.abilities[3])
+	_check(stop.status.id == "stun" and stop.aoe == 3.0 and stop.fx == "meteor", "Time Stop: area Stun with a borrowed animation")
+	_check(Jobs.ability(tm.abilities[1]).status.id == "slow" and Jobs.ability(tm.abilities[2]).tg == 40, "Slowga slows, Quicken +40% TG")
+	var bad := AstraImport.parse(text.replace("\"profile\"", "\"nothing\""))
+	_check(bad.jobs.is_empty() and not bad.errors.is_empty(), "a class without a profile is skipped with a message")
+
+	# A battle with Time Mages on both sides plays out with legal orders.
+	var ai := AIPlayer.new()
+	var state := GameState.new()
+	state.setup(MapData.build(MapData.DEFAULT_MAP, ["time_mage", "knight", "archer", "white_mage"], ["time_mage", "monk", "black_mage", "knight"]))
+	var legal := true
+	while state.winner == -1 and state.tick < 30000 and legal:
+		var ready := state.orderable_units()
+		if ready.is_empty():
+			state.apply({"type": "advance", "ticks": 1})
+			continue
+		var cmd := ai.next_command(state, ready[0])
+		legal = state.validate(cmd) == ""
+		if not legal:
+			printerr("illegal: ", cmd, " ", state.validate(cmd))
+		state.apply(cmd)
+	_check(legal and state.winner != -1, "a battle with Time Mages finishes with legal orders")
+	var sent := Jobs.classes_for([["time_mage"], ["knight"]])
+	_check(sent.jobs.has("time_mage") and sent.abilities.size() == 4 and not sent.jobs.has("knight"),
+		"online sends only the imported classes in use")
+
+
+## Developer Tools: sliders, saved values and formula tooltips.
+func _test_dev_tools() -> void:
+	var config := root.get_node("GameConfig")
+	var saved: Dictionary = config.tuning.duplicate()
+	var tools: Control = load("res://scripts/ui/dev_tools.gd").new()
+	tools.live = true
+	var sent: Array = []
+	tools.tuning_changed.connect(func(v: Dictionary): sent.append(v))
+	root.add_child(tools)
+	await process_frame
+	var sliders: Array = tools.find_children("*", "HSlider", true, false)
+	_check(sliders.size() == GameState.TUNING.size(), "Developer Tools has a slider per rule number")
+	tools._sliders.wits_multiplier.value = 1.5
+	_check(config.tuning.get("wits_multiplier") == 1.5, "moving a slider saves the value")
+	var tip: String = tools._sliders.wits_multiplier.tooltip_text
+	_check(tip.contains("Wits multiplier 1.5") and tip.contains("= "), "the slider tooltip shows the formula with the new value")
+	_check(tools._sliders.patience_multiplier.tooltip_text.contains("Patience"), "the Patience slider tooltip shows the countdown math")
+	for i in 30:
+		await process_frame
+	_check(sent.size() == 1 and sent[0].get("wits_multiplier") == 1.5, "a live battle gets the change once, after the slider settles")
+	tools._reset_all()
+	_check(config.tuning.is_empty(), "Reset all restores the defaults")
+	tools.queue_free()
+	config.tuning = saved
+	config.save_tuning()
 
 
 ## The battle scene plays a recorded log back (fast) to the same winner.
@@ -486,7 +625,7 @@ func _test_scenes() -> void:
 	menu._open_guide()
 	await process_frame
 	var tabs: TabContainer = menu.guide.find_children("*", "TabContainer", true, false)[0]
-	_check(menu.guide.visible and tabs.get_tab_count() == 6, "unit guide opens from the menu with a tab per job")
+	_check(menu.guide.visible and tabs.get_tab_count() == Jobs.all_jobs().size() and tabs.get_tab_count() > 6, "unit guide opens from the menu with a tab per job (imported classes too)")
 
 	# Key bindings: Move defaults to Space, and rebinding to a used key swaps.
 	var kb: Node = root.get_node("Keybinds")

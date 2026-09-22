@@ -131,7 +131,79 @@ Each ability has its own animation (`scripts/battle/fx.gd`). Melee abilities lun
 Arrow Rain and Blizzard fall on the area, Meteor drops from the sky, Holy Blade brings down a pillar of light, and heals sparkle.
 
 All numbers are in `scripts/core/jobs.gd` (jobs and abilities) and at the top of `scripts/core/game_state.gd`
-(time, countdown, damage, height and movement rules).
+(time, countdown, damage, height and movement rules). The main rule numbers can also be changed in **Developer Tools**.
+
+### Imported class: Time Mage (from Astra Ability Creator)
+
+| Job | HP | AttPwr | MagPwr | AttDef | MagDef | Wits | Move | Patience | Sight |
+|---|---|---|---|---|---|---|---|---|---|
+| Time Mage | 65 | 5 | 16 | 5 | 11 | 12 | 6 | 7 | 10 |
+
+1 **Chrono Bolt** (instant magic bolt, 1-7 m, target's TG −10%) · 2 **Slowga** (Slow everyone within 2.5 m, 1.5 s) ·
+3 **Quicken** (ally TG +40%, 1 s) · 4 **Time Stop** (ultimate: damage and a 2 s Stun within 3 m, 2.5 s).
+
+The Time Mage was designed in **Astra Ability Creator** (`E:\Astra-Ability Creator`) and lives there as five
+library entries tagged `class:time_mage`. The game reads Astra's JSON export, `data/classes/time_mage.astra.json`.
+`tools/astra_time_mage.mjs` re-creates the class in a running Astra and re-exports it:
+`& "E:\Astra-Ability Creator\runtime\node.exe" tools/astra_time_mage.mjs`.
+
+## Developer Tools
+
+**Main menu → Developer Tools**, or **Menu → Developer Tools** in a battle. It has a slider for each main rule number:
+
+| Slider | Default | What it changes |
+|---|---|---|
+| Wits multiplier | 1 | TG per tick = Wits × 2 × this. Higher means more turns for everyone. |
+| Countdown base | 8 s | READY countdown = base + Patience × Patience multiplier |
+| Patience multiplier | 2 s | extra countdown seconds per point of Patience |
+| Damage / Healing multiplier | 0.5 / 1 | the final multiplier on all damage / healing |
+| Height bonus, Side / Back attack | 0.1, 1.1 / 1.25 | the position bonuses on damage |
+| Knock-out time | 12 s | how long a KO'd unit can be revived (0 = removed at once) |
+| Ultimate per action / per turn | 20 / 5 | Ultimate meter gains |
+| Move / Sight / Cast time multiplier | 1 | multipliers on every unit's Move and Sight and every cast time |
+
+**Hover a slider** to see the formula it feeds, worked out for example units with the current values. The values are
+saved (`user://tuning.cfg`) and used by every battle. In a battle vs the computer or on one device, changes apply at once.
+They go through a recorded `tune` command, so replays stay exact. Online, the match uses the **host's** numbers.
+
+**Calculation tooltips** are all over the game. Hover the unit card (Move, Sight, TG timing, countdown, Ultimate),
+a turn-order chip, an ability button (its damage, healing and cast-time math), or a number in the Unit Guide. While
+aiming, the preview line under the battlefield shows the damage breakdown for the target.
+
+## Importing classes from Astra Ability Creator
+
+Design the class in Astra, export the library as JSON (**Complete library JSON**), and put the file in the classes
+folder. Use **Developer Tools → Open classes folder** (`user://classes/`), or `data/classes/` in the project. Classes
+load at startup, or with **Reload classes**. Then they appear in Battle Setup, the Unit Guide and battles. Online, the
+host sends the class to the other player. The rules, in `scripts/core/astra_import.gd`:
+
+- Tag every ability of the class `class:<id>` (lowercase id).
+- One **Passive** entry tagged `profile` holds the class stats as parameters with formula keys `hp`, `att`, `mag`,
+  `attdef`, `magdef`, `wits`, `move`, `patience`, `sight`. Its name and color are the class name and color.
+  Tag it `look:<job>` to choose a built-in character model (tinted with the class color).
+- Four abilities are tagged `slot:1` to `slot:4`; slot 4 is the ultimate. Their parameters are read at **rank 1**, and
+  distances are in meters:
+
+  | Key | Meaning | Default |
+  |---|---|---|
+  | `power` | multiplier on AttPwr or MagPwr | 1 |
+  | `min_range` | closest target point | 0 |
+  | `cast_range` | farthest target point | 1.8 (melee); 0 when targeting is Self |
+  | `radius` | area radius | 0 (one unit) |
+  | `cast_time` | seconds until it takes effect | 0 (instant) |
+  | `cooldown_turns` | turns to wait | Astra's `cooldown` seconds ÷ 10 |
+  | `tg_change` | % change to each target's Turn Gauge | none |
+  | `buff_<stat>` + `buff_turns` | a stat buff | none |
+
+- **Damage type** Physical uses AttPwr against AttDef; anything else uses MagPwr against MagDef.
+- **Target team** Enemies targets enemies; anything else targets allies. The tag `revive` makes it revive a KO'd ally.
+- **Effects:**
+  - A Damage or Heal effect decides what the ability does. With neither, it's a support ability.
+  - Slow, Stun, periodic Damage (Burn) and periodic Heal (Regen) put that status on each unit hit for the effect's
+    duration in seconds.
+  - An `fx:<ability id>` tag borrows a built-in animation.
+- Formulas work as in Astra: numbers, `+ - * /`, parentheses, postfix `%`, other parameter keys, `rank` and Astra's
+  sample stats. They are evaluated by a port of Astra's safe evaluator.
 
 ## Game modes
 
@@ -156,12 +228,12 @@ All numbers are in `scripts/core/jobs.gd` (jobs and abilities) and at the top of
 Run from this folder (use `Godot_v4.7.2-stable_win64_console.exe` so output shows in the terminal):
 
 ```
-godot --headless --script res://tests/smoke_test.gd              # rules, casting, AI-vs-AI battle, scenes, every animation, guide
+godot --headless --script res://tests/smoke_test.gd              # rules, AI battles, tuning + tune replays, Astra import, Developer Tools, scenes
 godot --headless --script res://tests/net_test.gd -- host        # online test: run these two at the same time;
-godot --headless --script res://tests/net_test.gd -- client      # checks settings sync, chat, checksums, rematch
+godot --headless --script res://tests/net_test.gd -- client      # checks settings/tuning/class sync, chat, checksums, rematch
 godot --headless --script res://tests/net_test.gd -- host_refuse # version check: run these two together;
 godot --headless --script res://tests/net_test.gd -- old_client  # a client on another version must be refused
-godot --script res://tests/screenshot.gd -- out.png [seconds] [ability_slot] [cast_after]   (add "guide" to open the Unit Guide)
+godot --script res://tests/screenshot.gd -- out.png [seconds] [ability_slot] [cast_after]   (add "guide" for the Unit Guide, "timemage", "tips"; or "-- out.png devtools")
 godot --headless --script res://tests/profile_ai.gd              # how long the computer takes per decision
 godot --script res://tests/frame_time.gd -- [seconds] [difficulty]   # real-window frame times (stutter check)
 ```
@@ -181,15 +253,16 @@ All third-party assets are **CC0** (public domain), bundled in `assets/`:
 
 ```
 scenes/                 main_menu.tscn, battle.tscn (everything else is built in code)
-scripts/core/           the rules, no graphics: game_state, unit, jobs, map_data
+scripts/core/           the rules, no graphics: game_state, unit, jobs, map_data, astra_import
+data/classes/           classes exported from Astra Ability Creator
 scripts/ai/             ai_player.gd: the computer opponent
 scripts/battle/         battle.gd (time, input, orders), camera_rig, board_view, unit_view, fx (ability animations), hud
 scripts/autoload/       GameConfig (chosen mode/map/teams), Net (online), Keybinds, Settings, Audio
 assets/                 characters (KayKit), audio (Kenney sounds, battle music)
-scripts/ui/              Battle Setup, Unit Guide, Options, shared theme (ui_theme.gd)
+scripts/ui/             Battle Setup, Unit Guide, Options, How to Play, Developer Tools, shared theme (ui_theme.gd)
 scripts/main_menu.gd    title screen
 tests/                  headless tests and the screenshot tool
 ```
 
-Every change to a battle is a **command** (`advance`, `move`, `ability`, `end_turn`). `GameState.validate()` checks it
+Every change to a battle is a **command** (`advance`, `move`, `ability`, `end_turn`, `tune`). `GameState.validate()` checks it
 and `GameState.apply()` performs it. Local input, the AI, the clock and the online opponent all use the same path.

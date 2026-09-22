@@ -3,6 +3,8 @@ extends Control
 ## with the damage or healing each ability does. Damage depends on the
 ## target's defense, so a picker chooses which job to calculate it against
 ## (on level ground, before buffs). Used from the main menu and in battle.
+## Numbers follow the current rule numbers (Developer Tools); hovering a
+## number shows how it is calculated.
 
 signal closed
 
@@ -20,10 +22,13 @@ const ULT_COLOR := Color(1.0, 0.75, 0.3)
 var _target_picker: OptionButton
 var _tabs: TabContainer
 var _job_ids: Array = []
+## Rule numbers to calculate with (set before adding the guide); missing
+## keys use the defaults.
+var tuning := {}
 
 
 func _ready() -> void:
-	_job_ids = Jobs.JOBS.keys()
+	_job_ids = Jobs.all_jobs().keys()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	theme = preload("res://scripts/ui/ui_theme.gd").build()
@@ -81,7 +86,7 @@ func _ready() -> void:
 	_target_picker = OptionButton.new()
 	_target_picker.focus_mode = Control.FOCUS_NONE
 	for id in _job_ids:
-		_target_picker.add_item(Jobs.JOBS[id].name)
+		_target_picker.add_item(Jobs.job(id).name)
 	_target_picker.select(_job_ids.find("knight"))
 	_target_picker.item_selected.connect(func(_i): _fill_ability_tabs())
 	picker_row.add_child(_target_picker)
@@ -112,10 +117,10 @@ func _ready() -> void:
 		+ "Abilities with a cast time go off when the cast finishes. Move first: only instant abilities let a unit move afterwards. "
 		+ "Hits from the side deal +%d%%, from behind +%d%%. Ranged abilities and vision need line of sight over the terrain. "
 		+ "A unit at 0 HP is knocked out for %ds and can be revived with Raise before it's gone. "
-		+ "The ultimate (4) needs a full Ultimate meter.") % [
-			GameState.DAMAGE_SCALE, GameState.HEAL_SCALE, GameState.DAMAGE_MULTIPLIER,
-			roundi(GameState.HEIGHT_BONUS * 100), roundi(GameState.HEIGHT_BONUS * 100),
-			roundi((GameState.SIDE_BONUS - 1.0) * 100), roundi((GameState.BACK_BONUS - 1.0) * 100), roundi(GameState.KO_SECONDS)]
+		+ "The ultimate (4) needs a full Ultimate meter. Hover a number to see how it is calculated.") % [
+			GameState.DAMAGE_SCALE, _num(GameState.HEAL_SCALE * _t("heal_multiplier")), _num(_t("damage_multiplier")),
+			roundi(_t("height_bonus") * 100), roundi(_t("height_bonus") * 100),
+			roundi((_t("side_bonus") - 1.0) * 100), roundi((_t("back_bonus") - 1.0) * 100), roundi(_t("ko_seconds"))]
 	body.add_child(notes)
 
 
@@ -138,9 +143,16 @@ func _section(text: String) -> Label:
 	return l
 
 
-func _cell(grid: GridContainer, text: String, color := Color.WHITE, min_width := 0.0) -> Label:
+func _t(key: String) -> float:
+	return float(tuning.get(key, GameState.TUNING[key][0]))
+
+
+func _cell(grid: GridContainer, text: String, color := Color.WHITE, min_width := 0.0, tip := "") -> Label:
 	var l := Label.new()
 	l.text = text
+	if tip != "":
+		l.tooltip_text = tip
+		l.mouse_filter = Control.MOUSE_FILTER_PASS
 	l.add_theme_color_override("font_color", color)
 	if min_width > 0.0:
 		l.custom_minimum_size.x = min_width
@@ -158,14 +170,36 @@ func _stats_table() -> GridContainer:
 		_cell(grid, col[1], HEADER_COLOR)
 	_cell(grid, "Turn every", HEADER_COLOR)
 	for id in _job_ids:
-		var job: Dictionary = Jobs.JOBS[id]
+		var job: Dictionary = Jobs.job(id)
 		_cell(grid, job.name, job.color.lightened(0.2))
 		for col in STAT_COLUMNS:
-			_cell(grid, str(job[col[0]]))
+			_cell(grid, str(job[col[0]]), Color.WHITE, 0.0, _stat_tip(job, col[0]))
 		# Time to fill the Turn Gauge from empty.
-		var seconds: float = float(GameState.TG_MAX) / (job.wits * GameState.TG_PER_WITS) / GameState.TICKS_PER_SECOND
-		_cell(grid, "%.1fs" % seconds)
+		var gain := maxi(1, roundi(job.wits * GameState.TG_PER_WITS * _t("wits_multiplier")))
+		var seconds: float = float(GameState.TG_MAX) / gain / GameState.TICKS_PER_SECOND
+		_cell(grid, "%.1fs" % seconds, Color.WHITE, 0.0, "TG per tick = Wits %d x %d x Wits multiplier %s = %d\n%d / %d = %d ticks (%d per second) = %.1f s" % [
+			job.wits, GameState.TG_PER_WITS, _num(_t("wits_multiplier")), gain, GameState.TG_MAX, gain,
+			ceili(float(GameState.TG_MAX) / gain), GameState.TICKS_PER_SECOND, seconds])
 	return grid
+
+
+## How a stat is used, with its numbers worked out.
+func _stat_tip(job: Dictionary, key: String) -> String:
+	match key:
+		"move":
+			return "Move %d m x move multiplier %s = %s m per turn" % [job.move, _num(_t("move_multiplier")), _num(job.move * _t("move_multiplier"))]
+		"sight":
+			return "Sight %d m x sight multiplier %s = %s m vision" % [job.sight, _num(_t("sight_multiplier")), _num(job.sight * _t("sight_multiplier"))]
+		"patience":
+			return "READY countdown = base %s s + Patience %d x %s s = %s s" % [
+				_num(_t("clock_base")), job.patience, _num(_t("patience_multiplier")), _num(_t("clock_base") + job.patience * _t("patience_multiplier"))]
+		"wits":
+			return "TG per tick = Wits %d x %d x Wits multiplier %s" % [job.wits, GameState.TG_PER_WITS, _num(_t("wits_multiplier"))]
+		"att", "mag":
+			return "%s: damage/healing base = %d x ability power x %s" % ["AttPwr" if key == "att" else "MagPwr", job[key], _num(GameState.DAMAGE_SCALE)]
+		"attdef", "magdef":
+			return "Subtracted from %s damage before the damage multiplier %s" % ["physical" if key == "attdef" else "magic", _num(_t("damage_multiplier"))]
+	return ""
 
 
 func _fill_ability_tabs() -> void:
@@ -173,9 +207,9 @@ func _fill_ability_tabs() -> void:
 	for child in _tabs.get_children():
 		_tabs.remove_child(child)
 		child.queue_free()
-	var target: Dictionary = Jobs.JOBS[_job_ids[_target_picker.selected]]
+	var target: Dictionary = Jobs.job(_job_ids[_target_picker.selected])
 	for id in _job_ids:
-		var job: Dictionary = Jobs.JOBS[id]
+		var job: Dictionary = Jobs.job(id)
 		var grid := GridContainer.new()
 		grid.columns = ABILITY_COLUMNS.size()
 		grid.add_theme_constant_override("h_separation", 18)
@@ -196,7 +230,7 @@ func _fill_ability_tabs() -> void:
 
 
 func _ability_row(grid: GridContainer, job: Dictionary, slot: int, target: Dictionary) -> void:
-	var ab: Dictionary = Jobs.ABILITIES[job.abilities[slot]]
+	var ab: Dictionary = Jobs.ability(job.abilities[slot])
 	var color := ULT_COLOR if slot == 3 else Color.WHITE
 	_cell(grid, "ULT" if slot == 3 else str(slot + 1), color)
 	_cell(grid, ab.name, color, 110)
@@ -208,30 +242,42 @@ func _ability_row(grid: GridContainer, job: Dictionary, slot: int, target: Dicti
 	_cell(grid, effect)
 	_cell(grid, "Self" if ab.max_range == 0.0 else "%s-%s m" % [_num(ab.min_range), _num(ab.max_range)])
 	_cell(grid, "—" if ab.aoe == 0.0 else "%s m" % _num(ab.aoe))
-	_cell(grid, "Instant" if ab.cast == 0.0 else "%ss" % _num(ab.cast))
+	var cast: float = ab.cast * _t("cast_time_multiplier")
+	_cell(grid, "Instant" if cast == 0.0 else "%ss" % _num(cast), Color.WHITE, 0.0,
+		"" if ab.cast == 0.0 else "Cast %s s x cast time multiplier %s = %s s" % [_num(ab.cast), _num(_t("cast_time_multiplier")), _num(cast)])
 	_cell(grid, "—" if ab.cooldown == 0 else "%d turn%s" % [ab.cooldown, "" if ab.cooldown == 1 else "s"])
 
 	var stat: int = job[ab.scale]
 	var base := ""
 	var versus := ""
+	var base_tip := ""
+	var versus_tip := ""
+	var stat_name := "AttPwr" if ab.scale == "att" else "MagPwr"
 	match ab.effect:
 		"damage":
 			var raw := roundi(stat * ab.power * GameState.DAMAGE_SCALE)
 			var def: int = target.attdef if ab.scale == "att" else target.magdef
-			var dealt := maxi(1, roundi((raw - def) * GameState.DAMAGE_MULTIPLIER))
+			var dealt := maxi(1, roundi((raw - def) * _t("damage_multiplier")))
 			base = str(raw)
 			versus = "%d  (%d%% of %s HP)" % [dealt, roundi(100.0 * dealt / target.hp), target.name]
+			base_tip = "%s %d x power %s x %s = %d" % [stat_name, stat, _num(ab.power), _num(GameState.DAMAGE_SCALE), raw]
+			versus_tip = "(%d - %s's %s %d) x damage multiplier %s = %d%s\nLevel ground, from the front. From the side x %s, from behind x %s, +%d%% per level above." % [
+				raw, target.name, "AttDef" if ab.scale == "att" else "MagDef", def, _num(_t("damage_multiplier")), dealt,
+				" (minimum 1)" if dealt == 1 else "", _num(_t("side_bonus")), _num(_t("back_bonus")), roundi(_t("height_bonus") * 100)]
 		"heal":
-			base = "+%d" % roundi(stat * ab.power * GameState.HEAL_SCALE)
+			var healed := roundi(stat * ab.power * GameState.HEAL_SCALE * _t("heal_multiplier"))
+			base = "+%d" % healed
 			versus = "heals"
+			base_tip = "%s %d x power %s x %s x heal multiplier %s = %d (up to the missing HP)" % [
+				stat_name, stat, _num(ab.power), _num(GameState.HEAL_SCALE), _num(_t("heal_multiplier")), healed]
 		"revive":
 			base = "%d%% HP" % roundi(ab.power * 100)
 			versus = "revives"
 		_:
 			base = "—"
 			versus = "—"
-	_cell(grid, base, Color(1, 0.6, 0.5) if ab.effect == "damage" else Color(0.6, 1, 0.65))
-	_cell(grid, versus)
+	_cell(grid, base, Color(1, 0.6, 0.5) if ab.effect == "damage" else Color(0.6, 1, 0.65), 0.0, base_tip)
+	_cell(grid, versus, Color.WHITE, 0.0, versus_tip)
 	var extra := ""
 	if ab.has("tg"):
 		extra = "  (TG %+d%%)" % ab.tg
@@ -241,4 +287,4 @@ func _ability_row(grid: GridContainer, job: Dictionary, slot: int, target: Dicti
 
 
 static func _num(v: float) -> String:
-	return str(int(v)) if v == floorf(v) else "%.1f" % v
+	return str(int(v)) if v == floorf(v) else str(snappedf(v, 0.01))

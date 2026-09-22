@@ -18,7 +18,7 @@ func _initialize() -> void:
 	var calls := {"reachable_nodes": 0, "distance_from": 0, "best_action": 0, "validate": 0}
 	var worst := {}
 	while state.winner == -1 and state.tick < 20000:
-		var ready := state.ready_units()
+		var ready := state.orderable_units()
 		if ready.is_empty():
 			state.apply({"type": "advance", "ticks": 1})
 			continue

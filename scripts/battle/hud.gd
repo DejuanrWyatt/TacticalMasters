@@ -24,6 +24,7 @@ signal replay_pressed
 signal replay_speed_changed(speed: float)
 signal chat_submitted(text: String)
 signal chat_toggled(open: bool)
+signal tuning_changed(values: Dictionary)
 
 const GameState = preload("res://scripts/core/game_state.gd")
 const Jobs = preload("res://scripts/core/jobs.gd")
@@ -31,6 +32,7 @@ const UnitGuide = preload("res://scripts/ui/unit_guide.gd")
 const UiTheme = preload("res://scripts/ui/ui_theme.gd")
 const OptionsMenu = preload("res://scripts/ui/options_menu.gd")
 const HowToPlay = preload("res://scripts/ui/how_to_play.gd")
+const DevTools = preload("res://scripts/ui/dev_tools.gd")
 
 const TEXT := Color(0.92, 0.94, 1.0)
 const DIM := Color(0.92, 0.94, 1.0, 0.55)
@@ -72,6 +74,11 @@ var _guide: Control
 var _options: Control
 var _game_menu: Control
 var _how_to: Control
+var _dev_tools: Control
+## The battle's rules, for the calculation tooltips (set by Battle).
+var game_state
+## True when Developer Tools changes apply to this battle right away.
+var dev_tools_live := false
 
 
 func build(can_pause: bool) -> void:
@@ -216,6 +223,9 @@ func _build_unit_card() -> void:
 	_stats.add_theme_font_size_override("font_size", 11)
 	_stats.add_theme_color_override("font_color", DIM)
 	box.add_child(_stats)
+	# Hovering these shows how their numbers are calculated.
+	for part in [_title, _subtitle, _hp_bar, _tg_bar, _ult_bar, _stats]:
+		part.mouse_filter = Control.MOUSE_FILTER_PASS
 
 
 func _build_action_bar() -> void:
@@ -339,6 +349,7 @@ func _build_game_menu() -> void:
 		toggle_guide()
 	_menu_button(box, "Unit Guide", open_guide)
 	_menu_button(box, "How to Play", _open_how_to)
+	_menu_button(box, "Developer Tools", _open_dev_tools)
 	_menu_button(box, "Quit to Main Menu", menu_pressed.emit)
 
 
@@ -478,6 +489,7 @@ func set_turn_order(entries: Array) -> void:
 		if e.selected:
 			look = "selected"
 		_set_text(chip, "%s\n%s" % [e.name, status])
+		_set_tip(chip, e.get("tip", ""))
 		# Restyle only when the look changes: theme overrides are costly.
 		var look_key := "%s/%s" % [look, e.color.to_html()]
 		if chip.get_meta("look", "") != look_key:
@@ -513,9 +525,19 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 	else:
 		_set_gauge(_tg_bar, u.tg, GameState.TG_MAX, "TG  %d%%" % GameState.tg_percent(u))
 	_set_gauge(_ult_bar, u.ult, 100, "ULT  %d%%" % u.ult, Color(1, 0.95, 0.6) if u.ult >= 100 else Color(0, 0, 0, 0))
-	_set_text(_stats, "ATK %d  MAG %d  DEF %d  MDF %d\nWIT %d  MOV %dm  PAT %d  SGT %dm" % [
+	var move: float = game_state.move_of(u) if game_state != null else float(u.stat("move"))
+	var sight: float = game_state.sight_of(u) if game_state != null else float(u.stat("sight"))
+	_set_text(_stats, "ATK %d  MAG %d  DEF %d  MDF %d\nWIT %d  MOV %sm  PAT %d  SGT %sm" % [
 		u.stat("att"), u.stat("mag"), u.stat("attdef"), u.stat("magdef"),
-		u.stat("wits"), u.stat("move"), u.stat("patience"), u.stat("sight")])
+		u.stat("wits"), GameState._n(move), u.stat("patience"), GameState._n(sight)])
+	if game_state != null:
+		_set_tip(_subtitle, game_state.explain_countdown(u) + "\n" + game_state.explain_turn(u))
+		_set_tip(_tg_bar, game_state.explain_turn(u))
+		_set_tip(_hp_bar, "Max HP %d (class %s)%s" % [u.max_hp(), u.job_name(), "" if u.hp == u.max_hp() else "\nMissing %d" % (u.max_hp() - u.hp)])
+		_set_tip(_ult_bar, "Ultimate meter %d / %d\n+%d each turn, +%d per ability used, +%s per 1%% of max HP lost" % [
+			u.ult, GameState.ULT_MAX, roundi(game_state.tune("ult_per_turn")), roundi(game_state.tune("ult_per_action")), str(GameState.ULT_FROM_DAMAGE)])
+		_set_tip(_stats, "%s\n%s\n%s\n%s%s" % [game_state.explain_move(u), game_state.explain_sight(u),
+			game_state.explain_countdown(u), game_state.explain_turn(u), _buff_text(u)])
 
 	_set_text(_move_button, "Move\n%s" % Keybinds.key_name("move"))
 	_move_button.disabled = not controllable or u.moved or u.is_casting()
@@ -529,18 +551,32 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 		elif u.cooldowns[i] > 0:
 			details.append("wait %d" % u.cooldowns[i])
 		elif ab.cast > 0.0:
-			details.append("%.1fs" % ab.cast)
+			details.append("%.1fs" % (game_state.cast_seconds(ab) if game_state != null else ab.cast))
 		_set_text(b, "%s\n%s" % [ab.name, "  ·  ".join(details)])
 		# A ready ultimate stands out in gold.
 		_set_color(b, GOLD if i == 3 and u.ult >= 100 else TEXT)
 		var range_text := "self" if ab.max_range == 0 else "range %.1f-%.1f m" % [ab.min_range, ab.max_range]
-		var cast_text := "instant" if ab.cast == 0.0 else "cast %.1fs" % ab.cast
+		var cast_text := "instant" if ab.cast == 0.0 else "cast %.1fs" % (game_state.cast_seconds(ab) if game_state != null else ab.cast)
 		var tip := "%s\n%s%s · %s" % [ab.desc, range_text, ", radius %.1f m" % ab.aoe if ab.aoe > 0 else "", cast_text]
-		if b.tooltip_text != tip:
-			b.tooltip_text = tip
+		if game_state != null:
+			tip += "\n\n" + game_state.explain_ability(u, i)
+		_set_tip(b, tip)
 		b.disabled = not controllable or u.acted or blocked[i] != ""
 		b.set_pressed_no_signal(selected_slot == i)
 	_end_button.disabled = not controllable
+
+
+## Active buffs as tooltip lines.
+static func _buff_text(u) -> String:
+	var text := ""
+	for b in u.buffs:
+		text += "\nBuff: %s %+d (%d turn%s left)" % [b.stat, b.amount, b.turns, "" if b.turns == 1 else "s"]
+	return text
+
+
+static func _set_tip(control: Control, tip: String) -> void:
+	if control.tooltip_text != tip:
+		control.tooltip_text = tip
 
 
 ## Sets text only when it differs (avoids needless relayouts every frame).
@@ -639,8 +675,14 @@ func set_paused(paused: bool) -> void:
 
 ## Opens or closes the Unit Guide over the battle.
 func toggle_guide() -> void:
+	# Rebuilt when Developer Tools changed the rule numbers it shows.
+	var tuning: Dictionary = game_state.tuning if game_state != null else {}
+	if _guide != null and not _guide.visible and _guide.tuning != tuning:
+		_guide.queue_free()
+		_guide = null
 	if _guide == null:
 		_guide = UnitGuide.new()
+		_guide.tuning = tuning.duplicate()
 		_guide.visible = false
 		_root.add_child(_guide)
 		_guide.closed.connect(_emit_overlay)
@@ -671,6 +713,24 @@ func _open_options() -> void:
 	_emit_overlay()
 
 
+func _open_dev_tools() -> void:
+	_game_menu.visible = false
+	if _dev_tools == null:
+		_dev_tools = DevTools.new()
+		_dev_tools.visible = false
+		_dev_tools.live = dev_tools_live
+		_root.add_child(_dev_tools)
+		var back_to_menu := func() -> void:
+			_game_menu.visible = true
+			_emit_overlay()
+		_dev_tools.closed.connect(back_to_menu)
+		_dev_tools.tuning_changed.connect(tuning_changed.emit)
+	if game_state != null:
+		_dev_tools.show_values(game_state.tuning)
+	_dev_tools.visible = true
+	_emit_overlay()
+
+
 func _open_how_to() -> void:
 	_game_menu.visible = false
 	if _how_to == null:
@@ -692,7 +752,7 @@ func is_guide_open() -> bool:
 ## Any overlay covering the battle (menu, Options, Unit Guide).
 func is_overlay_open() -> bool:
 	return (is_guide_open() or _game_menu.visible or (_options != null and _options.visible)
-		or (_how_to != null and _how_to.visible))
+		or (_how_to != null and _how_to.visible) or (_dev_tools != null and _dev_tools.visible))
 
 
 func _emit_overlay() -> void:

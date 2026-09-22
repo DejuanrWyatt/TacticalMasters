@@ -3,6 +3,9 @@ extends Node
 
 const Jobs = preload("res://scripts/core/jobs.gd")
 const MapData = preload("res://scripts/core/map_data.gd")
+const GameState = preload("res://scripts/core/game_state.gd")
+const AstraImport = preload("res://scripts/core/astra_import.gd")
+const TUNING_PATH := "user://tuning.cfg"
 
 ## "ai" (vs computer), "hotseat" (two players, one device) or "online".
 var mode := "hotseat"
@@ -18,6 +21,61 @@ var map_id := MapData.DEFAULT_MAP
 var rosters: Array = [Jobs.DEFAULT_ROSTER.duplicate(), Jobs.DEFAULT_ROSTER.duplicate()]
 ## When not empty, the next battle is a replay of these recorded commands.
 var replay_log: Array = []
+## Rule numbers at the start of the battle being replayed.
+var replay_tuning := {}
+## Developer Tools rule numbers (only the changed ones), saved between runs.
+var tuning := {}
+## Online: the host's rule numbers for this match.
+var online_tuning := {}
+## Messages from loading imported classes (shown in Developer Tools).
+var class_messages: Array[String] = []
+
+
+func _ready() -> void:
+	_load_tuning()
+	class_messages = AstraImport.load_all()
+	for m in class_messages:
+		print(m)
+
+
+## Rule numbers the next battle starts with.
+func battle_tuning() -> Dictionary:
+	if not replay_log.is_empty():
+		return replay_tuning
+	if mode == "online":
+		return online_tuning
+	return tuning
+
+
+## Changes one rule number (Developer Tools) and saves it.
+func set_tuning(key: String, value: float) -> void:
+	if is_equal_approx(value, GameState.TUNING[key][0]):
+		tuning.erase(key)
+	else:
+		tuning[key] = value
+	save_tuning()
+
+
+func reset_tuning() -> void:
+	tuning.clear()
+	save_tuning()
+
+
+func save_tuning() -> void:
+	var cfg := ConfigFile.new()
+	for key in tuning:
+		cfg.set_value("tuning", key, tuning[key])
+	cfg.save(TUNING_PATH)
+
+
+func _load_tuning() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(TUNING_PATH) != OK or not cfg.has_section("tuning"):
+		return
+	var values := {}
+	for key in cfg.get_section_keys("tuning"):
+		values[key] = cfg.get_value("tuning", key)
+	tuning = GameState.clean_tuning(values)
 
 
 func start_online(team: int) -> void:

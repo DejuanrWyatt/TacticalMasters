@@ -41,12 +41,19 @@ extends RefCounted
 ## can't act and doesn't count as alive, but Raise can revive it until then;
 ## afterwards it is gone. A team with no living units loses.
 ##
+## Tuning: the main rule numbers (Wits and Patience multipliers, damage and
+## healing multipliers, height/flank bonuses, KO time, Ultimate gains, move,
+## sight and cast-time multipliers) live in `tuning` (defaults in
+## DEFAULT_TUNING) so Developer Tools can adjust them. A "tune" command changes
+## them mid-battle; like every command it is recorded, so replays stay exact.
+##
 ## Every change goes through a command dictionary:
 ##   {"type": "advance", "ticks": n}     time passes
 ##   {"type": "move", "unit": id, "serial": s, "to": Vector2}
 ##   {"type": "ability", "unit": id, "serial": s, "slot": 0-3, "target": Vector2,
 ##    "follow": unit id or -1}      follow = the unit clicked on (-1: the ground)
 ##   {"type": "end_turn", "unit": id, "serial": s}
+##   {"type": "tune", "values": {tuning key: number}}   Developer Tools
 ## "serial" must match the unit's current serial, so an order for an earlier
 ## turn of that unit is rejected. There is no randomness, so applying the
 ## same commands always produces the same game. Online play relies on this.
@@ -117,6 +124,25 @@ const BACK_BONUS := 1.25
 ## Seconds a knocked-out unit stays on the field, revivable.
 const KO_SECONDS := 12.0
 
+## Adjustable rule numbers (Developer Tools). Each: default, min, max, step,
+## label and what it does. The defaults are the constants above.
+const TUNING := {
+	"wits_multiplier": [1.0, 0.25, 3.0, 0.05, "Wits multiplier", "How fast Turn Gauges fill (x Wits)."],
+	"clock_base": [CLOCK_BASE, 2.0, 30.0, 0.5, "Countdown base (s)", "Seconds every READY unit gets, before Patience."],
+	"patience_multiplier": [CLOCK_PER_PATIENCE, 0.0, 6.0, 0.25, "Patience multiplier (s)", "Extra countdown seconds per point of Patience."],
+	"damage_multiplier": [DAMAGE_MULTIPLIER, 0.1, 2.0, 0.05, "Damage multiplier", "Final multiplier on all damage (after defense)."],
+	"heal_multiplier": [1.0, 0.1, 3.0, 0.05, "Healing multiplier", "Multiplier on all healing."],
+	"height_bonus": [HEIGHT_BONUS, 0.0, 0.5, 0.01, "Height bonus per level", "Damage bonus per level above the target (penalty below)."],
+	"side_bonus": [SIDE_BONUS, 1.0, 2.0, 0.05, "Side attack multiplier", "Damage multiplier for hits from the side."],
+	"back_bonus": [BACK_BONUS, 1.0, 3.0, 0.05, "Back attack multiplier", "Damage multiplier for hits from behind."],
+	"ko_seconds": [KO_SECONDS, 0.0, 60.0, 1.0, "Knock-out time (s)", "How long a knocked-out unit can still be revived."],
+	"ult_per_action": [float(ULT_PER_ACTION), 0.0, 100.0, 1.0, "Ultimate per action", "Ultimate meter gained per ability used."],
+	"ult_per_turn": [float(ULT_PER_TURN), 0.0, 50.0, 1.0, "Ultimate per turn", "Ultimate meter gained each time a unit becomes READY."],
+	"move_multiplier": [1.0, 0.25, 3.0, 0.05, "Move multiplier", "Multiplier on every unit's Move distance."],
+	"sight_multiplier": [1.0, 0.25, 3.0, 0.05, "Sight multiplier", "Multiplier on every unit's Sight radius."],
+	"cast_time_multiplier": [1.0, 0.0, 3.0, 0.05, "Cast time multiplier", "Multiplier on every ability's cast time."],
+}
+
 var tiles_x := 0
 var tiles_y := 0
 var nav_x := 0
@@ -129,6 +155,8 @@ var units: Array[Unit] = []
 var spawn_points: Array[Vector2] = []
 var tick := 0
 var winner := -1
+## Current rule numbers (see TUNING); missing keys use the defaults.
+var tuning := {}
 
 
 ## A copy the computer can think on in a background thread while the live
@@ -146,13 +174,38 @@ func snapshot():
 	s.spawn_points = spawn_points
 	s.tick = tick
 	s.winner = winner
+	s.tuning = tuning.duplicate()
 	s._field_cache = _field_cache
 	for u in units:
 		s.units.append(u.copy())
 	return s
 
 
-func setup(map: Dictionary) -> void:
+## Default rule numbers as a dictionary.
+static func default_tuning() -> Dictionary:
+	var out := {}
+	for key in TUNING:
+		out[key] = TUNING[key][0]
+	return out
+
+
+## A tuning value (current, or the default if unset).
+func tune(key: String) -> float:
+	return float(tuning.get(key, TUNING[key][0]))
+
+
+## Keeps only known keys, clamped to their allowed range.
+static func clean_tuning(values: Dictionary) -> Dictionary:
+	var out := {}
+	for key in values:
+		if TUNING.has(key) and (values[key] is float or values[key] is int):
+			out[key] = clampf(float(values[key]), TUNING[key][1], TUNING[key][2])
+	return out
+
+
+func setup(map: Dictionary, p_tuning := {}) -> void:
+	tuning = default_tuning()
+	tuning.merge(clean_tuning(p_tuning), true)
 	var rows: Array = map["rows"]
 	tiles_y = rows.size()
 	tiles_x = (rows[0] as String).length()
@@ -256,6 +309,15 @@ func ready_units(team := -1) -> Array[Unit]:
 	return out
 
 
+## READY units that can take orders now (not stunned).
+func orderable_units(team := -1) -> Array[Unit]:
+	var out: Array[Unit] = []
+	for u in ready_units(team):
+		if not u.is_stunned():
+			out.append(u)
+	return out
+
+
 ## Living unit whose center is within `radius` of the point, closest first.
 func unit_near(p: Vector2, radius: float) -> Unit:
 	var best: Unit = null
@@ -291,7 +353,7 @@ func node_walkable(n: Vector2i) -> bool:
 ## Nodes the unit can end its move on, mapped to the meters walked.
 ## Allies can be passed through but not stood on; enemies block.
 func reachable_nodes(unit: Unit) -> Dictionary:
-	var costs: Dictionary = _dijkstra([node_of(unit.pos)], unit.stat("move"), unit.team).cost
+	var costs: Dictionary = _dijkstra([node_of(unit.pos)], move_of(unit), unit.team).cost
 	for n in costs.keys():
 		var p := node_pos(n)
 		for other in units:
@@ -303,7 +365,7 @@ func reachable_nodes(unit: Unit) -> Dictionary:
 
 ## Walking path from the unit to a node (both ends included), or [] if none.
 func path_to(unit: Unit, to: Vector2i) -> Array[Vector2]:
-	var result := _dijkstra([node_of(unit.pos)], unit.stat("move"), unit.team)
+	var result := _dijkstra([node_of(unit.pos)], move_of(unit), unit.team)
 	var path: Array[Vector2] = []
 	if not result.cost.has(to):
 		return path
@@ -495,7 +557,7 @@ func _heap_swap(a: int, b: int) -> void:
 ## Whether any unit of `team` (other than `exclude_id`) can see the point.
 func can_see(team: int, p: Vector2, exclude_id := -1) -> bool:
 	for u in units:
-		if u.is_alive() and u.team == team and u.id != exclude_id and u.pos.distance_to(p) <= u.stat("sight") \
+		if u.is_alive() and u.team == team and u.id != exclude_id and u.pos.distance_to(p) <= sight_of(u) \
 				and has_line_of_sight(u.pos, p):
 			return true
 	return false
@@ -508,7 +570,7 @@ func visible_tiles(team: int) -> Dictionary:
 		for x in tiles_x:
 			var center := (Vector2(x, y) + Vector2(0.5, 0.5)) * TILE_SIZE
 			for u in units:
-				if u.is_alive() and u.team == team and u.pos.distance_to(center) <= u.stat("sight") + TILE_SIZE * 0.5 \
+				if u.is_alive() and u.team == team and u.pos.distance_to(center) <= sight_of(u) + TILE_SIZE * 0.5 \
 						and has_line_of_sight(u.pos, center):
 					out[Vector2i(x, y)] = true
 					break
@@ -524,7 +586,17 @@ static func tg_percent(u: Unit) -> int:
 
 
 func clock_ticks(u: Unit) -> int:
-	return roundi((CLOCK_BASE + CLOCK_PER_PATIENCE * u.stat("patience")) * TICKS_PER_SECOND)
+	return roundi((tune("clock_base") + tune("patience_multiplier") * u.stat("patience")) * TICKS_PER_SECOND)
+
+
+## Meters the unit can walk per turn (Move x move multiplier).
+func move_of(u: Unit) -> float:
+	return u.stat("move") * tune("move_multiplier")
+
+
+## Vision radius in meters (Sight x sight multiplier).
+func sight_of(u: Unit) -> float:
+	return u.stat("sight") * tune("sight_multiplier")
 
 
 func ticks_to_ready(u: Unit) -> int:
@@ -533,13 +605,18 @@ func ticks_to_ready(u: Unit) -> int:
 	var cast_ticks: int = u.casting.ticks if u.is_casting() else 0
 	var gain := _tg_gain(u)
 	if gain <= 0:
-		gain = maxi(1, u.stat("wits") * TG_PER_WITS)  # stunned: estimate as if not
+		gain = _base_tg_gain(u)  # stunned: estimate as if not
 	return cast_ticks + maxi(0, ceili(float(TG_MAX - u.tg) / gain))
 
 
 ## Turn Gauge gained per tick, after Slow / Stun.
 func _tg_gain(u: Unit) -> int:
-	return roundi(maxi(1, u.stat("wits") * TG_PER_WITS) * u.tg_factor())
+	return roundi(_base_tg_gain(u) * u.tg_factor())
+
+
+## Turn Gauge per tick before statuses: Wits x TG_PER_WITS x Wits multiplier.
+func _base_tg_gain(u: Unit) -> int:
+	return maxi(1, roundi(u.stat("wits") * TG_PER_WITS * tune("wits_multiplier")))
 
 
 ## Seconds left to act if ready, seconds until the spell goes off if
@@ -628,19 +705,123 @@ func preview(u: Unit, slot: int, from: Vector2, target: Vector2) -> Array[Dictio
 
 
 func _amount(u: Unit, ab: Dictionary, from: Vector2, t: Unit, t_pos: Vector2) -> int:
-	var power: float = u.stat(ab.scale) * ab.power
+	return _calc(u, ab, from, t, t_pos, false).value
+
+
+## The damage / healing / revive math. With `explain`, also returns the
+## step-by-step calculation as text (for tooltips), using the same numbers.
+## Returns {"value": int, "text": String}.
+func _calc(u: Unit, ab: Dictionary, from: Vector2, t: Unit, t_pos: Vector2, explain: bool) -> Dictionary:
+	var stat_name := "AttPwr" if ab.scale == "att" else "MagPwr"
+	var stat := u.stat(ab.scale)
+	var power: float = stat * ab.power
 	match ab.effect:
 		"damage":
+			var def_name := "AttDef" if ab.scale == "att" else "MagDef"
 			var def := t.stat("attdef" if ab.scale == "att" else "magdef")
 			var levels := clampi(level_at(from) - level_at(t_pos), -3, 3)
-			var bonus := (1.0 + HEIGHT_BONUS * levels) * flank_bonus(t, t_pos, from)
-			var dmg := roundi(power * DAMAGE_SCALE * bonus) - def
-			return maxi(1, roundi(dmg * DAMAGE_MULTIPLIER))
+			var height := 1.0 + tune("height_bonus") * levels
+			var flank := flank_bonus(t, t_pos, from)
+			var raw := roundi(power * DAMAGE_SCALE * height * flank)
+			var value := maxi(1, roundi((raw - def) * tune("damage_multiplier")))
+			if not explain:
+				return {"value": value}
+			var lines := ["%s %d x power %s x %s = %s" % [stat_name, stat, _n(ab.power), _n(DAMAGE_SCALE), _n(power * DAMAGE_SCALE)]]
+			if levels != 0:
+				lines.append("x height %s (%+d level%s)" % [_n(height), levels, "" if absi(levels) == 1 else "s"])
+			if flank != 1.0:
+				lines.append("x %s %s" % ["from behind" if flank >= tune("back_bonus") else "from the side", _n(flank)])
+			lines.append("= %d, - %s %d = %d" % [raw, def_name, def, raw - def])
+			lines.append("x damage multiplier %s = %d%s" % [_n(tune("damage_multiplier")), value, " (minimum 1)" if value == 1 else ""])
+			return {"value": value, "text": "\n".join(lines)}
 		"heal":
-			return mini(roundi(power * HEAL_SCALE), t.max_hp() - t.hp)
+			var full := roundi(power * HEAL_SCALE * tune("heal_multiplier"))
+			var missing := t.max_hp() - t.hp
+			var value := mini(full, missing)
+			if not explain:
+				return {"value": value}
+			var text := "%s %d x power %s x %s x heal multiplier %s = %d" % [stat_name, stat, _n(ab.power), _n(HEAL_SCALE), _n(tune("heal_multiplier")), full]
+			if value < full:
+				text += "\ncapped at missing HP %d" % missing
+			return {"value": value, "text": text}
 		"revive":
-			return maxi(1, roundi(t.max_hp() * ab.power))
-	return 0
+			var value := maxi(1, roundi(t.max_hp() * ab.power))
+			return {"value": value, "text": "Max HP %d x %d%% = %d" % [t.max_hp(), roundi(ab.power * 100), value] if explain else ""}
+	return {"value": 0, "text": ""}
+
+
+static func _n(v: float) -> String:
+	return str(snappedf(v, 0.01)).trim_suffix(".0")
+
+
+## Step-by-step calculation of what an ability does to one target.
+func explain_hit(u: Unit, slot: int, from: Vector2, t: Unit) -> String:
+	var t_pos := from if t == u else t.pos
+	return _calc(u, u.ability(slot), from, t, t_pos, true).text
+
+
+## How the unit's Turn Gauge timing is worked out.
+func explain_turn(u: Unit) -> String:
+	var gain := _base_tg_gain(u)
+	var text := "TG per tick = Wits %d x %d x Wits multiplier %s = %d\n" % [u.stat("wits"), TG_PER_WITS, _n(tune("wits_multiplier")), gain]
+	text += "Full gauge %d / %d = %d ticks = %s s between turns" % [TG_MAX, gain, ceili(float(TG_MAX) / gain), _n(ceili(float(TG_MAX) / gain) / float(TICKS_PER_SECOND))]
+	if u.tg_factor() != 1.0:
+		text += "\nStatuses: x %s" % _n(u.tg_factor())
+	return text
+
+
+## How the READY countdown is worked out.
+func explain_countdown(u: Unit) -> String:
+	return "Countdown = base %s s + Patience %d x %s s = %s s" % [
+		_n(tune("clock_base")), u.stat("patience"), _n(tune("patience_multiplier")), _n(clock_ticks(u) / float(TICKS_PER_SECOND))]
+
+
+## An ability's cast time in seconds (after the cast time multiplier).
+func cast_seconds(ab: Dictionary) -> float:
+	return ab.get("cast", 0.0) * tune("cast_time_multiplier")
+
+
+## What an ability does, with its numbers worked out (ability tooltips).
+func explain_ability(u: Unit, slot: int) -> String:
+	var ab := u.ability(slot)
+	var stat_name := "AttPwr" if ab.scale == "att" else "MagPwr"
+	var stat := u.stat(ab.scale)
+	var lines: Array[String] = []
+	match ab.effect:
+		"damage":
+			lines.append("Damage = %s %d x power %s x %s = %s" % [stat_name, stat, _n(ab.power), _n(DAMAGE_SCALE), _n(stat * ab.power * DAMAGE_SCALE)])
+			lines.append("  x height (%s per level) x side %s / back %s" % [_n(tune("height_bonus")), _n(tune("side_bonus")), _n(tune("back_bonus"))])
+			lines.append("  - target's %s, x damage multiplier %s (at least 1)" % ["AttDef" if ab.scale == "att" else "MagDef", _n(tune("damage_multiplier"))])
+		"heal":
+			lines.append("Heal = %s %d x power %s x %s x heal multiplier %s = %d" % [stat_name, stat, _n(ab.power), _n(HEAL_SCALE),
+				_n(tune("heal_multiplier")), roundi(stat * ab.power * HEAL_SCALE * tune("heal_multiplier"))])
+		"revive":
+			lines.append("Revives with %d%% of max HP" % roundi(ab.power * 100))
+	if ab.has("tg"):
+		lines.append("Turn Gauge %+d%% = %+d TG (of %d)" % [ab.tg, ab.tg * TG_MAX / 100, TG_MAX])
+	for b in ab.get("buffs", []):
+		lines.append("%s %+d for %d turn%s" % [b.stat, b.amount, b.turns, "" if b.turns == 1 else "s"])
+	if ab.has("status"):
+		lines.append("%s for %s s" % [Jobs.STATUSES[ab.status.id].name, _n(ab.status.seconds)])
+	if ab.cast > 0.0:
+		lines.append("Cast %s s x cast time multiplier %s = %s s" % [_n(ab.cast), _n(tune("cast_time_multiplier")), _n(cast_seconds(ab))])
+	else:
+		lines.append("Instant")
+	if ab.cooldown > 0:
+		lines.append("Cooldown %d turn%s" % [ab.cooldown, "" if ab.cooldown == 1 else "s"])
+	if slot == 3:
+		lines.append("Ultimate: needs a full meter (+%d per turn, +%d per ability used, +%s per 1%% of max HP lost)" % [
+			roundi(tune("ult_per_turn")), roundi(tune("ult_per_action")), _n(ULT_FROM_DAMAGE)])
+	return "
+".join(lines)
+
+
+func explain_move(u: Unit) -> String:
+	return "Move %d m x move multiplier %s = %s m" % [u.stat("move"), _n(tune("move_multiplier")), _n(move_of(u))]
+
+
+func explain_sight(u: Unit) -> String:
+	return "Sight %d m x sight multiplier %s = %s m" % [u.stat("sight"), _n(tune("sight_multiplier")), _n(sight_of(u))]
 
 
 ## Damage multiplier for where the attacker stands relative to the target's
@@ -651,9 +832,9 @@ func flank_bonus(t: Unit, t_pos: Vector2, from: Vector2) -> float:
 		return 1.0
 	var dot := t.facing.dot(to_attacker.normalized())
 	if dot < -0.5:
-		return BACK_BONUS
+		return tune("back_bonus")
 	if dot < 0.5:
-		return SIDE_BONUS
+		return tune("side_bonus")
 	return 1.0
 
 
@@ -667,6 +848,9 @@ func validate(cmd: Dictionary) -> String:
 	if type == "advance":
 		var ticks = cmd.get("ticks")
 		return "" if ticks is int and ticks >= 1 and ticks <= MAX_ADVANCE else "Bad time step."
+	if type == "tune":
+		var values = cmd.get("values")
+		return "" if values is Dictionary and clean_tuning(values).size() == values.size() else "Bad tuning values."
 	var id = cmd.get("unit")
 	var u: Unit = get_unit(id) if id is int else null
 	if u == null or not u.is_alive():
@@ -747,6 +931,9 @@ func apply(cmd: Dictionary) -> Dictionary:
 			_use_ability(get_unit(cmd["unit"]), cmd["slot"], cmd["target"], cmd.get("follow", -1), result)
 		"end_turn":
 			_end_turn(get_unit(cmd["unit"]), false, result)
+		"tune":
+			tuning.merge(clean_tuning(cmd["values"]), true)
+			result.logs.append("Developer Tools: rule numbers updated.")
 	return result
 
 
@@ -834,7 +1021,9 @@ func _add_status(u: Unit, status_id: String, seconds: float) -> void:
 ## A unit drops to 0 HP: it's knocked out and can be revived for KO_SECONDS.
 func _knock_out(t: Unit, who: String, result: Dictionary) -> void:
 	t.hp = 0
-	t.ko_ticks = roundi(KO_SECONDS * TICKS_PER_SECOND)
+	t.ko_ticks = roundi(tune("ko_seconds") * TICKS_PER_SECOND)
+	if t.ko_ticks <= 0:
+		result.gone.append(t.id)
 	t.ready = false
 	t.clock = 0
 	t.moved = false
@@ -844,7 +1033,7 @@ func _knock_out(t: Unit, who: String, result: Dictionary) -> void:
 		result.logs.append("%s's %s fizzles." % [who, t.casting.name])
 		t.casting = {}
 	result.knocked_out.append(t.id)
-	result.logs.append("%s is knocked out! (%ds to revive)" % [who, roundi(KO_SECONDS)])
+	result.logs.append("%s is knocked out! (%ds to revive)" % [who, roundi(tune("ko_seconds"))])
 
 
 func _check_winner() -> void:
@@ -861,7 +1050,7 @@ func _become_ready(u: Unit, result: Dictionary) -> void:
 	u.clock = clock_ticks(u)
 	u.moved = false
 	u.acted = false
-	u.ult = mini(ULT_MAX, u.ult + ULT_PER_TURN)
+	u.ult = mini(ULT_MAX, u.ult + roundi(tune("ult_per_turn")))
 	for i in u.cooldowns.size():
 		u.cooldowns[i] = maxi(0, u.cooldowns[i] - 1)
 	var kept: Array[Dictionary] = []
@@ -899,12 +1088,12 @@ func _use_ability(u: Unit, slot: int, target: Vector2, follow: int, result: Dict
 	if slot == 3:
 		u.ult = 0
 	else:
-		u.ult = mini(ULT_MAX, u.ult + ULT_PER_ACTION)
+		u.ult = mini(ULT_MAX, u.ult + roundi(tune("ult_per_action")))
 	u.cooldowns[slot] = ab.cooldown + 1 if ab.cooldown > 0 else 0
 	u.acted = true
 	if target.distance_to(u.pos) > 0.01:
 		u.facing = (target - u.pos).normalized()
-	var cast_ticks := roundi(ab.get("cast", 0.0) * TICKS_PER_SECOND)
+	var cast_ticks := roundi(cast_seconds(ab) * TICKS_PER_SECOND)
 	if cast_ticks <= 0:
 		_resolve_ability(u, slot, target, result)
 		return

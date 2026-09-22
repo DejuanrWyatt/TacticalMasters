@@ -48,7 +48,7 @@ func _init(p_id: int, p_job: String, p_team: int, p_pos: Vector2) -> void:
 
 
 func job_data() -> Dictionary:
-	return Jobs.JOBS[job]
+	return Jobs.job(job)
 
 
 func job_name() -> String:
@@ -69,7 +69,7 @@ func max_hp() -> int:
 
 
 func ability(slot: int) -> Dictionary:
-	return Jobs.ABILITIES[job_data().abilities[slot]]
+	return Jobs.ability(job_data().abilities[slot])
 
 
 ## An independent copy (for the computer to think on another thread).
