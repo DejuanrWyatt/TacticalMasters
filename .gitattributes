@@ -1,0 +1,6 @@
+# Godot uses LF line endings; keep them consistent on every platform.
+* text=auto eol=lf
+*.png binary
+*.glb binary
+*.ogg binary
+*.wav binary

@@ -1,0 +1,132 @@
+# Tactical Masters
+
+A real-time-with-countdowns 3D tactics game inspired by Final Fantasy Tactics (jobs, Turn Gauge)
+and Baldur's Gate 3 (free movement, ranges in meters). Built with **Godot 4.3+** (GDScript).
+
+## Running it
+
+1. Open Godot (installed at `%LOCALAPPDATA%\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\Godot_v4.7.2-stable_win64.exe`).
+2. Choose **Import** and select `project.godot` in this folder.
+3. Press **F5** (Run Project).
+
+## Controls
+
+| Action | Keys / mouse |
+|---|---|
+| Select one of your READY units | Click it, click its chip in the turn order bar, or press Tab |
+| Move | Space (on by default), then click inside the blue area. Dots show the path. |
+| Use ability 1-4 | 1-4, then click a unit **or the ground**. Orange rings show the range, the red circle shows the area hit. |
+| End the unit's turn | Enter |
+| Cancel | Esc |
+| Pause (not online) | P |
+| Unit Guide (stats, abilities, damage) | U, or the **Units** button. Also on the main menu. Pauses the game when not online. |
+| Camera | WASD / arrows pan · R / F raise / lower · Q / E or right-drag rotate and tilt · wheel zoom · middle-drag pan · C center on the selected unit. The camera never moves by itself: press C, or click a unit's chip in the turn order (a second click on your selected unit's chip centers on it). |
+| Menu (in battle) | **Menu** button: Resume, Options, Unit Guide, Quit to Main Menu (pauses when not online) |
+
+These are the default keys. Every keyboard control can be rebound in **Options** (main menu, or Menu → Options in battle):
+click an action, then press a key. If another action already uses that key, the two swap. Bindings are saved between sessions.
+
+## How it plays
+
+- **Time keeps running.** Every unit's **Turn Gauge (TG)** fills at a rate set by its **Wits**: a Wits-10 unit gets a
+  turn every 20 s, and slower units less often. A unit with a full gauge is
+  **READY** and can act right away. Several units, from both sides, can be ready at the same time, and both players act at once.
+- **Each ready unit has its own countdown**: 8 s + 2 s × **Patience** (18-24 s). It appears on the unit's chip in the turn order bar
+  (`READY 12`) and above the unit's head. If it runs out, that unit's turn is lost and its TG resets to 0.
+- On its turn a unit can **walk once** (up to its Move in meters, around water, cliffs and enemies) and **use one ability**,
+  in either order. Skipping one keeps some TG, so the next turn comes sooner.
+- **Bars over every unit's head:** HP (green, red when low), TG (blue, gold when READY), Ultimate (orange, pale gold when full).
+- **Cast times:** basic attacks, most melee and quick shots are **instant**. Stronger abilities take time to cast:
+  0.5-1.5 s for abilities like Fire, Cure and Aimed Shot, and 2-4 s for Blizzard, Arrow Rain, Sanctuary and Meteor.
+  A unit can move **before** casting, but not after. Only **instant** abilities let a unit move afterwards, so
+  starting a cast ends the unit's turn. The cast carries on, and its TG doesn't fill until the spell goes off.
+  The caster's TG bar becomes a
+  purple cast bar, and its chip shows e.g. `Meteor 2.3s`. A purple circle marks where the spell will land.
+  **Aim at a unit** and the spell follows it. **Aim at the ground** and it lands on that spot, hitting whoever is there
+  when it goes off. Use this to predict where an enemy will walk, and remember that targets can also walk out of it.
+  If the caster is defeated mid-cast, the spell fizzles.
+- **Ultimate:** ability 4 unlocks when the Ultimate bar is full. The bar fills when the unit uses abilities, gets hit,
+  and a little each time it becomes ready.
+- **Fog of war:** you only see what is within the **Sight** radius (meters) of your units. Hidden enemies show as `???`.
+- **Height:** units can climb at most 2 levels at once. Attacking from higher ground adds 10% damage per level (max 30%).
+
+Damage = (power stat × ability power × 2 × height bonus − AttDef (physical) or MagDef (magic)) × 0.5, minimum 1.
+There is no randomness. The final × 0.5 is `DAMAGE_MULTIPLIER` in `game_state.gd`, the quickest dial for overall damage.
+
+## Jobs
+
+Each team starts with Knight, Archer, Black Mage and White Mage (`Jobs.DEFAULT_ROSTER`). Squire and Monk are also defined.
+Move and Sight are in meters. The map is 24 × 24 m.
+
+| Job | HP | AttPwr | MagPwr | AttDef | MagDef | Wits | Move | Patience | Sight |
+|---|---|---|---|---|---|---|---|---|---|
+| Squire | 80 | 14 | 6 | 8 | 6 | 9 | 7 | 6 | 9 |
+| Knight | 100 | 16 | 5 | 12 | 6 | 7 | 6 | 7 | 8 |
+| Archer | 70 | 15 | 6 | 6 | 7 | 10 | 7 | 6 | 13 |
+| Monk | 90 | 17 | 6 | 8 | 5 | 10 | 8 | 5 | 9 |
+| Black Mage | 60 | 5 | 18 | 4 | 12 | 8 | 6 | 8 | 10 |
+| White Mage | 65 | 5 | 15 | 5 | 13 | 8 | 6 | 8 | 10 |
+
+| Job | 1 | 2 | 3 | 4 (Ultimate) |
+|---|---|---|---|---|
+| Squire | Attack | Throw Stone | Focus (AttPwr up) | Brave Slash |
+| Knight | Attack | Shield Bash (TG −30%) | Guard (defense up) | Holy Blade (area, 1 s) |
+| Archer | Bow Shot | Aimed Shot (1 s) | Pin Shot (TG −40%) | Arrow Rain (area, 2 s) |
+| Monk | Punch | Wave Fist | Chakra (area heal) | Earth Slash (area around self, 1 s) |
+| Black Mage | Staff Strike | Fire (1 s) | Blizzard (area, 2 s) | Meteor (large area, 4 s) |
+| White Mage | Staff Strike | Cure (1 s) | Haste (TG +50%, 1.5 s) | Sanctuary (large area heal, 3 s) |
+
+Abilities without a time are instant. The in-game **Unit Guide** lists every number, including each ability's
+damage against any job you pick.
+
+Each ability has its own animation (`scripts/battle/fx.gd`). Melee abilities lunge, arrows and fireballs fly in arcs,
+Arrow Rain and Blizzard fall on the area, Meteor drops from the sky, Holy Blade brings down a pillar of light, and heals sparkle.
+
+All numbers are in `scripts/core/jobs.gd` (jobs and abilities) and at the top of `scripts/core/game_state.gd`
+(time, countdown, damage, height and movement rules).
+
+## Game modes
+
+- **Play vs Computer:** you are Blue, and the computer plays Red. The computer only targets what its units can see.
+  Pick its **difficulty** on the main menu:
+  - **Easy:** reacts in about 2.5 s, pauses 1.2 s between orders, and 45% of the time settles for one of its 5 best options.
+  - **Medium** (default): about 1.3 s, 0.9 s, and 20% of the time one of its 3 best.
+  - **Hard:** about 0.4 s, 0.6 s, and always its best option.
+  These are the `LEVELS` table in `scripts/ai/ai_player.gd`.
+- **Two Players (Same Device):** both players share the screen and the fog is off.
+- **Online:** one player presses **Host Game** and the other enters the host's address and presses **Join Game**. The host plays Blue.
+  - On the same Wi-Fi/LAN, use the address shown on the host's screen.
+  - Across the internet, the host must forward **UDP port 7777**, or both players can use a VPN such as Tailscale or ZeroTier.
+  - The host controls time and checks every order. The client's orders go to the host, which applies them and sends them back.
+
+## Tests
+
+Run from this folder (use `Godot_v4.7.2-stable_win64_console.exe` so output shows in the terminal):
+
+```
+godot --headless --script res://tests/smoke_test.gd              # rules, casting, AI-vs-AI battle, scenes, every animation, guide
+godot --headless --script res://tests/net_test.gd -- host        # online test: run these two at the
+godot --headless --script res://tests/net_test.gd -- client      # same time; checksums must match
+godot --script res://tests/screenshot.gd -- out.png [seconds] [ability_slot] [cast_after]   (add "guide" to open the Unit Guide)
+godot --headless --script res://tests/profile_ai.gd              # how long the computer takes per decision
+godot --script res://tests/frame_time.gd -- [seconds] [difficulty]   # real-window frame times (stutter check)
+```
+
+The computer decides on a background thread, working on a snapshot of the battle (`GameState.snapshot()`), so its
+thinking never stalls the game. Its order is then checked against the live battle like any other.
+
+## Project layout
+
+```
+scenes/                 main_menu.tscn, battle.tscn (everything else is built in code)
+scripts/core/           the rules, no graphics: game_state, unit, jobs, map_data
+scripts/ai/             ai_player.gd: the computer opponent
+scripts/battle/         battle.gd (time, input, orders), camera_rig, board_view, unit_view, fx (ability animations), hud
+scripts/autoload/       GameConfig (chosen mode), Net (online play)
+scripts/ui/unit_guide.gd  Unit Guide (stats / abilities / damage table), used by the menu and the battle
+scripts/main_menu.gd    title screen
+tests/                  headless tests and the screenshot tool
+```
+
+Every change to a battle is a **command** (`advance`, `move`, `ability`, `end_turn`). `GameState.validate()` checks it
+and `GameState.apply()` performs it. Local input, the AI, the clock and the online opponent all use the same path.

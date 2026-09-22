@@ -1,0 +1,6 @@
+# Godot cache and build output
+.godot/
+/build/
+*.tmp
+# Export signing secrets (never commit)
+export_credentials.cfg
