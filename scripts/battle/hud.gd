@@ -22,6 +22,8 @@ signal overlay_changed(open: bool)
 signal rematch_pressed
 signal replay_pressed
 signal replay_speed_changed(speed: float)
+signal chat_submitted(text: String)
+signal chat_toggled(open: bool)
 
 const GameState = preload("res://scripts/core/game_state.gd")
 const Jobs = preload("res://scripts/core/jobs.gd")
@@ -65,6 +67,7 @@ var _mvp_label: Label
 var _rematch_button: Button
 var _replay_button: Button
 var _replay_bar: PanelContainer
+var _chat: LineEdit
 var _guide: Control
 var _options: Control
 var _game_menu: Control
@@ -81,6 +84,7 @@ func build(can_pause: bool) -> void:
 	_build_turn_order()
 	_build_corner_buttons(can_pause)
 	_build_log()
+	_build_chat()
 	_build_unit_card()
 	_build_action_bar()
 	_build_game_over()
@@ -131,6 +135,49 @@ func _build_corner_buttons(can_pause: bool) -> void:
 	_pause_button = _small_button(corner, "Pause", pause_pressed.emit)
 	_pause_button.visible = can_pause
 	_small_button(corner, "Menu", toggle_game_menu)
+
+
+func _build_chat() -> void:
+	_chat = LineEdit.new()
+	_chat.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	_chat.offset_left = 12
+	_chat.offset_top = 12
+	_chat.custom_minimum_size = Vector2(360, 36)
+	_chat.placeholder_text = "Say something (Enter to send, Esc to close)"
+	_chat.max_length = 120
+	_chat.visible = false
+	_chat.text_submitted.connect(_on_chat_submitted)
+	_chat.gui_input.connect(_on_chat_input)
+	_root.add_child(_chat)
+
+
+func open_chat() -> void:
+	_chat.visible = true
+	_chat.text = ""
+	_chat.grab_focus()
+	chat_toggled.emit(true)
+
+
+func close_chat() -> void:
+	_chat.visible = false
+	_chat.release_focus()
+	chat_toggled.emit(false)
+
+
+func is_chat_open() -> bool:
+	return _chat.visible
+
+
+func _on_chat_submitted(text: String) -> void:
+	if text.strip_edges() != "":
+		chat_submitted.emit(text.strip_edges())
+	close_chat()
+
+
+func _on_chat_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+		close_chat()
+		_chat.accept_event()
 
 
 func _build_log() -> void:

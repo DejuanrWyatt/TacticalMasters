@@ -16,6 +16,8 @@ var guide: Control
 var options: Control
 var setup: Control
 var how_to: Control
+## While hosting: the host's address line, kept above network status messages.
+var _host_info := ""
 
 
 func _ready() -> void:
@@ -180,11 +182,13 @@ func _host() -> void:
 	for ip in IP.get_local_addresses():
 		if ip.count(".") == 3 and not ip.begins_with("127.") and not ip.begins_with("169.254."):
 			addresses.append(ip)
-	_set_status("Hosting %s on port %d. Waiting for an opponent...\nYour address: %s" % [
-		GameConfig.build_map().name, port, ", ".join(PackedStringArray(addresses)) if not addresses.is_empty() else "unknown"])
+	_host_info = "Hosting %s on port %d. Waiting for an opponent...\nOn your network: %s" % [
+		GameConfig.build_map().name, port, ", ".join(PackedStringArray(addresses)) if not addresses.is_empty() else "unknown"]
+	_set_status("Trying to open the port on your router...")
 
 
 func _join() -> void:
+	_host_info = ""
 	var address := address_edit.text.strip_edges()
 	if address.is_empty():
 		_set_status("Enter the host's address first.")
@@ -197,7 +201,7 @@ func _join() -> void:
 
 
 func _set_status(text: String) -> void:
-	status_label.text = text
+	status_label.text = _host_info + "\n" + text if _host_info != "" and Net.is_host() else text
 
 
 func _on_game_started() -> void:

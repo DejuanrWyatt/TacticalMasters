@@ -77,6 +77,8 @@ func _load() -> void:
 	if cfg.load(SAVE_PATH) != OK:
 		return
 	for key in KEYS:
-		var value = cfg.get_value("settings", key, get(key))
+		if not cfg.has_section_key("settings", key):
+			continue
+		var value = cfg.get_value("settings", key)
 		if typeof(value) == typeof(get(key)):
 			set(key, value)

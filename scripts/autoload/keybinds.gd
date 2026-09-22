@@ -24,6 +24,7 @@ const ACTIONS := [
 	["next_unit", "Next ready unit", [KEY_TAB]],
 	["pause", "Pause", [KEY_P]],
 	["unit_guide", "Unit Guide", [KEY_U]],
+	["chat", "Chat (online)", [KEY_T]],
 	["center_camera", "Center camera on unit", [KEY_C]],
 	["cam_forward", "Camera forward", [KEY_W, KEY_UP]],
 	["cam_back", "Camera back", [KEY_S, KEY_DOWN]],
@@ -132,6 +133,9 @@ func _load() -> void:
 	if cfg.load(SAVE_PATH) != OK:
 		return
 	for id in _keys:
-		var saved = cfg.get_value("keys", id, null)
+		# Actions added in newer versions aren't in older save files: keep their defaults.
+		if not cfg.has_section_key("keys", id):
+			continue
+		var saved = cfg.get_value("keys", id)
 		if saved is Array and not saved.is_empty():
 			_keys[id] = saved

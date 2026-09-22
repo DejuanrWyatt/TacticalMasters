@@ -19,6 +19,7 @@ and Baldur's Gate 3 (free movement, ranges in meters). Built with **Godot 4.3+**
 | End the unit's turn | Enter |
 | Cancel | Esc |
 | Pause (not online) | P |
+| Chat (online) | T, type, Enter to send (Esc closes) |
 | Unit Guide (stats, abilities, damage) | U, or the **Units** button. Also on the main menu. Pauses the game when not online. |
 | Camera | WASD / arrows pan · R / F raise / lower · Q / E or right-drag rotate and tilt · wheel zoom · middle-drag pan · C center on the selected unit. The camera never moves by itself: press C, or click a unit's chip in the turn order (a second click on your selected unit's chip centers on it). |
 | Menu (in battle) | **Menu** button: Resume, Options, Unit Guide, How to Play, Quit to Main Menu (pauses when not online) |
@@ -131,7 +132,11 @@ All numbers are in `scripts/core/jobs.gd` (jobs and abilities) and at the top of
 - **Two Players (Same Device):** both players share the screen and the fog is off.
 - **Online:** one player presses **Host Game** and the other enters the host's address and presses **Join Game**. The host plays Blue.
   - On the same Wi-Fi/LAN, use the address shown on the host's screen.
-  - Across the internet, the host must forward **UDP port 7777**, or both players can use a VPN such as Tailscale or ZeroTier.
+  - Across the internet: the host's game tries to **open the port on the router automatically (UPnP)** and shows the
+    public address to share. If the router doesn't allow it, forward **UDP port 7777** manually, or both players can use
+    a VPN such as Tailscale or ZeroTier.
+  - Both players need the **same version** of the game; a mismatched build is refused with a clear message.
+  - Press **T** to **chat**. After the battle, **Rematch** restarts with the same map and teams once both players press it.
   - The host controls time and checks every order. The client's orders go to the host, which applies them and sends them back.
 
 ## Tests
@@ -140,8 +145,10 @@ Run from this folder (use `Godot_v4.7.2-stable_win64_console.exe` so output show
 
 ```
 godot --headless --script res://tests/smoke_test.gd              # rules, casting, AI-vs-AI battle, scenes, every animation, guide
-godot --headless --script res://tests/net_test.gd -- host        # online test: run these two at the
-godot --headless --script res://tests/net_test.gd -- client      # same time; checksums must match
+godot --headless --script res://tests/net_test.gd -- host        # online test: run these two at the same time;
+godot --headless --script res://tests/net_test.gd -- client      # checks settings sync, chat, checksums, rematch
+godot --headless --script res://tests/net_test.gd -- host_refuse # version check: run these two together;
+godot --headless --script res://tests/net_test.gd -- old_client  # a client on another version must be refused
 godot --script res://tests/screenshot.gd -- out.png [seconds] [ability_slot] [cast_after]   (add "guide" to open the Unit Guide)
 godot --headless --script res://tests/profile_ai.gd              # how long the computer takes per decision
 godot --script res://tests/frame_time.gd -- [seconds] [difficulty]   # real-window frame times (stutter check)

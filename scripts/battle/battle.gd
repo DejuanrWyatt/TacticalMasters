@@ -119,6 +119,13 @@ func _ready() -> void:
 		Net.request_received.connect(_process_requests)
 		Net.request_rejected.connect(_on_request_rejected)
 		Net.opponent_left.connect(_on_opponent_left)
+		Net.chat_received.connect(_on_chat_received)
+		Net.rematch_requested.connect(_on_rematch_requested)
+		# A rematch (both players agreed) restarts the battle scene.
+		Net.game_started.connect(get_tree().reload_current_scene)
+		hud.chat_submitted.connect(_on_chat_submitted)
+		hud.chat_toggled.connect(func(open: bool): cam.keys_enabled = not open)
+		hud.log_message("Press %s to chat with your opponent." % Keybinds.key_name("chat"))
 	if not replaying:
 		hud.log_message("Battle start! Units act as soon as they are READY. Act before their countdown runs out.")
 	if GameConfig.mode == "ai" and not replaying:
@@ -458,6 +465,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_toggle_pause()
 		elif event.is_action_pressed("tm_unit_guide"):
 			hud.toggle_guide()
+		elif event.is_action_pressed("tm_chat") and GameConfig.mode == "online" and not replaying:
+			hud.open_chat()
 		elif event.is_action_pressed("tm_center_camera"):
 			if _selected() != null:
 				cam.focus_on(board.ground(_selected().pos))
@@ -694,7 +703,7 @@ func _game_over() -> void:
 		if st.dealt + st.healed > best:
 			best = st.dealt + st.healed
 			mvp = rows.size() - 1
-	hud.show_game_over(text, rows, mvp, GameConfig.mode != "online")
+	hud.show_game_over(text, rows, mvp, true)
 	_refresh()
 
 
@@ -715,10 +724,28 @@ func _record_stats(result: Dictionary) -> void:
 					stats[r.unit].healed += amount
 
 
-## Same map and teams, fresh battle.
+## Same map and teams, fresh battle. Online, both players have to ask; the
+## battle restarts (via Net.game_started) once they have.
 func _rematch() -> void:
 	GameConfig.replay_log = []
+	if GameConfig.mode == "online" and Net.is_online():
+		Net.request_rematch()
+		hud.log_message("Rematch requested: waiting for your opponent to accept...")
+		return
 	get_tree().reload_current_scene()
+
+
+func _on_rematch_requested() -> void:
+	hud.log_message("Your opponent wants a rematch: press Rematch to accept.")
+
+
+func _on_chat_submitted(text: String) -> void:
+	Net.send_chat(text)
+	hud.log_message("You: %s" % text)
+
+
+func _on_chat_received(text: String) -> void:
+	hud.log_message("Opponent: %s" % text)
 
 
 ## Replays this battle from its recorded commands.
