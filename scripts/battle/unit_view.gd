@@ -321,6 +321,11 @@ func flinch(delay: float, color := Color(1, 0.25, 0.2)) -> void:
 	t.tween_property(_body_material, "albedo_color", _team_color, 0.2)
 
 
+## Shows the ready/selected ring once so its shader compiles during loading.
+func prewarm() -> void:
+	_ring.visible = true
+
+
 ## Knocked out: topples over after `delay` seconds and lies there (it can
 ## still be revived).
 func knock_out(delay: float) -> void:

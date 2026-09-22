@@ -21,10 +21,20 @@ and Baldur's Gate 3 (free movement, ranges in meters). Built with **Godot 4.3+**
 | Pause (not online) | P |
 | Unit Guide (stats, abilities, damage) | U, or the **Units** button. Also on the main menu. Pauses the game when not online. |
 | Camera | WASD / arrows pan · R / F raise / lower · Q / E or right-drag rotate and tilt · wheel zoom · middle-drag pan · C center on the selected unit. The camera never moves by itself: press C, or click a unit's chip in the turn order (a second click on your selected unit's chip centers on it). |
-| Menu (in battle) | **Menu** button: Resume, Options, Unit Guide, Quit to Main Menu (pauses when not online) |
+| Menu (in battle) | **Menu** button: Resume, Options, Unit Guide, How to Play, Quit to Main Menu (pauses when not online) |
 
 These are the default keys. Every keyboard control can be rebound in **Options** (main menu, or Menu → Options in battle):
 click an action, then press a key. If another action already uses that key, the two swap. Bindings are saved between sessions.
+
+**Options → Game** also has master / music / sound-effect volume, camera speed, UI scale, fullscreen, and
+**colorblind team colors** (blue / orange). Settings are saved (`user://settings.cfg`). New players: **How to Play**
+(main menu or in-game menu) walks through the rules page by page.
+
+## After the battle
+
+The victory screen shows each unit's **damage dealt and taken, healing and KOs**, and the **MVP**. **Rematch** replays the
+same map and teams; **Watch Replay** plays the whole battle back (every order is recorded, and the rules are
+deterministic, so the replay is exact), with ×1 / ×2 / ×4 speed.
 
 ## How it plays
 

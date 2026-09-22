@@ -1,7 +1,9 @@
 extends Node3D
-## 3D battlefield: one box per ground tile (TILE_SIZE meters, raised by its
-## height level), fog-of-war quads, and the targeting visuals: the shaded
-## area a unit can walk to, the path dots to the cursor, range rings and
+## 3D battlefield: one block per ground tile (TILE_SIZE meters, raised by its
+## height level) with a textured top and darker cliff sides, water, trees
+## and rocks for decoration (visual only, placed the same way every time for
+## a map), fog-of-war quads, and the targeting visuals: the shaded area a
+## unit can walk to, the path dots to the cursor, range rings and
 ## area-of-effect circles. Tile collision bodies let the battle raycast
 ## clicks to a ground point.
 
@@ -21,8 +23,19 @@ const GROUND_COLORS := [
 const FOG_COLOR := Color(0.05, 0.07, 0.12, 0.6)
 const MOVE_AREA_COLOR := Color(0.35, 0.65, 1.0, 0.3)
 
+## Colors of the cliff sides per level (the tops use GROUND_COLORS).
+const SIDE_COLORS := [
+	Color(0.16, 0.3, 0.5),
+	Color(0.36, 0.28, 0.2),
+	Color(0.38, 0.3, 0.21),
+	Color(0.42, 0.34, 0.24),
+	Color(0.36, 0.35, 0.33),
+	Color(0.44, 0.43, 0.41),
+]
+
 var state
 var _fog := {}
+var _noise: NoiseTexture2D
 var _materials := {}
 var _move_area: MultiMeshInstance3D
 var _path_dots: MultiMeshInstance3D
@@ -35,11 +48,25 @@ var _aoe_ok: StandardMaterial3D
 var _aoe_bad: StandardMaterial3D
 
 
-func build(p_state) -> void:
+func build(p_state, seed_text := "") -> void:
 	state = p_state
+	_noise = NoiseTexture2D.new()
+	_noise.width = 256
+	_noise.height = 256
+	_noise.seamless = true
+	var fnl := FastNoiseLite.new()
+	fnl.frequency = 0.025
+	fnl.fractal_octaves = 3
+	_noise.noise = fnl
+	# Subtle variation only: map the noise to 85-100% brightness.
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(0.85, 0.85, 0.85))
+	ramp.set_color(1, Color(1, 1, 1))
+	_noise.color_ramp = ramp
 	for y in state.tiles_y:
 		for x in state.tiles_x:
 			_build_tile(Vector2i(x, y))
+	_decorate(seed_text)
 
 	_move_area = _multimesh(_plane(Vector2(0.5, 0.5)), _material(MOVE_AREA_COLOR, true, false))
 	var dot := SphereMesh.new()
@@ -70,12 +97,19 @@ func _build_tile(t: Vector2i) -> void:
 	box.size = Vector3(size, depth, size)
 	var mesh := MeshInstance3D.new()
 	mesh.mesh = box
-	var color: Color = GROUND_COLORS[mini(level, GROUND_COLORS.size() - 1)]
-	if (t.x + t.y) % 2 == 1:
-		color = color.darkened(0.06)
-	mesh.material_override = _material(color, false, false)
+	var lv := mini(level, GROUND_COLORS.size() - 1)
+	# The block's sides are cliff/dirt; its top gets the ground color.
+	mesh.material_override = _ground_material(SIDE_COLORS[lv], 0.8)
 	mesh.position = Vector3((t.x + 0.5) * size, top - depth / 2.0, (t.y + 0.5) * size)
 	add_child(mesh)
+	var top_face := MeshInstance3D.new()
+	top_face.mesh = _plane(Vector2(size, size))
+	var color: Color = GROUND_COLORS[lv]
+	if (t.x + t.y) % 2 == 1:
+		color = color.darkened(0.04)
+	top_face.material_override = _water_material() if level == 0 else _ground_material(color, 0.9)
+	top_face.position = Vector3(mesh.position.x, top + 0.002, mesh.position.z)
+	add_child(top_face)
 
 	var shape := CollisionShape3D.new()
 	var box_shape := BoxShape3D.new()
@@ -94,6 +128,114 @@ func _build_tile(t: Vector2i) -> void:
 	fog.visible = false
 	add_child(fog)
 	_fog[t] = fog
+
+
+## Lit ground material with a subtle noise pattern (world-space, so it flows
+## across tiles).
+func _ground_material(color: Color, roughness: float) -> StandardMaterial3D:
+	var key := "ground/%s" % color.to_html()
+	if not _materials.has(key):
+		var m := StandardMaterial3D.new()
+		m.albedo_color = color
+		m.albedo_texture = _noise
+		m.uv1_triplanar = true
+		m.uv1_world_triplanar = true
+		m.uv1_scale = Vector3(0.12, 0.12, 0.12)
+		m.roughness = roughness
+		_materials[key] = m
+	return _materials[key]
+
+
+func _water_material() -> StandardMaterial3D:
+	if not _materials.has("water"):
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(0.22, 0.45, 0.72, 0.85)
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.albedo_texture = _noise
+		m.uv1_triplanar = true
+		m.uv1_world_triplanar = true
+		m.uv1_scale = Vector3(0.3, 0.3, 0.3)
+		m.metallic = 0.3
+		m.roughness = 0.15
+		_materials["water"] = m
+	return _materials["water"]
+
+
+## Trees and rocks, placed deterministically from the map id and mirrored
+## like the map, on low ground away from the starting areas. Visual only:
+## they don't block movement or line of sight.
+func _decorate(seed_text: String) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(seed_text if seed_text != "" else "map")
+	var size: Vector2 = state.size_meters()
+	var trunk_mat := _plain_material(Color(0.35, 0.24, 0.15))
+	var leaf_mats := [_plain_material(Color(0.2, 0.42, 0.2)), _plain_material(Color(0.26, 0.48, 0.22)), _plain_material(Color(0.3, 0.44, 0.18))]
+	var rock_mat := _plain_material(Color(0.36, 0.35, 0.34))
+	for y in state.tiles_y / 2:
+		for x in state.tiles_x:
+			if rng.randf() > 0.16:
+				continue
+			var p := Vector2((x + rng.randf_range(0.15, 0.85)) * state.TILE_SIZE, (y + rng.randf_range(0.15, 0.85)) * state.TILE_SIZE)
+			var is_tree := rng.randf() < 0.6
+			var scale := rng.randf_range(0.75, 1.25)
+			var leaf: Material = leaf_mats[rng.randi_range(0, leaf_mats.size() - 1)]
+			for spot in [p, size - p]:  # mirrored, like the map
+				var level: int = state.level_at(spot)
+				if level < 1 or level > 3 or _near_spawn(spot):
+					continue
+				var base := ground(spot)
+				if is_tree:
+					_tree(base, scale, trunk_mat, leaf)
+				else:
+					_rock(base, scale, rock_mat)
+
+
+func _near_spawn(p: Vector2) -> bool:
+	for u in state.units:
+		if u.pos.distance_to(p) < 3.0:
+			return true
+	return false
+
+
+func _plain_material(color: Color) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = color
+	m.roughness = 0.9
+	return m
+
+
+func _tree(base: Vector3, scale: float, trunk_mat: Material, leaf_mat: Material) -> void:
+	var trunk := CylinderMesh.new()
+	trunk.top_radius = 0.07 * scale
+	trunk.bottom_radius = 0.11 * scale
+	trunk.height = 0.7 * scale
+	var t := MeshInstance3D.new()
+	t.mesh = trunk
+	t.material_override = trunk_mat
+	t.position = base + Vector3(0, 0.35 * scale, 0)
+	add_child(t)
+	for i in 2:
+		var cone := CylinderMesh.new()
+		cone.top_radius = 0.0
+		cone.bottom_radius = (0.55 - i * 0.15) * scale
+		cone.height = 0.8 * scale
+		var c := MeshInstance3D.new()
+		c.mesh = cone
+		c.material_override = leaf_mat
+		c.position = base + Vector3(0, (0.9 + i * 0.4) * scale, 0)
+		add_child(c)
+
+
+func _rock(base: Vector3, scale: float, mat: Material) -> void:
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.3 * scale
+	sphere.height = 0.36 * scale
+	var r := MeshInstance3D.new()
+	r.mesh = sphere
+	r.material_override = mat
+	r.scale = Vector3(1.2, 0.8, 1.0)
+	r.position = base + Vector3(0, 0.08 * scale, 0)
+	add_child(r)
 
 
 func _level_top(level: int) -> float:
@@ -208,6 +350,15 @@ func show_aoe(center: Vector2, radius: float, ok: bool) -> void:
 	disc.bottom_radius = radius
 	_aoe_disc.material_override = _aoe_ok if ok else _aoe_bad
 	_aoe_disc.position = ground(center) + Vector3(0, 0.08, 0)
+
+
+## Shows every targeting visual once (for a moment, at `center`) so their
+## shaders compile during loading rather than the first time they're needed.
+func prewarm(center: Vector2) -> void:
+	show_move_area([state.node_of(center)])
+	show_path([center, center + Vector2(1, 0)], true)
+	show_range(center, 1.0, 2.0)
+	show_aoe(center, 1.0, true)
 
 
 func clear_targeting() -> void:

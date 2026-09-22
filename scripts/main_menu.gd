@@ -7,6 +7,7 @@ const UnitGuide = preload("res://scripts/ui/unit_guide.gd")
 const OptionsMenu = preload("res://scripts/ui/options_menu.gd")
 const BattleSetup = preload("res://scripts/ui/battle_setup.gd")
 const UiTheme = preload("res://scripts/ui/ui_theme.gd")
+const HowToPlay = preload("res://scripts/ui/how_to_play.gd")
 
 var address_edit: LineEdit
 var port_edit: LineEdit
@@ -14,6 +15,7 @@ var status_label: Label
 var guide: Control
 var options: Control
 var setup: Control
+var how_to: Control
 
 
 func _ready() -> void:
@@ -57,6 +59,7 @@ func _build_ui() -> void:
 	var row_tools := HBoxContainer.new()
 	row_tools.add_theme_constant_override("separation", 10)
 	box.add_child(row_tools)
+	_add_button(row_tools, "How to Play", _open_how_to).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_add_button(row_tools, "Unit Guide", _open_guide).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_add_button(row_tools, "Options", _open_options).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
@@ -124,6 +127,13 @@ func _open_guide() -> void:
 		guide = UnitGuide.new()
 		add_child(guide)
 	guide.visible = true
+
+
+func _open_how_to() -> void:
+	if how_to == null:
+		how_to = HowToPlay.new()
+		add_child(how_to)
+	how_to.visible = true
 
 
 func _open_options() -> void:

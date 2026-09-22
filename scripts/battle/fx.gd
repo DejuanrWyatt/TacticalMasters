@@ -194,6 +194,22 @@ func prewarm(at: Vector3) -> void:
 	label.modulate = Color(1, 1, 1, 0.01)
 	label.pixel_size = 0.0005
 	holder.add_child(label)
+	# Status tags: Label3D without billboarding (they turn with the bars).
+	var flat_label := Label3D.new()
+	flat_label.text = "0"
+	flat_label.no_depth_test = true
+	flat_label.outline_size = 8
+	flat_label.modulate = Color(1, 1, 1, 0.01)
+	flat_label.pixel_size = 0.0005
+	holder.add_child(flat_label)
+	# Knocked-out / revived body tints and the darkened shaded materials.
+	var tinted := MeshInstance3D.new()
+	tinted.mesh = CapsuleMesh.new()
+	var tint := StandardMaterial3D.new()
+	tint.albedo_color = Color(0.1, 0.1, 0.1)
+	tinted.material_override = tint
+	tinted.scale = Vector3.ONE * 0.05
+	holder.add_child(tinted)
 	get_tree().create_timer(0.3).timeout.connect(holder.queue_free)
 
 

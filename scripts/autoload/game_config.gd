@@ -16,6 +16,8 @@ var local_team := 0
 var map_id := MapData.DEFAULT_MAP
 ## Jobs for each team: [blue 4 job ids, red 4 job ids].
 var rosters: Array = [Jobs.DEFAULT_ROSTER.duplicate(), Jobs.DEFAULT_ROSTER.duplicate()]
+## When not empty, the next battle is a replay of these recorded commands.
+var replay_log: Array = []
 
 
 func start_online(team: int) -> void:

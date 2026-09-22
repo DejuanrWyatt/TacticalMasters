@@ -11,7 +11,7 @@ const MapData = preload("res://scripts/core/map_data.gd")
 const BoardView = preload("res://scripts/battle/board_view.gd")
 const UiTheme = preload("res://scripts/ui/ui_theme.gd")
 
-const TEAM_COLORS := [Color(0.35, 0.6, 1.0), Color(1.0, 0.4, 0.35)]
+var TEAM_COLORS: Array = [Settings.team_colors()[0].lightened(0.2), Settings.team_colors()[1].lightened(0.2)]
 const DIFFICULTIES := ["easy", "medium", "hard"]
 const PREVIEW_TILE := 26
 

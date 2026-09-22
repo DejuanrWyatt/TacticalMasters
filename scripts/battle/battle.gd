@@ -28,7 +28,8 @@ const Fx = preload("res://scripts/battle/fx.gd")
 const Jobs = preload("res://scripts/core/jobs.gd")
 
 const MENU_SCENE := "res://scenes/main_menu.tscn"
-const TEAM_COLORS := [Color(0.25, 0.5, 0.9), Color(0.85, 0.25, 0.22)]
+## Team colors (blue/red, or blue/orange with the colorblind setting).
+var TEAM_COLORS: Array = Settings.team_colors()
 const TICK_SECONDS := 1.0 / GameState.TICKS_PER_SECOND
 const NO_POINT := Vector2(-1000, -1000)
 
@@ -66,10 +67,27 @@ var _ai_task := -1
 var _ai_result := {}
 ## The game was paused by opening the Unit Guide (so closing it resumes).
 var _paused_by_guide := false
+## Every command applied this battle, for Watch Replay (deterministic rules
+## make replaying them exact).
+var command_log: Array = []
+## Per-unit battle stats for the victory screen: id -> {dealt, taken, healed, kos}.
+var stats := {}
+## Replay mode: feeding command_log back in instead of taking orders.
+var replaying := false
+var _replay_log: Array = []
+var _replay_i := 0
+var _replay_time := 0.0
+var _replay_speed := 1.0
 
 
 func _ready() -> void:
 	state.setup(GameConfig.build_map())
+	for u in state.units:
+		stats[u.id] = {"dealt": 0, "taken": 0, "healed": 0, "kos": 0}
+	if not GameConfig.replay_log.is_empty():
+		replaying = true
+		_replay_log = GameConfig.replay_log
+		GameConfig.replay_log = []
 	match GameConfig.mode:
 		"ai":
 			viewer_team = 1 - GameConfig.ai_team
@@ -77,6 +95,8 @@ func _ready() -> void:
 			viewer_team = GameConfig.local_team
 		_:
 			viewer_team = -1
+	if replaying:
+		viewer_team = -1  # replays show everything
 	_build_world()
 	hud = Hud.new()
 	add_child(hud)
@@ -88,27 +108,48 @@ func _ready() -> void:
 	hud.pause_pressed.connect(_toggle_pause)
 	hud.chip_pressed.connect(_on_chip_pressed)
 	hud.overlay_changed.connect(_on_overlay_changed)
-	if GameConfig.mode == "online":
+	hud.rematch_pressed.connect(_rematch)
+	hud.replay_pressed.connect(_watch_replay)
+	hud.replay_speed_changed.connect(func(speed: float): _replay_speed = speed)
+	if replaying:
+		hud.show_replay_bar(true)
+		hud.log_message("Watching the replay.")
+	elif GameConfig.mode == "online":
 		Net.command_received.connect(_process_inbox)
 		Net.request_received.connect(_process_requests)
 		Net.request_rejected.connect(_on_request_rejected)
 		Net.opponent_left.connect(_on_opponent_left)
-	hud.log_message("Battle start! Units act as soon as they are READY. Act before their countdown runs out.")
-	if GameConfig.mode == "ai":
+	if not replaying:
+		hud.log_message("Battle start! Units act as soon as they are READY. Act before their countdown runs out.")
+	if GameConfig.mode == "ai" and not replaying:
 		hud.log_message("Computer difficulty: %s" % GameConfig.ai_difficulty.capitalize())
 	_refresh()
-	if GameConfig.mode == "online":
+	# Draw every visual once during loading (hidden again right after), so no
+	# shader compiles mid-battle.
+	board.prewarm(state.size_meters() * 0.5)
+	for view in unit_views.values():
+		view.prewarm()
+	get_tree().create_timer(0.3).timeout.connect(_refresh)
+	if GameConfig.mode == "online" and not replaying:
 		_process_inbox()
 		_process_requests()
 
 
 func _build_world() -> void:
+	var sky_material := ProceduralSkyMaterial.new()
+	sky_material.sky_top_color = Color(0.32, 0.5, 0.78)
+	sky_material.sky_horizon_color = Color(0.7, 0.78, 0.86)
+	# Below the horizon: the same haze, so the world beyond the map fades out.
+	sky_material.ground_bottom_color = Color(0.6, 0.68, 0.76)
+	sky_material.ground_horizon_color = Color(0.7, 0.78, 0.86)
+	var sky := Sky.new()
+	sky.sky_material = sky_material
 	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.53, 0.68, 0.84)
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color.WHITE
-	env.ambient_light_energy = 0.3
+	env.background_mode = Environment.BG_SKY
+	env.sky = sky
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	env.ambient_light_energy = 0.55
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	var world_env := WorldEnvironment.new()
 	world_env.environment = env
 	add_child(world_env)
@@ -121,7 +162,7 @@ func _build_world() -> void:
 
 	board = BoardView.new()
 	add_child(board)
-	board.build(state)
+	board.build(state, GameConfig.map_id)
 	for u in state.units:
 		var view := UnitView.new()
 		add_child(view)
@@ -143,6 +184,8 @@ func _build_world() -> void:
 
 ## "local", "ai" or "remote": who gives orders to a team on this device.
 func _controller(team: int) -> String:
+	if replaying:
+		return "replay"
 	match GameConfig.mode:
 		"ai":
 			return "ai" if team == GameConfig.ai_team else "local"
@@ -176,7 +219,10 @@ func _point_seen(p: Vector2) -> bool:
 # --- Time and orders -------------------------------------------------------
 
 func _process(delta: float) -> void:
-	if state.winner == -1 and not paused:
+	if replaying:
+		if not paused:
+			_replay_step(delta)
+	elif state.winner == -1 and not paused:
 		# Online, only the host moves time forward; the client follows.
 		if GameConfig.mode != "online" or Net.is_host():
 			_tick_time += delta
@@ -219,6 +265,8 @@ func _submit(cmd: Dictionary) -> void:
 func _apply(cmd: Dictionary) -> void:
 	if cmd.type != "advance":
 		waiting_for_host = false
+	if not replaying:
+		command_log.append(cmd.duplicate(true))
 
 	# Capture what the animations need before the rules change the state.
 	var actor: Unit = state.get_unit(cmd.unit) if cmd.has("unit") else null
@@ -237,6 +285,7 @@ func _apply(cmd: Dictionary) -> void:
 		if _is_seen(caster):
 			unit_views[id].face(board.ground(caster.casting.target))
 			fx.charge(unit_views[id], caster.casting.ticks / float(GameState.TICKS_PER_SECOND))
+	_record_stats(result)
 	# Abilities that took effect now (instant ones, or casts that finished).
 	var delay := 0.0
 	for r in result.resolved:
@@ -629,12 +678,67 @@ func _back_to_menu() -> void:
 func _game_over() -> void:
 	_deselect()
 	var text: String
-	if viewer_team == -1:
+	var local_team: int = GameConfig.local_team if GameConfig.mode == "online" else (1 - GameConfig.ai_team if GameConfig.mode == "ai" else -1)
+	if local_team == -1:
 		text = "%s wins!" % GameState.TEAM_NAMES[state.winner]
 	else:
-		text = "Victory!" if state.winner == viewer_team else "Defeat"
-	hud.show_game_over(text)
+		text = "Victory!" if state.winner == local_team else "Defeat"
+	var rows := []
+	var mvp := -1
+	var best := -1
+	for u in state.units:
+		var st: Dictionary = stats[u.id]
+		rows.append({"name": "%s %s" % [GameState.TEAM_NAMES[u.team], u.job_name()],
+			"color": (TEAM_COLORS[u.team] as Color).lightened(0.35),
+			"dealt": st.dealt, "taken": st.taken, "healed": st.healed, "kos": st.kos})
+		if st.dealt + st.healed > best:
+			best = st.dealt + st.healed
+			mvp = rows.size() - 1
+	hud.show_game_over(text, rows, mvp, GameConfig.mode != "online")
 	_refresh()
+
+
+## Adds damage, healing and knock-outs from a command's result to the stats.
+func _record_stats(result: Dictionary) -> void:
+	for r in result.resolved:
+		var ab := state.get_unit(r.unit).ability(r.slot)
+		for i in r.hits.size():
+			var amount: int = r.amounts[i]
+			var target_id: int = r.hits[i]
+			match ab.effect:
+				"damage":
+					stats[r.unit].dealt += amount
+					stats[target_id].taken += amount
+					if result.knocked_out.has(target_id):
+						stats[r.unit].kos += 1
+				"heal", "revive":
+					stats[r.unit].healed += amount
+
+
+## Same map and teams, fresh battle.
+func _rematch() -> void:
+	GameConfig.replay_log = []
+	get_tree().reload_current_scene()
+
+
+## Replays this battle from its recorded commands.
+func _watch_replay() -> void:
+	GameConfig.replay_log = command_log if not replaying else _replay_log
+	get_tree().reload_current_scene()
+
+
+## Feeds recorded commands back in at their original pace (times the speed).
+func _replay_step(delta: float) -> void:
+	_replay_time += delta * _replay_speed
+	while _replay_i < _replay_log.size() and state.winner == -1:
+		var cmd: Dictionary = _replay_log[_replay_i]
+		if cmd.type == "advance":
+			var needed: float = cmd.ticks * TICK_SECONDS
+			if _replay_time < needed:
+				break
+			_replay_time -= needed
+		_apply(cmd)
+		_replay_i += 1
 
 
 # --- Presentation ----------------------------------------------------------

@@ -16,7 +16,9 @@ func _initialize() -> void:
 	_test_rules()
 	_test_ai_battle()
 	_test_maps()
+	var replay_log := _test_replay_determinism()
 	await _test_scenes()
+	await _test_replay_scene(replay_log)
 	print("SMOKE TEST %s (%d failure(s))" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
 
@@ -340,6 +342,30 @@ func _test_maps() -> void:
 			state.apply(cmd)
 
 
+## Replays are exact: the same commands on a fresh state give the same battle.
+func _test_replay_determinism() -> Array:
+	var ai := AIPlayer.new("hard")
+	var state := _new_state()
+	var log := []
+	while state.winner == -1 and state.tick < 20000:
+		var ready := state.ready_units()
+		var cmd: Dictionary
+		if ready.is_empty():
+			cmd = {"type": "advance", "ticks": 1}
+		else:
+			cmd = ai.next_command(state, ready[0])
+		log.append(cmd)
+		state.apply(cmd)
+	var replayed := _new_state()
+	for cmd in log:
+		replayed.apply(cmd)
+	var same := replayed.winner == state.winner and replayed.tick == state.tick
+	for i in state.units.size():
+		same = same and replayed.units[i].hp == state.units[i].hp and replayed.units[i].pos == state.units[i].pos
+	_check(same, "replaying the command log reproduces the battle exactly")
+	return log
+
+
 func _test_ai_battle() -> void:
 	var ai := AIPlayer.new()
 	var state := _new_state()
@@ -395,12 +421,37 @@ func _test_ai_battle() -> void:
 	_check(wins[1] >= wins[0], "hard beats easy at least as often as it loses")
 
 
+## The battle scene plays a recorded log back (fast) to the same winner.
+func _test_replay_scene(log: Array) -> void:
+	var expected := _new_state()
+	for cmd in log:
+		expected.apply(cmd)
+	var config: Node = root.get_node("GameConfig")
+	config.mode = "ai"
+	config.replay_log = log
+	var scene: Node = load("res://scenes/battle.tscn").instantiate()
+	root.add_child(scene)
+	await process_frame
+	_check(scene.replaying, "battle scene starts in replay mode")
+	scene._replay_speed = 400.0
+	for i in 600:
+		await process_frame
+		if scene.state.winner != -1:
+			break
+	_check(scene.state.winner == expected.winner and scene.state.tick == expected.tick,
+		"replay scene reaches the same result (winner %d tick %d vs %d %d)" % [scene.state.winner, scene.state.tick, expected.winner, expected.tick])
+	_check(scene.hud._game_over.visible, "victory screen shows at the end of the replay")
+	scene.queue_free()
+	await process_frame
+
+
 func _test_scenes() -> void:
 	# Every script must compile (a broken script otherwise only prints errors).
 	for path in ["res://scripts/battle/battle.gd", "res://scripts/battle/hud.gd", "res://scripts/battle/board_view.gd",
 			"res://scripts/battle/unit_view.gd", "res://scripts/battle/fx.gd", "res://scripts/battle/camera_rig.gd",
 			"res://scripts/ui/unit_guide.gd", "res://scripts/ui/options_menu.gd", "res://scripts/main_menu.gd",
-			"res://scripts/ui/battle_setup.gd", "res://scripts/ui/ui_theme.gd",
+			"res://scripts/ui/battle_setup.gd", "res://scripts/ui/ui_theme.gd", "res://scripts/ui/how_to_play.gd",
+			"res://scripts/autoload/settings.gd",
 			"res://scripts/autoload/net.gd", "res://scripts/autoload/keybinds.gd"]:
 		var script: Script = load(path)
 		_check(script != null and script.can_instantiate(), "%s compiles" % path)
@@ -452,6 +503,14 @@ func _test_scenes() -> void:
 	menu._open_options()
 	await process_frame
 	_check(menu.options.visible, "options menu opens from the main menu")
+	menu._open_how_to()
+	await process_frame
+	_check(menu.how_to.visible and menu.how_to._pages.size() >= 6, "How to Play opens with its pages")
+	var settings: Node = root.get_node("Settings")
+	var was: bool = settings.colorblind
+	settings.set_value("colorblind", true)
+	_check(settings.team_colors()[1] == settings.COLORBLIND_COLORS[1], "colorblind setting switches team colors")
+	settings.set_value("colorblind", was)
 	menu._open_setup("ai")
 	await process_frame
 	menu.setup._select_map("fortress")

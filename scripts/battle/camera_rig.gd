@@ -66,15 +66,15 @@ func _process(delta: float) -> void:
 			move += _right()
 		if Input.is_action_pressed("tm_cam_left"):
 			move -= _right()
-		target_position += move.normalized() * PAN_SPEED * delta * (distance / 22.0)
+		target_position += move.normalized() * PAN_SPEED * Settings.camera_speed * delta * (distance / 22.0)
 		if Input.is_action_pressed("tm_cam_up"):
 			target_position.y += RAISE_SPEED * delta
 		if Input.is_action_pressed("tm_cam_down"):
 			target_position.y -= RAISE_SPEED * delta
 		if Input.is_action_pressed("tm_cam_rotate_left"):
-			yaw += ROTATE_SPEED * delta
+			yaw += ROTATE_SPEED * Settings.camera_speed * delta
 		if Input.is_action_pressed("tm_cam_rotate_right"):
-			yaw -= ROTATE_SPEED * delta
+			yaw -= ROTATE_SPEED * Settings.camera_speed * delta
 	distance = lerpf(distance, _target_distance, minf(1.0, delta * 10.0))
 	position = position.lerp(target_position, minf(1.0, delta * 8.0))
 	_apply_transform()

@@ -24,6 +24,7 @@ config/icon="res://icon.svg"
 
 GameConfig="*res://scripts/autoload/game_config.gd"
 Keybinds="*res://scripts/autoload/keybinds.gd"
+Settings="*res://scripts/autoload/settings.gd"
 Net="*res://scripts/autoload/net.gd"
 
 [display]

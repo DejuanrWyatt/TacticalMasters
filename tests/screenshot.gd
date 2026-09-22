@@ -6,13 +6,14 @@ extends SceneTree
 ## cast_after, it is also used and the shot taken that many seconds later.
 ## Add "guide" anywhere after "--" to open the Unit Guide before the shot.
 ## Menus instead: "-- out.png menu" (title screen) or "-- out.png setup <map_id>".
+## "-- out.png 0 victory": a fast-replayed AI battle ending on the victory screen.
 
 func _initialize() -> void:
 	await process_frame
 	var args := OS.get_cmdline_user_args()
 	var out: String = args[0] if args.size() > 0 else "user://screenshot.png"
 	var seconds: float = args[1].to_float() if args.size() > 1 else 5.0
-	if args.has("menu") or args.has("setup"):
+	if args.has("menu") or args.has("setup") or args.has("options") or args.has("howto"):
 		# Menu screens instead of a battle.
 		var menu: Node = load("res://scenes/main_menu.tscn").instantiate()
 		root.add_child(menu)
@@ -21,15 +22,38 @@ func _initialize() -> void:
 			menu._open_setup("ai")
 			await process_frame
 			menu.setup._select_map(args[args.find("setup") + 1] if args.size() > args.find("setup") + 1 else "highlands")
+		if args.has("options"):
+			menu._open_options()
+		if args.has("howto"):
+			menu._open_how_to()
+			menu.how_to._show_page(args[args.find("howto") + 1].to_int() if args.size() > args.find("howto") + 1 else 0)
 		for i in 20:
 			await process_frame
 		root.get_viewport().get_texture().get_image().save_png(out)
 		print("saved ", out)
 		quit()
 		return
+	if args.has("victory"):
+		# Simulate a computer-vs-computer battle, then replay it fast to the victory screen.
+		var sim = preload("res://scripts/core/game_state.gd").new()
+		sim.setup(preload("res://scripts/core/map_data.gd").highlands())
+		var bot = preload("res://scripts/ai/ai_player.gd").new("hard")
+		var log := []
+		while sim.winner == -1 and sim.tick < 20000:
+			var ready = sim.ready_units()
+			var cmd: Dictionary = {"type": "advance", "ticks": 1} if ready.is_empty() else bot.next_command(sim, ready[0])
+			log.append(cmd)
+			sim.apply(cmd)
+		root.get_node("GameConfig").replay_log = log
 	root.get_node("GameConfig").mode = "ai"
 	var battle: Node = load("res://scenes/battle.tscn").instantiate()
 	root.add_child(battle)
+	if args.has("victory"):
+		battle._replay_speed = 400.0
+		while battle.state.winner == -1:
+			await process_frame
+		for i in 30:
+			await process_frame
 	var end := Time.get_ticks_msec() + int(seconds * 1000)
 	while Time.get_ticks_msec() < end:
 		await process_frame

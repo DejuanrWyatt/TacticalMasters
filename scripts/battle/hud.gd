@@ -19,12 +19,16 @@ signal pause_pressed
 signal chip_pressed(unit_id: int)
 ## An overlay (menu, Options or Unit Guide) opened or closed.
 signal overlay_changed(open: bool)
+signal rematch_pressed
+signal replay_pressed
+signal replay_speed_changed(speed: float)
 
 const GameState = preload("res://scripts/core/game_state.gd")
 const Jobs = preload("res://scripts/core/jobs.gd")
 const UnitGuide = preload("res://scripts/ui/unit_guide.gd")
 const UiTheme = preload("res://scripts/ui/ui_theme.gd")
 const OptionsMenu = preload("res://scripts/ui/options_menu.gd")
+const HowToPlay = preload("res://scripts/ui/how_to_play.gd")
 
 const TEXT := Color(0.92, 0.94, 1.0)
 const DIM := Color(0.92, 0.94, 1.0, 0.55)
@@ -56,9 +60,15 @@ var _hover: Label
 var _log_box: VBoxContainer
 var _game_over: Control
 var _game_over_label: Label
+var _stats_grid: GridContainer
+var _mvp_label: Label
+var _rematch_button: Button
+var _replay_button: Button
+var _replay_bar: PanelContainer
 var _guide: Control
 var _options: Control
 var _game_menu: Control
+var _how_to: Control
 
 
 func build(can_pause: bool) -> void:
@@ -203,16 +213,59 @@ func _build_game_over() -> void:
 	_game_over.grow_vertical = Control.GROW_DIRECTION_BOTH
 	_game_over.visible = false
 	_root.add_child(_game_over)
+	_game_over.add_theme_stylebox_override("panel", _box(Color(0.05, 0.07, 0.1, 0.94), Color(GOLD, 0.35), 1, 12, Vector2(20, 16)))
 	var box := VBoxContainer.new()
-	box.custom_minimum_size.x = 320
-	box.add_theme_constant_override("separation", 14)
+	box.custom_minimum_size.x = 560
+	box.add_theme_constant_override("separation", 12)
 	_game_over.add_child(box)
 	_game_over_label = Label.new()
 	_game_over_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_game_over_label.add_theme_font_size_override("font_size", 34)
+	_game_over_label.add_theme_font_size_override("font_size", 36)
 	_game_over_label.add_theme_color_override("font_color", GOLD)
 	box.add_child(_game_over_label)
-	_menu_button(box, "Main Menu", menu_pressed.emit)
+	_mvp_label = Label.new()
+	_mvp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_mvp_label.add_theme_color_override("font_color", GOLD)
+	box.add_child(_mvp_label)
+	_stats_grid = GridContainer.new()
+	_stats_grid.columns = 5
+	_stats_grid.add_theme_constant_override("h_separation", 26)
+	_stats_grid.add_theme_constant_override("v_separation", 4)
+	var grid_center := CenterContainer.new()
+	grid_center.add_child(_stats_grid)
+	box.add_child(grid_center)
+	var buttons := HBoxContainer.new()
+	buttons.add_theme_constant_override("separation", 8)
+	box.add_child(buttons)
+	_rematch_button = _menu_button(buttons, "Rematch", rematch_pressed.emit)
+	_replay_button = _menu_button(buttons, "Watch Replay", replay_pressed.emit)
+	var menu := _menu_button(buttons, "Main Menu", menu_pressed.emit)
+	for b in [_rematch_button, _replay_button, menu]:
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	# Replay controls (top center, under the turn order).
+	_replay_bar = PanelContainer.new()
+	_replay_bar.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_replay_bar.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_replay_bar.offset_top = 56
+	_replay_bar.visible = false
+	_root.add_child(_replay_bar)
+	var replay_row := HBoxContainer.new()
+	replay_row.add_theme_constant_override("separation", 6)
+	_replay_bar.add_child(replay_row)
+	var replay_label := Label.new()
+	replay_label.text = "REPLAY"
+	replay_label.add_theme_color_override("font_color", GOLD)
+	replay_row.add_child(replay_label)
+	var speed_group := ButtonGroup.new()
+	for speed in [1.0, 2.0, 4.0]:
+		var b := _small_button(replay_row, "×%d" % speed, replay_speed_changed.emit.bind(speed))
+		b.toggle_mode = true
+		b.button_group = speed_group
+		b.custom_minimum_size.x = 48
+		if speed == 1.0:
+			b.set_pressed_no_signal(true)
+	_small_button(replay_row, "Exit", menu_pressed.emit)
 
 
 func _build_game_menu() -> void:
@@ -238,6 +291,7 @@ func _build_game_menu() -> void:
 		toggle_game_menu()
 		toggle_guide()
 	_menu_button(box, "Unit Guide", open_guide)
+	_menu_button(box, "How to Play", _open_how_to)
 	_menu_button(box, "Quit to Main Menu", menu_pressed.emit)
 
 
@@ -487,9 +541,39 @@ func log_message(text: String) -> void:
 		oldest.queue_free()
 
 
-func show_game_over(text: String) -> void:
+## Victory / defeat panel with per-unit stats. `rows`: [{"name", "color",
+## "dealt", "taken", "healed", "kos"}]; `mvp`: index into rows or -1.
+func show_game_over(text: String, rows: Array = [], mvp := -1, can_rematch := true) -> void:
 	_game_over_label.text = text
+	for child in _stats_grid.get_children():
+		child.queue_free()
+	for header in ["Unit", "Damage dealt", "Damage taken", "Healing", "KOs"]:
+		var h := Label.new()
+		h.text = header
+		h.add_theme_color_override("font_color", GOLD)
+		h.add_theme_font_size_override("font_size", 12)
+		_stats_grid.add_child(h)
+	for i in rows.size():
+		var r: Dictionary = rows[i]
+		var values := ["%s%s" % ["★ " if i == mvp else "", r.name], str(r.dealt), str(r.taken), str(r.healed), str(r.kos)]
+		for v in values.size():
+			var l := Label.new()
+			l.text = values[v]
+			l.add_theme_font_size_override("font_size", 13)
+			l.add_theme_color_override("font_color", r.color if v == 0 else TEXT)
+			_stats_grid.add_child(l)
+	_mvp_label.text = "MVP: %s" % rows[mvp].name if mvp >= 0 else ""
+	_rematch_button.visible = can_rematch
 	_game_over.visible = true
+	_replay_bar.visible = false
+
+
+func hide_game_over() -> void:
+	_game_over.visible = false
+
+
+func show_replay_bar(shown: bool) -> void:
+	_replay_bar.visible = shown
 
 
 ## Button captions from the current key bindings.
@@ -540,13 +624,28 @@ func _open_options() -> void:
 	_emit_overlay()
 
 
+func _open_how_to() -> void:
+	_game_menu.visible = false
+	if _how_to == null:
+		_how_to = HowToPlay.new()
+		_how_to.visible = false
+		_root.add_child(_how_to)
+		var back_to_menu := func() -> void:
+			_game_menu.visible = true
+			_emit_overlay()
+		_how_to.closed.connect(back_to_menu)
+	_how_to.visible = true
+	_emit_overlay()
+
+
 func is_guide_open() -> bool:
 	return _guide != null and _guide.visible
 
 
 ## Any overlay covering the battle (menu, Options, Unit Guide).
 func is_overlay_open() -> bool:
-	return is_guide_open() or _game_menu.visible or (_options != null and _options.visible)
+	return (is_guide_open() or _game_menu.visible or (_options != null and _options.visible)
+		or (_how_to != null and _how_to.visible))
 
 
 func _emit_overlay() -> void:

@@ -723,7 +723,7 @@ func validate(cmd: Dictionary) -> String:
 ## {"logs": [String], "events": [{"pos": Vector2, "text", "color", "impact": bool}],
 ##  "became_ready": [unit id], "turn_ended": [unit id],
 ##  "cast_started": [unit id],
-##  "resolved": [{"unit": id, "slot": int, "target": Vector2, "hits": [unit id]}],
+##  "resolved": [{"unit": id, "slot": int, "target": Vector2, "hits": [unit id], "amounts": [int]}],
 ##  "knocked_out": [unit id], "revived": [unit id], "gone": [unit id]}.
 ## Events with "impact" come from an ability landing.
 func apply(cmd: Dictionary) -> Dictionary:
@@ -919,13 +919,14 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 	var ab := u.ability(slot)
 	var hits := preview(u, slot, u.pos, target)
 	var parts: Array[String] = []
-	var resolved := {"unit": u.id, "slot": slot, "target": target, "hits": []}
+	var resolved := {"unit": u.id, "slot": slot, "target": target, "hits": [], "amounts": []}
 	result.resolved.append(resolved)
 	for hit in hits:
 		var t: Unit = hit.unit
 		var amount: int = hit.amount
 		var who := "%s %s" % [TEAM_NAMES[t.team], t.job_name()]
 		resolved.hits.append(t.id)
+		resolved.amounts.append(amount)
 		match ab.effect:
 			"damage":
 				t.hp = maxi(0, t.hp - amount)
