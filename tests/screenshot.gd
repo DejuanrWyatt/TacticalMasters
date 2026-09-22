@@ -10,7 +10,7 @@ extends SceneTree
 ## "-- out.png devtools": Developer Tools (prints the slider tooltips too).
 ## Add "timemage" to put the imported Time Mage first on Blue, and "tips" to
 ## print the selected unit's calculation tooltips; "inspect <unit id>" opens
-## that unit's stats card.
+## that unit's stats card; "logopts" opens the combat log's options.
 
 func _initialize() -> void:
 	await process_frame
@@ -100,6 +100,11 @@ func _initialize() -> void:
 		battle.cam.focus_on(battle.board.ground(st.units[1].pos))
 		battle.cam._target_distance = 10.0
 		for i in 200:
+			await process_frame
+	if args.has("logopts"):
+		# The combat log's options row (the cog).
+		battle.hud._log.toggle_options()
+		for i in 10:
 			await process_frame
 	if args.has("inspect"):
 		# Open a unit's stats card: "inspect <unit id>" (0-3 Blue, 4-7 Red).

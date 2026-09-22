@@ -2,7 +2,9 @@ extends PanelContainer
 ## Combat log window: every battle message, newest at the bottom. Drag the
 ## title bar to move it, drag the corner grip to resize it, "–" collapses it
 ## to its title bar and "×" hides it (the Log button or L shows it again).
-## Where it is, its size and whether it's shown are saved between battles.
+## The cog opens its options: text size, text color and background opacity.
+## Where it is, its size, whether it's shown and its options are saved
+## between battles.
 
 signal visibility_toggled(shown: bool)
 
@@ -12,6 +14,9 @@ const DEFAULT_RECT := Rect2(12, 104, 380, 170)
 const MAX_LINES := 300
 const TITLE_HEIGHT := 24.0
 const TEXT := Color(0.92, 0.94, 1.0)
+const DEFAULT_FONT_SIZE := 12
+const FONT_SIZES := Vector2i(8, 28)
+const DEFAULT_OPACITY := 0.72
 const DIM := Color(0.92, 0.94, 1.0, 0.55)
 
 var _scroll: ScrollContainer
@@ -24,17 +29,26 @@ var _full_height := DEFAULT_RECT.size.y
 var _dragging := ""
 var _drag_from := Vector2.ZERO
 var _rect_from := Rect2()
+## Options (the cog): text size, text color, background opacity.
+var font_size := DEFAULT_FONT_SIZE
+var text_color := TEXT
+var opacity := DEFAULT_OPACITY
+var _style: StyleBoxFlat
+var _options: HFlowContainer
+var _size_box: SpinBox
+var _color_button: ColorPickerButton
+var _opacity_slider: HSlider
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.03, 0.04, 0.07, 0.72)
-	style.border_color = Color(1, 1, 1, 0.08)
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(8)
-	style.set_content_margin_all(6)
-	add_theme_stylebox_override("panel", style)
+	_style = StyleBoxFlat.new()
+	_style.bg_color = Color(0.03, 0.04, 0.07, DEFAULT_OPACITY)
+	_style.border_color = Color(1, 1, 1, 0.08)
+	_style.set_border_width_all(1)
+	_style.set_corner_radius_all(8)
+	_style.set_content_margin_all(6)
+	add_theme_stylebox_override("panel", _style)
 
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 4)
@@ -54,8 +68,14 @@ func _ready() -> void:
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bar.add_child(title)
+	var cog := _title_button(bar, "", "Log options: text size, color and background", toggle_options)
+	cog.icon = load("res://assets/icons/cog.svg")
+	cog.add_theme_constant_override("icon_max_width", 14)
+	cog.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cog.custom_minimum_size = Vector2(22, 18)
 	_collapse = _title_button(bar, "–", "Collapse", toggle_collapsed)
 	_title_button(bar, "×", "Hide (L or the Log button shows it again)", hide_log)
+	_build_options(column)
 
 	_body = Control.new()
 	_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -93,8 +113,8 @@ func add_message(text: String) -> void:
 	var at_bottom := _scroll.scroll_vertical >= int(_scroll.get_v_scroll_bar().max_value - _scroll.size.y) - 4
 	var line := Label.new()
 	line.text = text
-	line.add_theme_font_size_override("font_size", 12)
-	line.add_theme_color_override("font_color", TEXT)
+	line.add_theme_font_size_override("font_size", font_size)
+	line.add_theme_color_override("font_color", text_color)
 	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_lines.add_child(line)
@@ -108,6 +128,79 @@ func add_message(text: String) -> void:
 		(_lines.get_child(i) as Label).modulate.a = 1.0 if i >= count - 3 else 0.7
 	if at_bottom:
 		_scroll_to_bottom.call_deferred()
+
+
+## The options row (shown by the cog): text size, text color, opacity.
+func _build_options(column: VBoxContainer) -> void:
+	_options = HFlowContainer.new()
+	_options.visible = false
+	_options.add_theme_constant_override("h_separation", 6)
+	_options.add_theme_constant_override("v_separation", 4)
+	column.add_child(_options)
+	_option_label("Size")
+	_size_box = SpinBox.new()
+	_size_box.min_value = FONT_SIZES.x
+	_size_box.max_value = FONT_SIZES.y
+	_size_box.step = 1
+	_size_box.tooltip_text = "Text size (%d-%d)" % [FONT_SIZES.x, FONT_SIZES.y]
+	_size_box.value_changed.connect(func(v: float): set_options(roundi(v), text_color, opacity))
+	_options.add_child(_size_box)
+	_option_label("Color")
+	_color_button = ColorPickerButton.new()
+	_color_button.edit_alpha = false
+	_color_button.custom_minimum_size = Vector2(36, 24)
+	_color_button.focus_mode = Control.FOCUS_NONE
+	_color_button.tooltip_text = "Text color"
+	_color_button.color_changed.connect(func(c: Color): set_options(font_size, c, opacity))
+	_options.add_child(_color_button)
+	_option_label("Background")
+	_opacity_slider = HSlider.new()
+	_opacity_slider.min_value = 0.0
+	_opacity_slider.max_value = 1.0
+	_opacity_slider.step = 0.05
+	_opacity_slider.custom_minimum_size = Vector2(80, 24)
+	_opacity_slider.focus_mode = Control.FOCUS_NONE
+	_opacity_slider.tooltip_text = "Background opacity"
+	_opacity_slider.value_changed.connect(func(v: float): set_options(font_size, text_color, v))
+	_options.add_child(_opacity_slider)
+	var reset := _title_button(_options, "Reset", "Default size, color and background", func(): set_options(DEFAULT_FONT_SIZE, TEXT, DEFAULT_OPACITY))
+	reset.custom_minimum_size = Vector2(44, 22)
+
+
+func _option_label(text: String) -> void:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_size_override("font_size", 11)
+	l.add_theme_color_override("font_color", DIM)
+	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_options.add_child(l)
+
+
+func toggle_options() -> void:
+	_options.visible = not _options.visible
+	if _options.visible and _collapsed:
+		toggle_collapsed()
+
+
+## Changes the text size, text color and background opacity, applies them to
+## every line and saves them.
+func set_options(p_font_size: int, p_color: Color, p_opacity: float) -> void:
+	font_size = clampi(p_font_size, FONT_SIZES.x, FONT_SIZES.y)
+	text_color = Color(p_color, 1.0)
+	opacity = clampf(p_opacity, 0.0, 1.0)
+	_apply_options()
+	_save()
+
+
+func _apply_options() -> void:
+	_style.bg_color.a = opacity
+	for line in _lines.get_children():
+		line.add_theme_font_size_override("font_size", font_size)
+		line.add_theme_color_override("font_color", text_color)
+	# Show the values without re-triggering their change signals.
+	_size_box.set_value_no_signal(font_size)
+	_color_button.color = text_color
+	_opacity_slider.set_value_no_signal(opacity)
 
 
 func line_count() -> int:
@@ -205,6 +298,9 @@ func _save() -> void:
 	cfg.set_value("log", "rect", Rect2(position, Vector2(size.x, _full_height)))
 	cfg.set_value("log", "collapsed", _collapsed)
 	cfg.set_value("log", "visible", visible)
+	cfg.set_value("log", "font_size", font_size)
+	cfg.set_value("log", "text_color", text_color)
+	cfg.set_value("log", "opacity", opacity)
 	cfg.save(SAVE_PATH)
 
 
@@ -217,8 +313,15 @@ func _load() -> void:
 			rect = saved
 		_collapsed = cfg.get_value("log", "collapsed", false) == true
 		visible = cfg.get_value("log", "visible", true) != false
+		var size_value = cfg.get_value("log", "font_size", DEFAULT_FONT_SIZE)
+		font_size = clampi(int(size_value), FONT_SIZES.x, FONT_SIZES.y) if (size_value is int or size_value is float) else DEFAULT_FONT_SIZE
+		var color_value = cfg.get_value("log", "text_color", TEXT)
+		text_color = color_value if color_value is Color else TEXT
+		var opacity_value = cfg.get_value("log", "opacity", DEFAULT_OPACITY)
+		opacity = clampf(float(opacity_value), 0.0, 1.0) if (opacity_value is int or opacity_value is float) else DEFAULT_OPACITY
 	position = rect.position
 	size = rect.size.max(MIN_SIZE)
 	_full_height = size.y
 	_apply_collapsed()
+	_apply_options()
 	_keep_on_screen.call_deferred()
