@@ -24,6 +24,8 @@ var _preview: GridContainer
 var _map_desc: Label
 var _slots: Array = [[], []]
 var _difficulty: OptionButton
+## "cpu" mode: Blue's difficulty (_difficulty is Red's).
+var _difficulty_blue: OptionButton
 var _rng := RandomNumberGenerator.new()
 
 
@@ -52,7 +54,7 @@ func _ready() -> void:
 	var header := HBoxContainer.new()
 	column.add_child(header)
 	var title := Label.new()
-	title.text = "BATTLE SETUP  ·  " + {"ai": "vs Computer", "hotseat": "Two Players", "host": "Host Online Game"}[setup_mode]
+	title.text = "BATTLE SETUP  ·  " + {"ai": "vs Computer", "cpu": "Computer vs Computer", "hotseat": "Two Players", "host": "Host Online Game"}[setup_mode]
 	title.add_theme_font_size_override("font_size", 28)
 	title.add_theme_color_override("font_color", UiTheme.GOLD)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -110,20 +112,14 @@ func _ready() -> void:
 	for team in 2:
 		teams.add_child(_team_column(team))
 
-	if setup_mode == "ai":
+	if setup_mode == "ai" or setup_mode == "cpu":
 		teams_box.add_child(HSeparator.new())
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 10)
 		teams_box.add_child(row)
-		var label := Label.new()
-		label.text = "Computer difficulty"
-		row.add_child(label)
-		_difficulty = OptionButton.new()
-		_difficulty.focus_mode = Control.FOCUS_NONE
-		for level in DIFFICULTIES:
-			_difficulty.add_item(level.capitalize())
-		_difficulty.select(maxi(0, DIFFICULTIES.find(GameConfig.ai_difficulty)))
-		row.add_child(_difficulty)
+		if setup_mode == "cpu":
+			_difficulty_blue = _difficulty_picker(row, "Blue computer", GameConfig.ai_difficulty_blue)
+		_difficulty = _difficulty_picker(row, "Red computer" if setup_mode == "cpu" else "Computer difficulty", GameConfig.ai_difficulty)
 	var tip := Label.new()
 	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tip.add_theme_color_override("font_color", UiTheme.DIM)
@@ -133,6 +129,19 @@ func _ready() -> void:
 	_select_map(GameConfig.map_id)
 	for team in 2:
 		_apply_roster(team, GameConfig.rosters[team])
+
+
+func _difficulty_picker(row: HBoxContainer, text: String, current: String) -> OptionButton:
+	var label := Label.new()
+	label.text = text
+	row.add_child(label)
+	var picker := OptionButton.new()
+	picker.focus_mode = Control.FOCUS_NONE
+	for level in DIFFICULTIES:
+		picker.add_item(level.capitalize())
+	picker.select(maxi(0, DIFFICULTIES.find(current)))
+	row.add_child(picker)
+	return picker
 
 
 func _heading(text: String) -> Label:
@@ -156,7 +165,7 @@ func _team_column(team: int) -> VBoxContainer:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var heading_text := "Your team (Blue)" if setup_mode != "hotseat" and team == 0 else ("Blue team" if team == 0 else "Red team")
+	var heading_text := "Your team (Blue)" if setup_mode != "hotseat" and setup_mode != "cpu" and team == 0 else ("Blue team" if team == 0 else "Red team")
 	if setup_mode == "ai" and team == 1:
 		heading_text = "Computer's team (Red)"
 	elif setup_mode == "host" and team == 1:
@@ -243,6 +252,8 @@ func _on_start() -> void:
 	GameConfig.rosters = [_roster(0), _roster(1)]
 	if _difficulty != null:
 		GameConfig.ai_difficulty = DIFFICULTIES[_difficulty.selected]
+	if _difficulty_blue != null:
+		GameConfig.ai_difficulty_blue = DIFFICULTIES[_difficulty_blue.selected]
 	confirmed.emit()
 
 

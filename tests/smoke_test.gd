@@ -23,6 +23,7 @@ func _initialize() -> void:
 	_test_astra_import()
 	await _test_scenes()
 	await _test_dev_tools()
+	await _test_cpu_vs_cpu()
 	await _test_replay_scene(replay_log)
 	print("SMOKE TEST %s (%d failure(s))" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures > 0 else 0)
@@ -531,6 +532,34 @@ func _test_astra_import() -> void:
 	var sent := Jobs.classes_for([["time_mage"], ["knight"]])
 	_check(sent.jobs.has("time_mage") and sent.abilities.size() == 4 and not sent.jobs.has("knight"),
 		"online sends only the imported classes in use")
+
+
+## Computer vs Computer: both teams give their own orders; nobody else can.
+func _test_cpu_vs_cpu() -> void:
+	var config := root.get_node("GameConfig")
+	var saved := [config.mode, config.ai_difficulty, config.ai_difficulty_blue]
+	config.mode = "cpu"
+	config.ai_difficulty = "hard"
+	config.ai_difficulty_blue = "easy"
+	_check(config.ai_teams() == [0, 1] and config.difficulty_for(0) == "easy" and config.difficulty_for(1) == "hard",
+		"Computer vs Computer: both teams are the computer, each with its own difficulty")
+	var battle: Node = load("res://scenes/battle.tscn").instantiate()
+	root.add_child(battle)
+	var ordered := [false, false]
+	var deadline := Time.get_ticks_msec() + 40000
+	while not (ordered[0] and ordered[1]) and Time.get_ticks_msec() < deadline:
+		await process_frame
+		for cmd in battle.command_log:
+			if cmd.has("unit"):
+				ordered[battle.state.get_unit(cmd.unit).team] = true
+	_check(ordered[0] and ordered[1], "Computer vs Computer: both computers give orders")
+	_check(battle.viewer_team == -1 and battle._controller(0) == "ai" and battle._controller(1) == "ai",
+		"Computer vs Computer: the whole field is visible and no team takes player orders")
+	battle.queue_free()
+	await process_frame
+	config.mode = saved[0]
+	config.ai_difficulty = saved[1]
+	config.ai_difficulty_blue = saved[2]
 
 
 ## Developer Tools: sliders, saved values and formula tooltips.

@@ -63,6 +63,7 @@ func _build_ui() -> void:
 
 	_add_button(box, "Play vs Computer", _open_setup.bind("ai"), true)
 	_add_button(box, "Two Players (Same Device)", _open_setup.bind("hotseat"), true)
+	_add_button(box, "Computer vs Computer", _open_setup.bind("cpu"))
 	var row_tools := HBoxContainer.new()
 	row_tools.add_theme_constant_override("separation", 10)
 	box.add_child(row_tools)

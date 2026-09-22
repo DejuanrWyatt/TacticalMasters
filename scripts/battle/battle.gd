@@ -36,7 +36,10 @@ const NO_POINT := Vector2(-1000, -1000)
 enum Mode { NONE, MOVE, ABILITY }
 
 var state := GameState.new()
-var ai := AIPlayer.new(GameConfig.ai_difficulty)
+## The computer player for each team (null = not the computer).
+var ais := [null, null]
+## Teams the computer plays in this battle (fixed when the battle starts).
+var _ai_teams: Array = []
 var board: BoardView
 var cam: CameraRig
 var hud: Hud
@@ -57,14 +60,16 @@ var paused := false
 ## Online client: an order was sent and the host hasn't answered yet.
 var waiting_for_host := false
 var _tick_time := 0.0
-var _ai_wait := 1.0
+## Per team: seconds until the computer may order again.
+var _ai_wait := [1.0, 1.0]
 ## Casting unit id -> ground circle showing where its spell will land.
 var _cast_markers := {}
 ## Computer's units: unit id -> time (msec) it may act, after its reaction delay.
 var _ai_ready_at := {}
 ## The computer thinks on a worker thread so the game never stutters.
-var _ai_task := -1
-var _ai_result := {}
+## Per team: background decision in progress (-1 = none) and its result.
+var _ai_task := [-1, -1]
+var _ai_result := [{}, {}]
 ## The game was paused by opening the Unit Guide (so closing it resumes).
 var _paused_by_guide := false
 ## Every command applied this battle, for Watch Replay (deterministic rules
@@ -94,6 +99,8 @@ func _ready() -> void:
 	match GameConfig.mode:
 		"ai":
 			viewer_team = 1 - GameConfig.ai_team
+		"cpu":
+			viewer_team = -1  # watching: fog off
 		"online":
 			viewer_team = GameConfig.local_team
 		_:
@@ -136,8 +143,14 @@ func _ready() -> void:
 		hud.log_message("Press %s to chat with your opponent." % Keybinds.key_name("chat"))
 	if not replaying:
 		hud.log_message("Battle start! Units act as soon as they are READY. Act before their countdown runs out.")
+	_ai_teams = [] if replaying else GameConfig.ai_teams()
+	for team in _ai_teams:
+		ais[team] = AIPlayer.new(GameConfig.difficulty_for(team))
 	if GameConfig.mode == "ai" and not replaying:
 		hud.log_message("Computer difficulty: %s" % GameConfig.ai_difficulty.capitalize())
+	if GameConfig.mode == "cpu" and not replaying:
+		hud.log_message("Computer vs Computer: Blue (%s) vs Red (%s). Sit back and watch." % [
+			GameConfig.difficulty_for(0).capitalize(), GameConfig.difficulty_for(1).capitalize()])
 	_refresh()
 	# Draw every visual once during loading (hidden again right after), so no
 	# shader compiles mid-battle.
@@ -211,6 +224,8 @@ func _controller(team: int) -> String:
 	match GameConfig.mode:
 		"ai":
 			return "ai" if team == GameConfig.ai_team else "local"
+		"cpu":
+			return "ai"
 		"online":
 			return "local" if team == GameConfig.local_team else "remote"
 	return "local"
@@ -252,8 +267,8 @@ func _process(delta: float) -> void:
 			if ticks > 0:
 				_tick_time -= ticks * TICK_SECONDS
 				_submit({"type": "advance", "ticks": mini(ticks, GameState.MAX_ADVANCE)})
-		if GameConfig.mode == "ai":
-			_ai_step(delta)
+		for team in _ai_teams:
+			_ai_step(delta, team)
 	_update_live_ui()
 
 
@@ -369,26 +384,27 @@ func _play_ability(caster: Unit, slot: int, target: Vector2, hits: Array) -> flo
 	return delay
 
 
-func _ai_step(delta: float) -> void:
+func _ai_step(delta: float, team: int) -> void:
+	var ai: AIPlayer = ais[team]
 	# A decision is being worked out in the background: collect it when ready.
-	if _ai_task != -1:
-		if not WorkerThreadPool.is_task_completed(_ai_task):
+	if _ai_task[team] != -1:
+		if not WorkerThreadPool.is_task_completed(_ai_task[team]):
 			return
-		WorkerThreadPool.wait_for_task_completion(_ai_task)
-		_ai_task = -1
-		var decided := _ai_result
+		WorkerThreadPool.wait_for_task_completion(_ai_task[team])
+		_ai_task[team] = -1
+		var decided: Dictionary = _ai_result[team]
 		# The battle kept running while it thought; a stale order is dropped
 		# and it simply thinks again.
 		if state.validate(decided) == "":
 			_submit(decided)
-			_ai_wait = ai.level().step + (1.0 if decided.type == "move" else 0.0)
+			_ai_wait[team] = ai.level().step + (1.0 if decided.type == "move" else 0.0)
 		return
-	_ai_wait -= delta
-	if _ai_wait > 0.0:
+	_ai_wait[team] -= delta
+	if _ai_wait[team] > 0.0:
 		return
 	var unit: Unit = null
 	var now := Time.get_ticks_msec()
-	for u in state.orderable_units(GameConfig.ai_team):
+	for u in state.orderable_units(team):
 		# The computer takes a moment to react to a unit becoming ready.
 		var key := "%d/%d" % [u.id, u.serial]
 		if not _ai_ready_at.has(key):
@@ -402,14 +418,15 @@ func _ai_step(delta: float) -> void:
 	var snap = state.snapshot()
 	var snap_unit = snap.get_unit(unit.id)
 	var think := func() -> void:
-		_ai_result = ai.next_command(snap, snap_unit)
-	_ai_task = WorkerThreadPool.add_task(think, false, "Computer turn")
+		_ai_result[team] = ai.next_command(snap, snap_unit)
+	_ai_task[team] = WorkerThreadPool.add_task(think, false, "Computer turn")
 
 
 func _exit_tree() -> void:
-	if _ai_task != -1:
-		WorkerThreadPool.wait_for_task_completion(_ai_task)
-		_ai_task = -1
+	for team in 2:
+		if _ai_task[team] != -1:
+			WorkerThreadPool.wait_for_task_completion(_ai_task[team])
+			_ai_task[team] = -1
 
 
 # --- Online ----------------------------------------------------------------

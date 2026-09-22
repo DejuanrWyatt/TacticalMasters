@@ -22,7 +22,7 @@ func _initialize() -> void:
 		root.add_child(menu)
 		await process_frame
 		if args.has("setup"):
-			menu._open_setup("ai")
+			menu._open_setup("cpu" if args.has("cpu") else "ai")
 			await process_frame
 			menu.setup._select_map(args[args.find("setup") + 1] if args.size() > args.find("setup") + 1 else "highlands")
 		if args.has("options"):

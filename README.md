@@ -214,6 +214,8 @@ host sends the class to the other player. The rules, in `scripts/core/astra_impo
   - **Hard:** about 0.4 s, 0.6 s, and always its best option.
   These are the `LEVELS` table in `scripts/ai/ai_player.gd`.
 - **Two Players (Same Device):** both players share the screen and the fog is off.
+- **Computer vs Computer:** watch two computer players fight. Pick each side's difficulty in Battle Setup. The fog is
+  off, and you can pause, move the camera, open Developer Tools to change rules mid-battle, and watch the replay afterwards.
 - **Online:** one player presses **Host Game** and the other enters the host's address and presses **Join Game**. The host plays Blue.
   - On the same Wi-Fi/LAN, use the address shown on the host's screen.
   - Across the internet: the host's game tries to **open the port on the router automatically (UPnP)** and shows the
