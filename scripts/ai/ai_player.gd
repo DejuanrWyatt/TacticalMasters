@@ -104,7 +104,7 @@ func _best_action(state, u, reach: Dictionary) -> Dictionary:
 					if c[1] or (d <= sight and (needs_los or state.has_line_of_sight(spot, t_pos))):
 						aims.append(t_pos)
 			for target in aims:
-				var score := _score(u, ab, state.preview(u, slot, spot, target))
+				var score := _score(u, slot, ab, state.preview(u, slot, spot, target))
 				if score <= 0.0:
 					continue
 				# Slow casts give targets time to walk away.
@@ -118,12 +118,18 @@ func _best_action(state, u, reach: Dictionary) -> Dictionary:
 	var lv := level()
 	if lv.mistakes > 0.0 and rng.randf() < lv.mistakes:
 		pick = options[rng.randi_range(0, mini(lv.top, options.size()) - 1)]
-	pick.follow = _unit_at(state, pick.target, u, pick.spot)
+	pick.follow = _unit_at(state, pick.target, u, pick.spot, u.ability(pick.slot))
 	return pick
 
 
 ## Id of the unit standing on `target` (the AI always aims at units), or -1.
-func _unit_at(state, target: Vector2, u, spot: Vector2) -> int:
+func _unit_at(state, target: Vector2, u, spot: Vector2, ab: Dictionary) -> int:
+	# A revive follows the knocked-out ally (the caster may stand on its spot).
+	if ab.target == "ko_ally":
+		for t in state.units:
+			if t.is_ko() and t.team == u.team and t.pos == target:
+				return t.id
+		return -1
 	if target == spot:
 		return u.id if spot == u.pos else -1
 	for t in state.units:
@@ -132,8 +138,17 @@ func _unit_at(state, target: Vector2, u, spot: Vector2) -> int:
 	return -1
 
 
-func _score(u, ab: Dictionary, hits: Array) -> float:
+func _score(u, slot: int, ab: Dictionary, hits: Array) -> float:
 	var score := 0.0
+	# A toggle is worth switching on once; never worth switching back off.
+	if ab.get("kind", "active") == "toggle":
+		if u.toggled.get(slot, false):
+			return 0.0
+		var helps := false
+		for b in ab.get("buffs", []):
+			helps = helps or b.amount > 0
+		if not helps:
+			return 0.0
 	for hit in hits:
 		var t = hit.unit
 		var amount: int = hit.amount

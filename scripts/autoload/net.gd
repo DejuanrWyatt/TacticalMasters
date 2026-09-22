@@ -25,6 +25,10 @@ signal opponent_left
 signal chat_received(text: String)
 ## The opponent asked for a rematch (they're waiting for us).
 signal rematch_requested
+## The host's checksum at a tick: the client compares it with its own.
+signal checksum_received(tick: int, value: int)
+## The games have drifted apart (or a command was refused).
+signal out_of_sync(detail: String)
 
 const GameState = preload("res://scripts/core/game_state.gd")
 const Jobs = preload("res://scripts/core/jobs.gd")
@@ -32,7 +36,7 @@ const Jobs = preload("res://scripts/core/jobs.gd")
 const DEFAULT_PORT := 7777
 ## Bump when the rules or the network messages change: players on different
 ## versions can't play each other (their games would drift apart).
-const PROTOCOL_VERSION := 4
+const PROTOCOL_VERSION := 5
 const MAX_CHAT_LENGTH := 120
 
 var inbox: Array[Dictionary] = []
@@ -108,6 +112,20 @@ func send_request(cmd: Dictionary) -> void:
 	_receive_request.rpc_id(1, cmd)
 
 
+## Host: send the battle's checksum at this tick, so the client can tell
+## whether the two games still agree.
+func send_checksum(tick: int, value: int) -> void:
+	if opponent_id != 0:
+		_receive_checksum.rpc_id(opponent_id, tick, value)
+
+
+## Tell the other player the games have drifted apart, and give up on this match.
+func report_out_of_sync(detail: String) -> void:
+	if opponent_id != 0:
+		_receive_out_of_sync.rpc_id(opponent_id, detail)
+	out_of_sync.emit(detail)
+
+
 ## Host: tell the client its request was refused.
 func reject(reason: String) -> void:
 	if opponent_id != 0:
@@ -167,8 +185,11 @@ func _start_as_host() -> void:
 	_opponent_wants_rematch = false
 	GameConfig.start_online(0)
 	GameConfig.online_tuning = GameConfig.tuning.duplicate()
+	GameConfig.online_overrides = GameConfig.stat_overrides.duplicate(true)
+	GameConfig.online_seed = randi()
 	_start_game.rpc_id(opponent_id, 1, {"map_id": GameConfig.map_id, "rosters": GameConfig.rosters,
-		"tuning": GameConfig.online_tuning, "classes": Jobs.classes_for(GameConfig.rosters)})
+		"tuning": GameConfig.online_tuning, "classes": Jobs.classes_for(GameConfig.rosters),
+		"stats": GameConfig.online_overrides, "seed": GameConfig.online_seed})
 	game_started.emit()
 
 
@@ -204,9 +225,12 @@ func _start_game(team: int, settings: Dictionary) -> void:
 	# The host's Developer Tools rule numbers and any imported classes it uses.
 	var tuning = settings.get("tuning", {})
 	GameConfig.online_tuning = GameState.clean_tuning(tuning) if tuning is Dictionary else {}
-	var classes = settings.get("classes", {})
-	if classes is Dictionary:
-		Jobs.register(classes)
+	# What the host sends is checked before it reaches the rules.
+	Jobs.register(Jobs.clean_classes(settings.get("classes", {})))
+	# The host's changed class stats (Unit Guide), for this match only.
+	GameConfig.online_overrides = Jobs.clean_overrides(settings.get("stats", {}))
+	var host_seed = settings.get("seed", 0)
+	GameConfig.online_seed = host_seed if host_seed is int else 0
 	if rosters is Array and rosters.size() == 2:
 		GameConfig.rosters = rosters
 	game_started.emit()
@@ -226,6 +250,18 @@ func _receive_request(cmd: Dictionary) -> void:
 		return
 	requests.append(cmd)
 	request_received.emit()
+
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_checksum(tick: int, value: int) -> void:
+	checksum_received.emit(tick, value)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _receive_out_of_sync(detail: String) -> void:
+	if multiplayer.get_remote_sender_id() != opponent_id:
+		return
+	out_of_sync.emit(detail)
 
 
 @rpc("authority", "call_remote", "reliable")

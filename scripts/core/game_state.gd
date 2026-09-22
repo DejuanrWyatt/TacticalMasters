@@ -7,6 +7,9 @@ extends RefCounted
 ## Ranges, areas and sight are circles measured in meters. The ground is
 ## made of TILE_SIZE blocks, each with a height level (0 = water).
 ##
+## Statuses (Burn, Regen, Slow, Stun) last a number of the affected unit's own
+## turns: they act and count down when its turn comes (see _tick_statuses).
+##
 ## Time: runs in ticks (TICKS_PER_SECOND per second). Every tick, each unit
 ## that isn't ready fills its Turn Gauge (TG) by its Wits. At TG_MAX it
 ## becomes READY and its countdown starts (length set by Patience). A ready
@@ -112,7 +115,9 @@ const ULT_PER_TURN := 5
 const ULT_PER_ACTION := 20
 ## Ultimate meter gained when hit, per 1% of max HP lost.
 const ULT_FROM_DAMAGE := 0.5
-const DAMAGE_SCALE := 2.0
+## How much a critical hit multiplies damage by.
+const CRIT_BONUS := 1.5
+const DAMAGE_SCALE := 1.0
 ## Final multiplier on all damage (after defense), for overall balance.
 const DAMAGE_MULTIPLIER := 0.5
 const HEAL_SCALE := 1.5
@@ -141,6 +146,9 @@ const TUNING := {
 	"move_multiplier": [1.0, 0.25, 3.0, 0.05, "Move multiplier", "Multiplier on every unit's Move distance."],
 	"sight_multiplier": [1.0, 0.25, 3.0, 0.05, "Sight multiplier", "Multiplier on every unit's Sight radius."],
 	"cast_time_multiplier": [1.0, 0.0, 3.0, 0.05, "Cast time multiplier", "Multiplier on every ability's cast time."],
+	"crit_multiplier": [CRIT_BONUS, 1.0, 3.0, 0.05, "Critical hit multiplier", "What a critical hit multiplies damage by."],
+	"evade_multiplier": [1.0, 0.0, 3.0, 0.05, "Evasion multiplier", "Multiplier on every unit's A-Eva and M-Eva."],
+	"crit_chance_multiplier": [1.0, 0.0, 3.0, 0.05, "Crit chance multiplier", "Multiplier on every unit's Crit chance."],
 }
 
 var tiles_x := 0
@@ -155,6 +163,11 @@ var units: Array[Unit] = []
 var spawn_points: Array[Vector2] = []
 var tick := 0
 var winner := -1
+## Evasion and critical hits are rolled with this, so a battle plays out the
+## same for both players online and in a replay: it is seeded at setup, only
+## rolled while applying a command, and copied by snapshot().
+var rng := RandomNumberGenerator.new()
+var seed_value := 0
 ## Current rule numbers (see TUNING); missing keys use the defaults.
 var tuning := {}
 
@@ -175,6 +188,9 @@ func snapshot():
 	s.tick = tick
 	s.winner = winner
 	s.tuning = tuning.duplicate()
+	s.seed_value = seed_value
+	s.rng.seed = rng.seed
+	s.rng.state = rng.state
 	s._field_cache = _field_cache
 	for u in units:
 		s.units.append(u.copy())
@@ -203,7 +219,9 @@ static func clean_tuning(values: Dictionary) -> Dictionary:
 	return out
 
 
-func setup(map: Dictionary, p_tuning := {}) -> void:
+func setup(map: Dictionary, p_tuning := {}, p_seed := 0) -> void:
+	seed_value = p_seed
+	rng.seed = p_seed  # this also resets the sequence
 	tuning = default_tuning()
 	tuning.merge(clean_tuning(p_tuning), true)
 	var rows: Array = map["rows"]
@@ -307,6 +325,16 @@ func ready_units(team := -1) -> Array[Unit]:
 		if u.is_alive() and u.ready and (team == -1 or u.team == team):
 			out.append(u)
 	return out
+
+
+## A number that sums up the whole battle: both players should always have
+## the same one at the same tick (used online to catch the games drifting).
+func checksum() -> int:
+	var parts := [tick, winner]
+	for u in units:
+		parts.append("%d:%s:%d:%d:%d:%d:%s:%s" % [u.id, u.pos, u.hp, u.tg, u.serial, u.ult,
+			u.statuses, u.buffs])
+	return str(parts).hash()
 
 
 ## READY units that can take orders now (not stunned).
@@ -662,6 +690,13 @@ func _schedule_before(a: Unit, b: Unit) -> bool:
 
 ## "" if the unit may use the ability now, otherwise why not.
 func ability_blocked_reason(u: Unit, slot: int) -> String:
+	var kind: String = u.ability(slot).get("kind", "active")
+	if kind == "passive" or kind == "aura":
+		return "%s is always on." % u.ability(slot).name
+	if kind == "toggle":
+		if u.toggled_turn.get(slot, false):
+			return "%s was already switched this turn." % u.ability(slot).name
+		return ""
 	if slot == 3 and u.ult < ULT_MAX:
 		return "The ultimate meter isn't full yet (%d%%)." % u.ult
 	if u.cooldowns[slot] > 0:
@@ -678,6 +713,46 @@ func in_ability_range(u: Unit, slot: int, from: Vector2, target: Vector2) -> boo
 	return d >= ab.min_range and d <= ab.max_range and in_bounds(target)
 
 
+## The shape an ability covers: "unit", "point", "circle", "self", "line",
+## "cone", "global" or "vector" (see Jobs.SHAPES).
+static func shape_of(ab: Dictionary) -> String:
+	var shape: String = ab.get("shape", "")
+	if Jobs.SHAPES.has(shape):
+		return shape
+	if ab.max_range == 0.0:
+		return "self"
+	return "circle" if ab.aoe > 0.0 else "unit"
+
+
+## Whether a unit standing at `t_pos` is inside the ability's shape, used
+## from `from` and aimed at `target`.
+func in_shape(ab: Dictionary, from: Vector2, target: Vector2, t_pos: Vector2) -> bool:
+	match shape_of(ab):
+		"global":
+			return true
+		"line", "vector":
+			var along := target - from
+			var length := along.length()
+			if length < 0.01:
+				return t_pos.distance_to(from) <= ab.aoe + HIT_RADIUS
+			var dir := along / length
+			var travelled := (t_pos - from).dot(dir)
+			if travelled < -HIT_RADIUS or travelled > length + HIT_RADIUS:
+				return false
+			return absf((t_pos - from).cross(dir)) <= maxf(ab.aoe, 0.6) + HIT_RADIUS
+		"cone":
+			var to_target := target - from
+			var to_unit := t_pos - from
+			var reach := to_unit.length()
+			if reach > ab.max_range + HIT_RADIUS or to_target.length() < 0.01:
+				return false
+			if reach < 0.01:
+				return true
+			var spread: float = ab.get("angle", 60.0) * 0.5
+			return rad_to_deg(absf(to_unit.angle_to(to_target))) <= spread
+	return t_pos.distance_to(target) <= ab.aoe + HIT_RADIUS
+
+
 ## What the ability would do if `u` used it from `from` on `target`:
 ## [{"unit": Unit, "amount": int}] for every affected unit.
 func preview(u: Unit, slot: int, from: Vector2, target: Vector2) -> Array[Dictionary]:
@@ -690,11 +765,11 @@ func preview(u: Unit, slot: int, from: Vector2, target: Vector2) -> Array[Dictio
 		elif not t.is_alive() or (t.team != u.team) != (ab.target == "enemy"):
 			continue
 		var t_pos := from if t == u else t.pos
-		if t_pos.distance_to(target) > ab.aoe + HIT_RADIUS:
+		if not in_shape(ab, from, target, t_pos):
 			continue
 		out.append({"unit": t, "amount": _amount(u, ab, from, t, t_pos), "distance": t_pos.distance_to(target),
 			"flank": flank_bonus(t, t_pos, from) if ab.effect == "damage" else 1.0})
-	if ab.aoe == 0.0 and out.size() > 1:
+	if ab.aoe == 0.0 and shape_of(ab) != "global" and out.size() > 1:
 		# A single-target ability only hits the unit closest to the point.
 		var closest: Dictionary = out[0]
 		for hit in out:
@@ -712,9 +787,9 @@ func _amount(u: Unit, ab: Dictionary, from: Vector2, t: Unit, t_pos: Vector2) ->
 ## step-by-step calculation as text (for tooltips), using the same numbers.
 ## Returns {"value": int, "text": String}.
 func _calc(u: Unit, ab: Dictionary, from: Vector2, t: Unit, t_pos: Vector2, explain: bool) -> Dictionary:
-	var stat_name := "AttPwr" if ab.scale == "att" else "MagPwr"
-	var stat := u.stat(ab.scale)
-	var power: float = stat * ab.power
+	# An ability's own power is the damage (or healing) it does; the user's
+	# Power stat is added to it.
+	var power: float = ab.power + (u.stat("power") if ab.effect != "revive" else 0)
 	match ab.effect:
 		"damage":
 			var def_name := "AttDef" if ab.scale == "att" else "MagDef"
@@ -726,13 +801,15 @@ func _calc(u: Unit, ab: Dictionary, from: Vector2, t: Unit, t_pos: Vector2, expl
 			var value := maxi(1, roundi((raw - def) * tune("damage_multiplier")))
 			if not explain:
 				return {"value": value}
-			var lines := ["%s %d x power %s x %s = %s" % [stat_name, stat, _n(ab.power), _n(DAMAGE_SCALE), _n(power * DAMAGE_SCALE)]]
+			var lines := ["Power %s%s" % [_n(ab.power), " + %d from %s" % [u.stat("power"), u.job_name()] if u.stat("power") > 0 else ""]]
 			if levels != 0:
 				lines.append("x height %s (%+d level%s)" % [_n(height), levels, "" if absi(levels) == 1 else "s"])
 			if flank != 1.0:
 				lines.append("x %s %s" % ["from behind" if flank >= tune("back_bonus") else "from the side", _n(flank)])
 			lines.append("= %d, - %s %d = %d" % [raw, def_name, def, raw - def])
 			lines.append("x damage multiplier %s = %d%s" % [_n(tune("damage_multiplier")), value, " (minimum 1)" if value == 1 else ""])
+			lines.append("%s %d%% to evade, %s %d%% to crit (x %s)" % ["A-Eva" if ab.scale == "att" else "M-Eva",
+				evade_chance(t, ab), u.job_name(), crit_chance(u), _n(tune("crit_multiplier"))])
 			return {"value": value, "text": "\n".join(lines)}
 		"heal":
 			var full := roundi(power * HEAL_SCALE * tune("heal_multiplier"))
@@ -740,7 +817,8 @@ func _calc(u: Unit, ab: Dictionary, from: Vector2, t: Unit, t_pos: Vector2, expl
 			var value := mini(full, missing)
 			if not explain:
 				return {"value": value}
-			var text := "%s %d x power %s x %s x heal multiplier %s = %d" % [stat_name, stat, _n(ab.power), _n(HEAL_SCALE), _n(tune("heal_multiplier")), full]
+			var text := "Power %s%s x %s x heal multiplier %s = %d" % [_n(ab.power),
+				" + %d" % u.stat("power") if u.stat("power") > 0 else "", _n(HEAL_SCALE), _n(tune("heal_multiplier")), full]
 			if value < full:
 				text += "\ncapped at missing HP %d" % missing
 			return {"value": value, "text": text}
@@ -752,6 +830,20 @@ func _calc(u: Unit, ab: Dictionary, from: Vector2, t: Unit, t_pos: Vector2, expl
 
 static func _n(v: float) -> String:
 	return str(snappedf(v, 0.01)).trim_suffix(".0")
+
+
+## Chance in % that this unit evades the ability (physical abilities are
+## evaded with A-Eva, harmful magic with M-Eva; friendly abilities never are).
+func evade_chance(t: Unit, ab: Dictionary) -> int:
+	if ab.effect != "damage":
+		return 0
+	var base := t.stat("aeva" if ab.scale == "att" else "meva")
+	return clampi(roundi(base * tune("evade_multiplier")), 0, 95)
+
+
+## Chance in % that this unit's abilities land a critical hit.
+func crit_chance(u: Unit) -> int:
+	return clampi(roundi(u.stat("crit") * tune("crit_chance_multiplier")), 0, 100)
 
 
 ## Step-by-step calculation of what an ability does to one target.
@@ -784,17 +876,18 @@ func cast_seconds(ab: Dictionary) -> float:
 ## What an ability does, with its numbers worked out (ability tooltips).
 func explain_ability(u: Unit, slot: int) -> String:
 	var ab := u.ability(slot)
-	var stat_name := "AttPwr" if ab.scale == "att" else "MagPwr"
-	var stat := u.stat(ab.scale)
 	var lines: Array[String] = []
 	match ab.effect:
 		"damage":
-			lines.append("Damage = %s %d x power %s x %s = %s" % [stat_name, stat, _n(ab.power), _n(DAMAGE_SCALE), _n(stat * ab.power * DAMAGE_SCALE)])
+			lines.append("Damage = power %s%s" % [_n(ab.power), " + Power %d" % u.stat("power") if u.stat("power") > 0 else ""])
 			lines.append("  x height (%s per level) x side %s / back %s" % [_n(tune("height_bonus")), _n(tune("side_bonus")), _n(tune("back_bonus"))])
 			lines.append("  - target's %s, x damage multiplier %s (at least 1)" % ["AttDef" if ab.scale == "att" else "MagDef", _n(tune("damage_multiplier"))])
+			lines.append("  target's %s evades it; %d%% chance of a critical hit (x %s)" % [
+				"A-Eva" if ab.scale == "att" else "M-Eva", crit_chance(u), _n(tune("crit_multiplier"))])
 		"heal":
-			lines.append("Heal = %s %d x power %s x %s x heal multiplier %s = %d" % [stat_name, stat, _n(ab.power), _n(HEAL_SCALE),
-				_n(tune("heal_multiplier")), roundi(stat * ab.power * HEAL_SCALE * tune("heal_multiplier"))])
+			lines.append("Heal = power %s%s x %s x heal multiplier %s = %d" % [_n(ab.power),
+				" + Power %d" % u.stat("power") if u.stat("power") > 0 else "", _n(HEAL_SCALE), _n(tune("heal_multiplier")),
+				roundi((ab.power + u.stat("power")) * HEAL_SCALE * tune("heal_multiplier"))])
 		"revive":
 			lines.append("Revives with %d%% of max HP" % roundi(ab.power * 100))
 	if ab.has("tg"):
@@ -802,7 +895,7 @@ func explain_ability(u: Unit, slot: int) -> String:
 	for b in ab.get("buffs", []):
 		lines.append("%s %+d for %d turn%s" % [b.stat, b.amount, b.turns, "" if b.turns == 1 else "s"])
 	if ab.has("status"):
-		lines.append("%s for %s s" % [Jobs.STATUSES[ab.status.id].name, _n(ab.status.seconds)])
+		lines.append("%s for %d turn%s" % [Jobs.STATUSES[ab.status.id].name, ab.status.turns, "" if ab.status.turns == 1 else "s"])
 	if ab.cast > 0.0:
 		lines.append("Cast %s s x cast time multiplier %s = %s s" % [_n(ab.cast), _n(tune("cast_time_multiplier")), _n(cast_seconds(ab))])
 	else:
@@ -950,11 +1043,6 @@ func _tick(result: Dictionary) -> void:
 			continue
 		if not u.is_alive():
 			continue
-		_tick_statuses(u, result)
-		if not u.is_alive():
-			if winner != -1:
-				return
-			continue
 		var was_casting := u.is_casting()
 		if was_casting:
 			u.casting.ticks -= 1
@@ -980,20 +1068,21 @@ func _tick(result: Dictionary) -> void:
 				_become_ready(u, result)
 
 
-## Counts down a unit's statuses; Burn and Regen act once per second.
+## The unit's turn has come: its statuses act (Burn and Regen change its HP)
+## and then count down by one; the ones that run out are removed.
 func _tick_statuses(u: Unit, result: Dictionary) -> void:
 	if u.statuses.is_empty():
 		return
 	var kept: Array[Dictionary] = []
 	for s in u.statuses:
-		s.ticks -= 1
 		var info: Dictionary = Jobs.STATUSES[s.id]
-		var per_second: float = info.get("per_second", 0.0)
-		if per_second != 0.0 and s.ticks % TICKS_PER_SECOND == 0 and u.is_alive():
-			var amount := maxi(1, roundi(u.max_hp() * absf(per_second)))
-			if per_second < 0.0:
+		var per_turn: float = info.get("per_turn", 0.0)
+		if per_turn != 0.0 and u.is_alive():
+			var amount := maxi(1, roundi(u.max_hp() * absf(per_turn)))
+			if per_turn < 0.0:
 				u.hp = maxi(0, u.hp - amount)
 				result.events.append({"pos": u.pos, "text": "-%d" % amount, "color": info.color})
+				result.logs.append("%s %s takes %d from %s." % [TEAM_NAMES[u.team], u.job_name(), amount, info.name])
 				if not u.is_alive():
 					_knock_out(u, "%s %s" % [TEAM_NAMES[u.team], u.job_name()], result)
 					_check_winner()
@@ -1003,19 +1092,55 @@ func _tick_statuses(u: Unit, result: Dictionary) -> void:
 				if healed > 0:
 					u.hp += healed
 					result.events.append({"pos": u.pos, "text": "+%d" % healed, "color": info.color})
-		if s.ticks > 0:
+		s.turns -= 1
+		if s.turns > 0:
 			kept.append(s)
+		else:
+			result.logs.append("%s %s: %s wears off." % [TEAM_NAMES[u.team], u.job_name(), info.name])
 	u.statuses = kept
 
 
-## Puts (or refreshes) a timed status on a unit.
-func _add_status(u: Unit, status_id: String, seconds: float) -> void:
-	var ticks := roundi(seconds * TICKS_PER_SECOND)
+## Auras of every living unit whose side this one is on (or against) reach it
+## when its turn comes: their buffs are refreshed for the turn.
+func _apply_aura_buffs(u: Unit, source: Unit, ab: Dictionary) -> void:
+	for b in ab.get("buffs", []):
+		var found := false
+		for existing in u.buffs:
+			if existing.stat == b.stat and existing.get("aura", "") == ab.name:
+				existing.turns = 2
+				found = true
+		if not found:
+			var copy: Dictionary = b.duplicate()
+			copy.turns = 2
+			copy["aura"] = ab.name
+			u.buffs.append(copy)
+
+
+func _apply_auras(u: Unit, result: Dictionary) -> void:
+	for source in units:
+		if not source.is_alive():
+			continue
+		for slot in 4:
+			var ab := source.ability(slot)
+			if ab.get("kind", "active") != "aura":
+				continue
+			var wants_enemy: bool = ab.get("target", "ally") == "enemy"
+			if (source.team != u.team) != wants_enemy:
+				continue
+			if source.pos.distance_to(u.pos) > maxf(ab.aoe, 1.0):
+				continue
+			_apply_aura_buffs(u, source, ab)
+			if ab.has("status"):
+				_add_status(u, ab.status.id, ab.status.turns)
+
+
+## Puts (or refreshes) a status on a unit for that many of its own turns.
+func _add_status(u: Unit, status_id: String, turns: int) -> void:
 	for s in u.statuses:
 		if s.id == status_id:
-			s.ticks = maxi(s.ticks, ticks)
+			s.turns = maxi(s.turns, turns)
 			return
-	u.statuses.append({"id": status_id, "ticks": ticks})
+	u.statuses.append({"id": status_id, "turns": turns})
 
 
 ## A unit drops to 0 HP: it's knocked out and can be revived for KO_SECONDS.
@@ -1044,12 +1169,19 @@ func _check_winner() -> void:
 
 
 func _become_ready(u: Unit, result: Dictionary) -> void:
+	# Statuses act on the unit's own turn, then count down (Burn can knock it
+	# out before it acts).
+	var stunned := u.is_stunned()
+	_tick_statuses(u, result)
+	if not u.is_alive():
+		return
 	u.ready = true
 	u.tg = TG_MAX
 	u.serial += 1
 	u.clock = clock_ticks(u)
 	u.moved = false
 	u.acted = false
+	u.toggled_turn.clear()
 	u.ult = mini(ULT_MAX, u.ult + roundi(tune("ult_per_turn")))
 	for i in u.cooldowns.size():
 		u.cooldowns[i] = maxi(0, u.cooldowns[i] - 1)
@@ -1059,11 +1191,32 @@ func _become_ready(u: Unit, result: Dictionary) -> void:
 		if b.turns > 0:
 			kept.append(b)
 	u.buffs = kept
+	_apply_auras(u, result)
+	# Channeled: it goes off again and the unit's turn is spent on it.
+	if u.is_channeling():
+		u.channeling.turns -= 1
+		result.became_ready.append(u.id)
+		_resolve_ability(u, u.channeling.slot, u.channeling.target, result)
+		if u.channeling.turns <= 0:
+			result.logs.append("%s %s finishes channeling." % [TEAM_NAMES[u.team], u.job_name()])
+			u.channeling = {}
+		if u.is_alive():
+			_end_turn(u, false, result)
+		return
+	# Stunned: the turn it just earned is lost (and the Stun counted down).
+	if stunned:
+		result.logs.append("%s %s loses its turn: %s." % [TEAM_NAMES[u.team], u.job_name(), Jobs.STATUSES.stun.name])
+		result.events.append({"pos": u.pos, "text": Jobs.STATUSES.stun.tag, "color": Jobs.STATUSES.stun.color})
+		_end_turn(u, true, result)
+		return
 	result.became_ready.append(u.id)
 	result.events.append({"pos": u.pos, "text": "READY", "color": Color(1, 0.85, 0.3)})
 
 
 func _end_turn(u: Unit, timed_out: bool, result: Dictionary) -> void:
+	# A turn lost to the countdown stops a channel.
+	if timed_out and u.is_channeling():
+		u.channeling = {}
 	if timed_out:
 		u.tg = 0
 		result.logs.append("%s %s ran out of time!" % [TEAM_NAMES[u.team], u.job_name()])
@@ -1085,6 +1238,16 @@ func _end_turn(u: Unit, timed_out: bool, result: Dictionary) -> void:
 ## unit may still move afterwards) or starts casting it (no more moving).
 func _use_ability(u: Unit, slot: int, target: Vector2, follow: int, result: Dictionary) -> void:
 	var ab := u.ability(slot)
+	# A toggle just switches: no cast, no cooldown, and the unit can still act.
+	# Once per turn, so it can't be flipped back and forth.
+	if ab.get("kind", "active") == "toggle":
+		var on: bool = not u.toggled.get(slot, false)
+		u.toggled[slot] = on
+		u.toggled_turn[slot] = true
+		result.logs.append("%s %s switches %s %s." % [TEAM_NAMES[u.team], u.job_name(), ab.name, "on" if on else "off"])
+		result.events.append({"pos": u.pos, "text": "%s %s" % [ab.name, "ON" if on else "OFF"],
+			"color": Color(0.6, 0.9, 1.0) if on else Color(0.7, 0.7, 0.75)})
+		return
 	if slot == 3:
 		u.ult = 0
 	else:
@@ -1093,6 +1256,16 @@ func _use_ability(u: Unit, slot: int, target: Vector2, follow: int, result: Dict
 	u.acted = true
 	if target.distance_to(u.pos) > 0.01:
 		u.facing = (target - u.pos).normalized()
+	# Channeled: it goes off now and again on each of the next turns, and the
+	# unit's turn ends at once (it is busy channeling).
+	if ab.get("kind", "active") == "channeled":
+		u.channeling = {"slot": slot, "target": target, "turns": maxi(1, int(ab.get("channel", 2)))}
+		result.logs.append("%s %s starts channeling %s (%d more turn%s)." % [TEAM_NAMES[u.team], u.job_name(), ab.name,
+			u.channeling.turns, "" if u.channeling.turns == 1 else "s"])
+		_resolve_ability(u, slot, target, result)
+		if u.is_alive():
+			_end_turn(u, false, result)
+		return
 	var cast_ticks := roundi(cast_seconds(ab) * TICKS_PER_SECOND)
 	if cast_ticks <= 0:
 		_resolve_ability(u, slot, target, result)
@@ -1108,6 +1281,10 @@ func _use_ability(u: Unit, slot: int, target: Vector2, follow: int, result: Dict
 func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -> void:
 	var ab := u.ability(slot)
 	var hits := preview(u, slot, u.pos, target)
+	# A "vector" ability carries the caster to the far end of the line.
+	if shape_of(ab) == "vector" and node_walkable(node_of(target)) and unit_near(target, UNIT_SPACING) in [null, u]:
+		u.pos = snap(target)
+		result.logs.append("%s %s dashes." % [TEAM_NAMES[u.team], u.job_name()])
 	var parts: Array[String] = []
 	var resolved := {"unit": u.id, "slot": slot, "target": target, "hits": [], "amounts": []}
 	result.resolved.append(resolved)
@@ -1115,13 +1292,35 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 		var t: Unit = hit.unit
 		var amount: int = hit.amount
 		var who := "%s %s" % [TEAM_NAMES[t.team], t.job_name()]
+		# Damage is rolled against the target's evasion and the user's Crit.
+		# (Only here, while the command is applied, so both players online and
+		# a replay roll exactly the same.)
+		var evaded := false
+		var critical := false
+		if ab.effect == "damage":
+			evaded = rng.randi_range(1, 100) <= evade_chance(t, ab)
+			if not evaded:
+				critical = rng.randi_range(1, 100) <= crit_chance(u)
+				if critical:
+					amount = maxi(1, roundi(amount * tune("crit_multiplier")))
+		if evaded:
+			amount = 0
+			resolved.hits.append(t.id)
+			resolved.amounts.append(0)
+			parts.append("%s evades" % who)
+			result.events.append({"pos": t.pos, "text": "MISS", "color": Color(0.85, 0.88, 1.0), "impact": true})
+			continue
 		resolved.hits.append(t.id)
 		resolved.amounts.append(amount)
 		match ab.effect:
 			"damage":
+				if critical:
+					result.events.append({"pos": t.pos, "text": "CRIT!", "color": Color(1.0, 0.85, 0.3), "impact": true})
 				t.hp = maxi(0, t.hp - amount)
 				t.ult = mini(ULT_MAX, t.ult + roundi(amount * 100.0 / t.max_hp() * ULT_FROM_DAMAGE))
 				result.events.append({"pos": t.pos, "text": "-%d" % amount, "color": Color(1, 0.45, 0.35), "impact": true})
+				if critical:
+					parts.append("%s takes %d (critical!)" % [who, amount])
 				parts.append("%s -%d%s" % [who, amount, " (defeated!)" if not t.is_alive() else ""])
 			"heal":
 				t.hp += amount
@@ -1140,7 +1339,7 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 				_knock_out(t, who, result)
 			continue
 		if ab.has("status"):
-			_add_status(t, ab.status.id, ab.status.seconds)
+			_add_status(t, ab.status.id, ab.status.turns)
 			var info: Dictionary = Jobs.STATUSES[ab.status.id]
 			result.events.append({"pos": t.pos, "text": info.name, "color": info.color, "impact": true})
 		# TG changes only affect units still filling their gauge.

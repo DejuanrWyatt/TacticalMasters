@@ -31,6 +31,12 @@ var casting := {}
 var buffs: Array[Dictionary] = []
 ## Timed status effects: [{"id": String (see Jobs.STATUSES), "ticks": ticks left}]
 var statuses: Array[Dictionary] = []
+## Toggle abilities that are switched on (slot -> true).
+var toggled := {}
+## Toggle slots already switched this turn (one switch per turn each).
+var toggled_turn := {}
+## A channeled ability in progress: {"slot", "target", "turns"}.
+var channeling := {}
 ## Direction the unit faces on the ground (unit vector). Hits from behind or
 ## the side deal extra damage.
 var facing := Vector2(0, 1)
@@ -55,13 +61,34 @@ func job_name() -> String:
 	return job_data().name
 
 
-## A stat including active buffs.
+## A stat including buffs: timed ones, always-on abilities (passive and
+## active + passive) and toggles that are switched on.
 func stat(stat_name: String) -> int:
 	var value: int = job_data()[stat_name]
 	for b in buffs:
 		if b.stat == stat_name:
 			value += b.amount
+	for slot in 4:
+		var ab := ability(slot)
+		var kind: String = ab.get("kind", "active")
+		var on: bool = kind == "passive" or kind == "active_passive" or (kind == "toggle" and toggled.get(slot, false))
+		if on and ab.has("buffs") and ab.get("target", "enemy") != "enemy":
+			for b in ab.buffs:
+				if b.stat == stat_name:
+					value += b.amount
 	return value
+
+
+## Whether this ability is switched on now (toggles) or always on.
+func is_on(slot: int) -> bool:
+	var kind: String = ability(slot).get("kind", "active")
+	if kind == "toggle":
+		return toggled.get(slot, false)
+	return kind == "passive" or kind == "active_passive" or kind == "aura"
+
+
+func is_channeling() -> bool:
+	return not channeling.is_empty()
 
 
 func max_hp() -> int:
@@ -87,6 +114,9 @@ func copy():
 	c.casting = casting.duplicate()
 	c.buffs = buffs.duplicate(true)
 	c.statuses = statuses.duplicate(true)
+	c.toggled = toggled.duplicate()
+	c.toggled_turn = toggled_turn.duplicate()
+	c.channeling = channeling.duplicate(true)
 	c.facing = facing
 	c.ko_ticks = ko_ticks
 	return c

@@ -7,40 +7,58 @@ extends RefCounted
 ## How an Astra library describes a class (all through tags):
 ##   "class:<id>"   every ability of the class carries it (id: letters, digits, _)
 ##   "profile"      one Passive ability per class holding its stats as
-##                  parameters: hp, att, mag, attdef, magdef, wits, move,
-##                  patience, sight. Its name is the class name and its color
+##                  parameters: hp, attdef, magdef, wits, move, patience and
+##                  sight, plus the optional power (flat damage bonus, 0),
+##                  aeva, meva and crit (chances in %, 5 each). Its name is the class name and its color
 ##                  the class color. Optional tag "look:<job>" picks which
 ##                  built-in character model to use (default black_mage).
 ##   "slot:1".."slot:4"  the class's 4 abilities; slot 4 is its ultimate.
 ##   "fx:<ability>"      optional: borrow a built-in ability's animation.
+##   "role:<x>"          optional, on the profile: what the class is for,
+##                       "tank", "damage", "support", "special" or a pair
+##                       like "tank/support". Without it the game works one
+##                       out from the stats and abilities.
 ##   "icon:<name>"       optional, on the profile: the class icon
 ##                       (assets/icons/<name>.svg; default the class id's icon,
 ##                       else a generic icon in the class color).
 ##   "revive"            optional: the ability revives a knocked-out ally.
 ##
+## Astra's **ability type** becomes the game's kind (see Jobs.KINDS):
+## Active, Passive, Toggle, Channeled, Active + Passive and Aura. A Channeled
+## ability lasts `channel_turns` turns (default 2).
+##
+## Astra's **targeting** becomes the target shape (see Jobs.SHAPES):
+## Unit target, Point target, Self, Circle, Line, Cone, Global and Vector.
+## A cone's spread comes from the `cone_angle` parameter (default 60).
+##
 ## Ability parameters (formula keys), read at rank 1, distances in meters:
-##   power           multiplier on AttPwr or MagPwr (default 1)
+##   power           the damage it does (healing for heals, or the share of
+##                   max HP a revive brings back)
 ##   min_range       closest target point (default 0)
 ##   cast_range      farthest target point (default 1.8 = melee; Self = 0)
 ##   radius          area radius (default 0 = one unit)
 ##   cast_time       seconds until it takes effect (default 0 = instant)
 ##   cooldown_turns  turns to wait (else Astra's "cooldown" seconds / 10)
+##   channel_turns   turns a Channeled ability lasts (default 2)
+##   cone_angle      spread of a cone in degrees (default 60)
 ##   tg_change       % change to each affected unit's Turn Gauge
 ##   buff_<stat>     a buff (e.g. buff_attdef); lasts buff_turns (default 2)
-## Other fields: damageType Physical -> AttPwr / AttDef, anything else ->
-## MagPwr / MagDef. targetTeam Enemies -> enemies, otherwise allies.
+## Other fields: damageType Physical means AttDef and A-Eva resist it,
+## anything else MagDef and M-Eva. targetTeam Enemies -> enemies, else allies.
 ## Effects: Damage / Heal decide what it does (none -> support). Slow, Stun
-## and periodic Damage (Burn) / Heal (Regen) put a timed status on each unit
-## hit, lasting the effect's duration in seconds.
+## and periodic Damage (Burn) / Heal (Regen) put a status on each unit hit,
+## lasting the effect's duration in *turns* of that unit.
 ##
 ## Formulas use Astra's rules (numbers, + - * /, parentheses, postfix %,
 ## other parameter keys, Astra's sample stats and rank).
 
 const Jobs = preload("res://scripts/core/jobs.gd")
 
-const STAT_KEYS := ["hp", "att", "mag", "attdef", "magdef", "wits", "move", "patience", "sight"]
-const STAT_LIMITS := {"hp": [10, 300], "att": [1, 40], "mag": [1, 40], "attdef": [0, 30], "magdef": [0, 30],
-	"wits": [1, 20], "move": [1, 15], "patience": [0, 15], "sight": [3, 25]}
+const STAT_KEYS := Jobs.STAT_KEYS
+## A class profile must give these; the rest fall back to DEFAULT_STATS.
+const REQUIRED_STATS := ["hp", "attdef", "magdef", "wits", "move", "patience", "sight"]
+const DEFAULT_STATS := {"power": 0, "aeva": 5, "meva": 5, "crit": 5}
+const STAT_LIMITS := Jobs.STAT_LIMITS
 const DIRS := ["res://data/classes/", "user://classes/"]
 ## Astra's sample caster stats (model.mjs defaultStats), so formulas that
 ## Astra accepts also evaluate here.
@@ -48,6 +66,11 @@ const ASTRA_STATS := {"maxMana": 1000, "currentMana": 800, "maxHealth": 2000, "c
 	"attackDamage": 100, "bonusAttackDamage": 40, "spellPower": 100, "armor": 50, "magicResist": 30,
 	"moveSpeed": 350, "abilityHaste": 0}
 const BUILT_IN_LOOKS := ["squire", "knight", "archer", "monk", "black_mage", "white_mage"]
+## Astra's ability types and targeting, as the game's kinds and shapes.
+const KINDS := {"Active": "active", "Passive": "passive", "Toggle": "toggle", "Channeled": "channeled",
+	"Active + Passive": "active_passive", "Aura": "aura"}
+const SHAPES := {"Unit target": "unit", "Point target": "point", "Self": "self", "Circle": "circle",
+	"Line": "line", "Cone": "cone", "Global": "global", "Vector": "vector"}
 
 
 ## Loads every class file in DIRS into the Jobs registry. Returns messages
@@ -121,6 +144,16 @@ static func _import_class(id: String, entries: Array, out: Dictionary) -> String
 	for tag in profile.tags:
 		if tag is String and tag.begins_with("look:") and BUILT_IN_LOOKS.has(tag.substr(5)):
 			job["look"] = tag.substr(5)
+		if tag is String and tag.begins_with("role:"):
+			var wanted := []
+			for part in tag.substr(5).split("/", false):
+				if Jobs.ROLES.has(part) and not wanted.has(part):
+					wanted.append(part)
+			if not wanted.is_empty():
+				job["role"] = "/".join(wanted)
+			else:
+				out.errors.append("Class '%s': ignoring role tag '%s' (use %s, or a pair like tank/support); its role is worked out from its stats instead."
+					% [id, tag.substr(5), ", ".join(Jobs.ROLES.keys())])
 		if tag is String and tag.begins_with("icon:") and RegEx.create_from_string("^[a-z0-9_]{1,40}$").search(tag.substr(5)):
 			job["icon"] = tag.substr(5)
 	var values := _values(profile)
@@ -128,7 +161,10 @@ static func _import_class(id: String, entries: Array, out: Dictionary) -> String
 		return "profile: " + values.error
 	for key in STAT_KEYS:
 		if not values.has(key):
-			return "the profile needs a '%s' parameter." % key
+			if REQUIRED_STATS.has(key):
+				return "the profile needs a '%s' parameter." % key
+			job[key] = DEFAULT_STATS[key]
+			continue
 		job[key] = clampi(roundi(values[key]), STAT_LIMITS[key][0], STAT_LIMITS[key][1])
 	var abilities := {}
 	for i in 4:
@@ -161,20 +197,29 @@ static func _ability(a: Dictionary, ultimate: bool) -> Dictionary:
 	elif types.has("Heal"):
 		effect = "heal"
 	var team := str(a.get("targetTeam", "Enemies"))
-	var self_only := str(a.get("targeting", "")) == "Self"
+	var kind: String = KINDS.get(str(a.get("kind", "Active")), "active")
+	var shape: String = SHAPES.get(str(a.get("targeting", "")), "")
+	var self_only := shape == "self"
 	var ab := {
 		"name": str(a.get("name", "Ability")).substr(0, 30),
 		"desc": ("ULTIMATE: " if ultimate else "") + str(a.get("description", "")),
 		"effect": effect,
 		"scale": "att" if str(a.get("damageType", "")) == "Physical" else "mag",
-		"power": clampf(v.get("power", 1.0), 0.0, 5.0),
+		"power": clampf(v.get("power", 0.0), 0.0, 400.0),
 		"min_range": clampf(v.get("min_range", 0.0), 0.0, 20.0),
 		"max_range": 0.0 if self_only else clampf(v.get("cast_range", 1.8), 0.0, 20.0),
 		"aoe": clampf(v.get("radius", 0.0), 0.0, 8.0),
 		"cooldown": clampi(roundi(v.get("cooldown_turns", v.get("cooldown", 0.0) / 10.0)), 0, 10),
 		"cast": clampf(v.get("cast_time", 0.0), 0.0, 10.0),
 		"target": "ko_ally" if effect == "revive" else ("enemy" if team == "Enemies" else "ally"),
+		"kind": kind,
 	}
+	if shape != "":
+		ab["shape"] = shape
+	if shape == "cone":
+		ab["angle"] = clampf(v.get("cone_angle", 60.0), 10.0, 180.0)
+	if kind == "channeled":
+		ab["channel"] = clampi(roundi(v.get("channel_turns", 2.0)), 1, 6)
 	if effect == "revive":
 		ab["power"] = clampf(ab.power, 0.05, 1.0)
 	if v.has("tg_change"):
@@ -195,11 +240,11 @@ static func _ability(a: Dictionary, ultimate: bool) -> Dictionary:
 			"Heal": status = "regen" if e.get("timing") == "Periodic" else ""
 		if status == "":
 			continue
-		var seconds = _eval_in(a, str(e.get("duration", "0")), v)
-		if seconds is String:
-			return {"error": "%s duration: %s" % [e.get("name", status), seconds]}
-		if seconds > 0.0:
-			ab["status"] = {"id": status, "seconds": clampf(seconds, 0.5, 30.0)}
+		var turns = _eval_in(a, str(e.get("duration", "0")), v)
+		if turns is String:
+			return {"error": "%s duration: %s" % [e.get("name", status), turns]}
+		if turns >= 1.0:
+			ab["status"] = {"id": status, "turns": clampi(roundi(turns), 1, 10)}
 			break
 	ab["fx"] = _fx(a, ab)
 	return ab
