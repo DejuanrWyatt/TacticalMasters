@@ -188,7 +188,7 @@ func _ready() -> void:
 		Net.chat_received.connect(_on_chat_received)
 		Net.rematch_requested.connect(_on_rematch_requested)
 		# A rematch (both players agreed) restarts the battle scene.
-		Net.game_started.connect(get_tree().reload_current_scene)
+		Net.game_started.connect(_on_net_game_started)
 		hud.chat_submitted.connect(_on_chat_submitted)
 		hud.chat_toggled.connect(func(open: bool): cam.keys_enabled = not open)
 		hud.log_message("Press %s to chat with your opponent." % Keybinds.key_name("chat"))
@@ -1187,6 +1187,13 @@ func _record_stats(result: Dictionary) -> void:
 						stats[r.unit].kos += 1
 				"heal", "revive":
 					stats[r.unit].healed += amount
+
+
+## The host started a game: a rematch both players agreed, or an opponent
+## that reconnected. Either way this battle starts over.
+func _on_net_game_started() -> void:
+	if is_inside_tree():
+		get_tree().reload_current_scene()
 
 
 ## Same map and teams, fresh battle. Online, both players have to ask; the

@@ -134,6 +134,7 @@ func _test_rules() -> void:
 	await _test_menus_fit()
 	await _test_walk_into_range()
 	await _test_layout_editing()
+	await _test_online_housekeeping()
 	_test_new_statuses()
 	_test_ko_and_raise()
 	_test_line_of_sight()
@@ -1036,6 +1037,43 @@ func _test_layout_editing() -> void:
 	_check(not hud.is_layout_editing(), "Edit layout turns off again")
 	hud.free()
 	again.free()
+
+
+## What went wrong in a real match: the host kept talking to an opponent that
+## had gone, every battle added another rematch listener that outlived it, and
+## a menu that had already handed over to the battle still tried to open one.
+func _test_online_housekeeping() -> void:
+	var net = root.get_node("Net")
+
+	# An opponent that drops is forgotten, so nothing is sent to it again.
+	net.opponent_id = 312955946
+	net._on_peer_disconnected(312955946)
+	_check(net.opponent_id == 0, "an opponent that disconnects is forgotten")
+	net.opponent_id = 4
+	net._on_peer_disconnected(9)
+	_check(net.opponent_id == 4, "somebody else disconnecting changes nothing")
+	net.opponent_id = 0
+
+	# The battle's rematch listener belongs to the battle, not to the tree, so
+	# a second battle doesn't stack another one on top.
+	root.get_node("GameConfig").mode = "hotseat"
+	var first: Node = load("res://scenes/battle.tscn").instantiate()
+	root.add_child(first)
+	await process_frame
+	var before: int = net.game_started.get_connections().size()
+	first.free()
+	await process_frame
+	_check(net.game_started.get_connections().size() <= before,
+		"a battle that is gone stops listening for a rematch (%d -> %d)" % [before, net.game_started.get_connections().size()])
+
+	# A menu that has been replaced doesn't try to open a battle.
+	var menu: Node = load("res://scenes/main_menu.tscn").instantiate()
+	root.add_child(menu)
+	await process_frame
+	root.remove_child(menu)
+	menu._on_game_started()  # would have been "Cannot call method on a null value"
+	_check(true, "a menu out of the tree ignores a game starting")
+	menu.free()
 
 
 func _test_ko_and_raise() -> void:

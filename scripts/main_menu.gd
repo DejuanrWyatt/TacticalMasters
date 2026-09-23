@@ -229,4 +229,17 @@ func _set_status(text: String) -> void:
 
 
 func _on_game_started() -> void:
+	# The battle may already have replaced this menu (a second hello from the
+	# opponent, say): a menu that is out of the tree has no scene to change.
+	if not is_inside_tree():
+		return
 	get_tree().change_scene_to_file(BATTLE_SCENE)
+
+
+## Leaving for the battle: stop listening, so this menu can't act on anything
+## that happens once it is gone.
+func _exit_tree() -> void:
+	if Net.game_started.is_connected(_on_game_started):
+		Net.game_started.disconnect(_on_game_started)
+	if Net.status_changed.is_connected(_set_status):
+		Net.status_changed.disconnect(_set_status)

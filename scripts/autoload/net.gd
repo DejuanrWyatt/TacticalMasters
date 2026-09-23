@@ -176,6 +176,14 @@ func _hello(version: int) -> void:
 				multiplayer.multiplayer_peer.disconnect_peer(id)
 		get_tree().create_timer(0.5).timeout.connect(drop)
 		return
+	if opponent_id != 0 and opponent_id != id:
+		_refuse.rpc_id(id, "That host is already playing someone else.")
+		status_changed.emit("Turned away a second player.")
+		var send_off := func() -> void:
+			if multiplayer.multiplayer_peer is ENetMultiplayerPeer:
+				multiplayer.multiplayer_peer.disconnect_peer(id)
+		get_tree().create_timer(0.5).timeout.connect(send_off)
+		return
 	opponent_id = id
 	_start_as_host()
 
@@ -201,6 +209,9 @@ func _refuse(reason: String) -> void:
 
 func _on_peer_disconnected(id: int) -> void:
 	if id == opponent_id:
+		# Forget it: anything sent to a peer that has gone is an error, and
+		# its id can come back around on a later connection.
+		opponent_id = 0
 		opponent_left.emit()
 
 
