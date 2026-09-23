@@ -412,7 +412,10 @@ func _apply(cmd: Dictionary) -> void:
 	var actor: Unit = state.get_unit(cmd.unit) if cmd.has("unit") else null
 	var walk_path: Array[Vector2] = []
 	if cmd.type == "move":
-		walk_path = state.path_to(actor, state.node_of(cmd.to))
+		# A sprint goes further than a walk, so the path has to be worked out
+		# with the same budget the order was given under, or it comes back
+		# empty and the unit never walks over to where the rules put it.
+		walk_path = state.path_to(actor, state.node_of(cmd.to), cmd.get("sprint", false))
 	var result := state.apply(cmd)
 	for id in result.turn_ended:
 		_turn_used_at[id] = state.tick

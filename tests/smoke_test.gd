@@ -695,6 +695,8 @@ func _test_sprint_engage_hustle() -> void:
 	_check(far != Vector2.ZERO, "there is ground only a sprint can reach")
 	_check(state.validate({"type": "move", "unit": u.id, "serial": u.serial, "to": far}) != "", "a walk can't reach it")
 	_check(state.validate({"type": "move", "unit": u.id, "serial": u.serial, "to": far, "sprint": true}) == "", "a sprint can")
+	_check(state.path_to(u, state.node_of(far), true).size() >= 2, "there is a path to a sprint's destination")
+	_check(state.path_to(u, state.node_of(far)).is_empty(), "and none within a walk's budget")
 	state.apply({"type": "move", "unit": u.id, "serial": u.serial, "to": far, "sprint": true})
 	_check(u.moved and u.acted, "a sprint uses the move and the action")
 	_check(state.validate({"type": "ability", "unit": u.id, "serial": u.serial, "slot": 0, "target": u.pos}) != "", "no ability after a sprint")
@@ -1539,6 +1541,30 @@ func _test_scenes() -> void:
 		for i in 5:
 			await process_frame
 		_check(scene.state.units.size() == 8 and scene.unit_views.size() == 8 and scene.hud != null, "battle scene (%s) builds" % mode)
+		if mode == "hotseat":
+			# Sprinting to a spot a walk couldn't reach: the unit has to end up
+			# there on screen too, not only in the rules.
+			var runner = scene.state.units[0]
+			runner.tg = GameState.TG_MAX - 1
+			for i in 6:
+				scene.state.apply({"type": "advance", "ticks": 1})
+			var reach: Dictionary = scene.state.reachable_nodes(runner)
+			var sprint_spot := Vector2.ZERO
+			for n in scene.state.reachable_nodes(runner, true):
+				if not reach.has(n):
+					sprint_spot = scene.state.node_pos(n)
+					break
+			_check(sprint_spot != Vector2.ZERO and runner.ready, "there is somewhere only a sprint reaches")
+			scene._apply({"type": "move", "unit": runner.id, "serial": runner.serial, "to": sprint_spot, "sprint": true})
+			# Headless frames run far faster than real time, and the walk is a
+			# tween over seconds, so wait on the clock rather than on frames.
+			var walk_until := Time.get_ticks_msec() + 3000
+			while Time.get_ticks_msec() < walk_until:
+				await process_frame
+			var view_at: Vector3 = scene.unit_views[runner.id].position
+			var should_be: Vector3 = scene.board.ground(runner.pos)
+			_check(runner.pos == sprint_spot, "the rules move the unit to the sprint's destination")
+			_check(view_at.distance_to(should_be) < 0.3, "and its model walks there (at %s, should be %s)" % [view_at, should_be])
 		if mode == "ai":
 			# Play every ability animation once; script errors show up in the log.
 			var view = scene.unit_views[0]
