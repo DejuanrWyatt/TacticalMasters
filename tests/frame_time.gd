@@ -38,8 +38,9 @@ func _initialize() -> void:
 			slow += 1
 			# What was going on: recent messages and units' states.
 			var log_lines := []
-			for line in battle.hud._log._lines.get_children().slice(-2):
-				log_lines.append(line.text)
+			for row in battle.hud._log._lines.get_children().slice(-2):
+				var line = row.get_node_or_null("Text")
+				log_lines.append(line.text if line != null else "")
 			var states := []
 			for u in battle.state.units:
 				states.append("%s%s%s%s" % [u.job.left(3), "R" if u.ready else "", "C" if u.is_casting() else "", "K" if u.is_ko() else ""])

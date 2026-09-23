@@ -114,7 +114,9 @@ func _build_pages() -> Array:
 			"On its turn a unit can [b]walk once[/b] and [b]use one ability[/b], in either order.\n\n"
 			+ "Press %s (Move is on by default): the blue area shows where it can walk; dots show the path. " % _key("move")
 			+ "Units walk around water, cliffs and enemies, and can climb at most 2 height levels at a time.\n\n"
-			+ "Press %s to end the turn early. Skipping the move or the ability keeps some TG, so the next turn comes sooner." % _key("end_turn")],
+			+ "[b]Sprint[/b] (%s) walks 125%% of the unit's Move, but it counts as its action: no ability that turn.\n\n" % _key("sprint")
+			+ "Press %s to end the turn early. Skipping the move or the ability keeps some TG, so the next turn comes " % _key("end_turn")
+			+ "sooner, and a turn that used no ability at all fills the gauge 25% faster until the next one."],
 		["Abilities and casting",
 			"Every job has 4 abilities (%s-%s). The 4th is an [b]Ultimate[/b]: it unlocks when the orange Ultimate bar is full "
 			% [_key("ability_1"), _key("ability_4")]
@@ -144,6 +146,8 @@ func _build_pages() -> Array:
 			+ "  [color=#c78cff]SIL Silence[/color]: can't use abilities, can still walk\n"
 			+ "  [color=#ff8f6b]TNT Taunt[/color]: must attack whoever taunted it, while that one is in reach\n\n"
 			+ "A status lasts a number of the unit's own [b]turns[/b]: it acts and counts down when that unit's turn comes.\n\n"
+			+ "[b]Engagement:[/b] an enemy engages the ground within 1.8 m of it. Walking in is free; stepping back "
+			+ "out costs 1 m of movement.\n\n"
 			+ "[b]The ground:[/b] embers burn and springs heal a unit that starts its turn on them; rocks can't be "
 			+ "walked through and hide what is behind them.\n\n"
 			+ "[b]Fog of war:[/b] you only see what your units can see."],

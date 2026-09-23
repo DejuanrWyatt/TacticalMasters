@@ -27,12 +27,14 @@ battle vs the computer. Its log is in `%APPDATA%\Godot\app_userdata\Tactical Mas
 |---|---|
 | Select one of your READY units | Click it, click its chip in the turn order bar, or press Tab |
 | Move | Space (on by default), then click inside the blue area. Dots show the path. |
+| Sprint | Shift, then click: walks 125% of the unit's Move, but counts as its action, so no ability that turn. |
 | Use ability 1-4 | 1-4, then click a unit **or the ground**. Orange rings show the range, the red circle shows the area hit. |
 | End the unit's turn | Enter |
 | Cancel | Esc |
 | Pause (not online) | P |
 | Chat (online) | T, type, Enter to send (Esc closes) |
-| Combat log | L or the Log button shows / hides it. Drag its title bar to move it, its corner to resize it; – collapses it. The cog opens its options: text size, text color and background opacity. It keeps the whole battle's messages (scroll up for older ones) and remembers its place. |
+| Combat log | L or the Log button shows / hides it. Drag its title bar to move it, its corner to resize it; – collapses it. Each line carries the icon of the unit it is about and is written in the color of what happened: damage, healing, buffs, debuffs, statuses, knock-outs and casting. The cog picks every one of those colors, the text size and the background opacity. It keeps the whole battle's messages (scroll up for older ones) and remembers its place. |
+| What an ability does | Hover its button: the description, type, shape, range, cast time and the damage or healing it would do appear above the action bar straight away. |
 | Everyone on the field | The **Field** button lists both teams: icon, health, statuses and whether each unit is ready. Click a row to pick that unit. |
 | What an enemy could do | Click it (or its chip): its stats card opens, and the ground it could walk to plus the reach of its longest attack are drawn in red. |
 | Unit Guide (stats, abilities, damage) | U, or the **Units** button. Also on the main menu. Pauses the game when not online. |
@@ -42,18 +44,22 @@ battle vs the computer. Its log is in `%APPDATA%\Godot\app_userdata\Tactical Mas
 These are the default keys. Every keyboard control can be rebound in **Options** (main menu, or Menu → Options in battle):
 click an action, then press a key. If another action already uses that key, the two swap. Bindings are saved between sessions.
 
-**Options → Game** also has master / music / sound-effect volume, camera speed, UI scale, fullscreen, and
-**colorblind team colors** (blue / orange). Settings are saved (`user://settings.cfg`). New players: **How to Play**
+**Options → Game** also has master / music / sound-effect volume, camera speed, UI scale, fullscreen,
+**colorblind team colors** (blue / orange), and **turn order as fixed squares** -- one square per unit instead of
+chips sliding along a bar: gold with a flashing border while that unit can act and its countdown drains, grey with a
+red meter filling from the bottom while its gauge refills. Settings are saved (`user://settings.cfg`). New players: **How to Play**
 (main menu or in-game menu) walks through the rules page by page.
 
 ## After the battle
 
-The victory screen shows each unit's **damage dealt and taken, healing, KOs, abilities used, critical hits and
-evasions**, per-team totals, how long the battle ran, and the **MVP** (which counts damage taken, not only damage
-dealt: the unit that stood in front counts too). **Rematch** replays the same map and teams; **Watch Replay** plays
+The victory screen shows each unit's **damage dealt, taken and avoided** (evaded or soaked by a Shield), **healing,
+KOs, abilities used, critical hits, evasions, and buffs and debuffs applied**, per-team totals, how long the battle
+ran, and the **MVP** (which counts damage taken, not only damage dealt: the unit that stood in front counts too).
+Sides are told apart by **color** rather than by the words Blue and Red. **Rematch** replays the same map and teams; **Watch Replay** plays
 the whole battle back (every order is recorded, and the rules are deterministic, so the replay is exact), with
 ×1 / ×2 / ×4 speed, a **scrub bar** to jump to any point (it is replayed from the start to get there, so it is still
-exact), **Step** for one order at a time and **Results** to skip to the end.
+exact), **Pause / Play**, **Back** to rewind one order, **Step** for one order at a time and **Results** to skip to
+the end.
 
 ## How it plays
 
@@ -75,8 +81,16 @@ exact), **Step** for one order at a time and **Results** to skip to the end.
   its stats, gauges, statuses and abilities. Allies show on the left, enemies on the right. Click it again, click the
   ground or press × to close. Hover the numbers for their calculations.
 - On its turn a unit can **walk once** (up to its Move in meters, around water, cliffs and enemies) and **use one ability**,
-  in either order. Skipping one keeps some TG, so the next turn comes sooner.
+  in either order. Skipping one keeps some TG, so the next turn comes sooner. A turn that used **no ability at all**
+  fills that unit's gauge **25% faster** until its next turn, so holding back is worth something.
+- **Sprint** (Shift, or the button) walks **125%** of the unit's Move but spends its action as well: distance instead
+  of a blow.
+- **Engagement:** every unit engages the ground within **1.8 m** of it. Walking into an enemy's reach is free, but
+  stepping back out of it costs **1 m** of movement, so a fight can't be left for nothing.
 - **Bars over every unit's head:** HP (green, red when low), TG (blue, gold when READY), Ultimate (orange, pale gold when full).
+- **At every unit's feet:** a filled circle in its **team's color** (its size is a Developer Tools slider), ringed by a
+  **dial** that fills as its turn comes round and empties while its countdown runs out (purple while casting, red in
+  the last five seconds).
 - **Cast times:** basic attacks, most melee and quick shots are **instant**. Stronger abilities take time to cast:
   0.5-1.5 s for abilities like Fire, Cure and Aimed Shot, and 2-4 s for Blizzard, Arrow Rain, Sanctuary and Meteor.
   A unit can move **before** casting, but not after. Only **instant** abilities let a unit move afterwards, so
@@ -102,6 +116,9 @@ exact), **Step** for one order at a time and **Results** to skip to the end.
 - **The ground itself:** **embers** burn a unit that starts its turn on them and **springs** heal one, both by 8% of
   its max HP (Developer Tools), and **rocks** can't be walked through and hide whatever is behind them. The
   **Ashfields** map is built around them.
+- **Planning stage** (Battle Setup, off by default): for 30, 60 or 90 seconds before anyone acts, each side may put
+  its units anywhere in its own spawn area. No gauge fills meanwhile. Click one of your units to see the ground you
+  may use, click there to place it, and **Ready** starts the battle early once both sides have said so.
 - **Winning:** by default the last team standing wins. Battle Setup can add a **time limit** (when it runs out the
   side with the greater share of its health left wins, and level shares are a **draw**) and **holding the middle**
   (stand alone inside the gold ring for 30 or 60 s). The line under the turn bars shows both. The in-game menu also
@@ -159,7 +176,8 @@ A host picks for both sides, and the joining player gets the same settings.
   of the hat; **Default** puts back the starting four.
 - **Saved teams:** name a team and **Save** it, then load it from the dropdown on either side later, or **Delete**
   it. They are kept in `user://teams.cfg`.
-- **Victory** and **Time** choose how the battle can end (see *How it plays*), and **Seed** repeats a battle exactly:
+- **Victory**, **Time** and **Planning** choose how the battle ends and whether it begins with a placing stage
+  (see *How it plays*), and **Seed** repeats a battle exactly:
   the same seed with the same teams plays out the same way. 0 means a new battle every time.
 
 | Map | What it's like |
