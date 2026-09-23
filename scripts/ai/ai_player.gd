@@ -208,7 +208,7 @@ func _score(u, slot: int, ab: Dictionary, hits: Array, state = null) -> float:
 		# A fresh status is worth more the longer it lasts, and most of all on a
 		# fast enemy that is about to act.
 		if ab.has("status") and t.is_alive() and not t.has_status(ab.status.id):
-			var worth: float = 20.0 if ab.status.id == "stun" else 10.0
+			var worth: float = {"stun": 20.0, "silence": 16.0, "root": 12.0, "shield": 14.0, "taunt": 10.0}.get(ab.status.id, 10.0)
 			if smart:
 				worth *= 0.6 + 0.4 * int(ab.status.turns)
 				if t.team != u.team:

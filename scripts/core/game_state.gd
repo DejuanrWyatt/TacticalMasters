@@ -695,6 +695,8 @@ func _schedule_before(a: Unit, b: Unit) -> bool:
 
 ## "" if the unit may use the ability now, otherwise why not.
 func ability_blocked_reason(u: Unit, slot: int) -> String:
+	if u.is_silenced():
+		return "%s is silenced." % u.job_name()
 	var kind: String = u.ability(slot).get("kind", "active")
 	if kind == "passive" or kind == "aura":
 		return "%s is always on." % u.ability(slot).name
@@ -965,6 +967,8 @@ func validate(cmd: Dictionary) -> String:
 		return "That order was for an earlier turn."
 	match type:
 		"move":
+			if u.is_rooted():
+				return "%s can't walk: %s." % [u.job_name(), Jobs.STATUSES.root.name]
 			if u.moved:
 				return "Already moved this turn."
 			if u.is_casting():
@@ -990,6 +994,12 @@ func validate(cmd: Dictionary) -> String:
 			var ab := u.ability(slot)
 			if needs_line_of_sight(ab) and not has_line_of_sight(u.pos, target):
 				return "No line of sight."
+			# Taunted: it has to go for whoever taunted it, while that one is in reach.
+			var taunter := get_unit(u.taunted_by())
+			if ab.effect == "damage" and taunter != null and taunter.is_alive() \
+					and in_ability_range(u, slot, u.pos, taunter.pos) \
+					and not in_shape(ab, u.pos, target, taunter.pos):
+				return "%s is taunted: it must attack %s %s." % [u.job_name(), TEAM_NAMES[taunter.team], taunter.job_name()]
 			var follow = cmd.get("follow", -1)
 			if not (follow is int):
 				return "Bad target."
@@ -1151,13 +1161,38 @@ func _apply_auras(u: Unit, result: Dictionary) -> void:
 				_add_status(u, ab.status.id, ab.status.turns)
 
 
+## A Shield soaks up damage first; returns what is left to take off its HP.
+func _take_from_shield(t: Unit, amount: int, result: Dictionary) -> int:
+	var kept: Array[Dictionary] = []
+	for s in t.statuses:
+		if amount > 0 and Jobs.STATUSES[s.id].get("absorbs", false):
+			var soaked: int = mini(int(s.get("amount", 0)), amount)
+			amount -= soaked
+			s["amount"] = int(s.get("amount", 0)) - soaked
+			if soaked > 0:
+				result.events.append({"pos": t.pos, "text": "-%d shield" % soaked, "color": Jobs.STATUSES[s.id].color})
+			if int(s.amount) <= 0:
+				result.logs.append("%s %s's %s breaks." % [TEAM_NAMES[t.team], t.job_name(), Jobs.STATUSES[s.id].name])
+				continue
+		kept.append(s)
+	t.statuses = kept
+	return amount
+
+
 ## Puts (or refreshes) a status on a unit for that many of its own turns.
-func _add_status(u: Unit, status_id: String, turns: int) -> void:
+func _add_status(u: Unit, status_id: String, turns: int, extra := {}) -> void:
 	for s in u.statuses:
 		if s.id == status_id:
 			s.turns = maxi(s.turns, turns)
+			# A new Shield adds to what is left; a new Taunt replaces who it follows.
+			if extra.has("amount"):
+				s["amount"] = int(s.get("amount", 0)) + int(extra.amount)
+			if extra.has("by"):
+				s["by"] = extra.by
 			return
-	u.statuses.append({"id": status_id, "turns": turns})
+	var status := {"id": status_id, "turns": turns}
+	status.merge(extra, true)
+	u.statuses.append(status)
 
 
 ## A unit drops to 0 HP: it's knocked out and can be revived for KO_SECONDS.
@@ -1354,6 +1389,8 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 			"damage":
 				if critical:
 					result.events.append({"pos": t.pos, "text": "CRIT!", "color": Color(1.0, 0.85, 0.3), "impact": true})
+				amount = _take_from_shield(t, amount, result)
+				resolved.amounts[-1] = amount
 				t.hp = maxi(0, t.hp - amount)
 				t.ult = mini(ULT_MAX, t.ult + roundi(amount * 100.0 / t.max_hp() * ULT_FROM_DAMAGE))
 				result.events.append({"pos": t.pos, "text": "-%d" % amount, "color": Color(1, 0.45, 0.35), "impact": true})
@@ -1377,7 +1414,12 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 				_knock_out(t, who, result)
 			continue
 		if ab.has("status"):
-			_add_status(t, ab.status.id, ab.status.turns)
+			var extra := {}
+			if Jobs.STATUSES[ab.status.id].get("taunt", false):
+				extra["by"] = u.id
+			if Jobs.STATUSES[ab.status.id].get("absorbs", false):
+				extra["amount"] = maxi(1, roundi(ab.power + u.stat("power")))
+			_add_status(t, ab.status.id, ab.status.turns, extra)
 			var info: Dictionary = Jobs.STATUSES[ab.status.id]
 			result.events.append({"pos": t.pos, "text": info.name, "color": info.color, "impact": true})
 		# TG changes only affect units still filling their gauge.

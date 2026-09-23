@@ -151,6 +151,40 @@ func tg_factor() -> float:
 
 
 ## Whether a status stops this unit from taking orders (stun).
+## Can't walk (Root).
+func is_rooted() -> bool:
+	return _status_flag("no_move")
+
+
+## Can't use abilities (Silence).
+func is_silenced() -> bool:
+	return _status_flag("no_abilities")
+
+
+func _status_flag(flag: String) -> bool:
+	for s in statuses:
+		if Jobs.STATUSES[s.id].get(flag, false):
+			return true
+	return false
+
+
+## The unit that taunted this one (it must attack that one), or -1.
+func taunted_by() -> int:
+	for s in statuses:
+		if Jobs.STATUSES[s.id].get("taunt", false):
+			return int(s.get("by", -1))
+	return -1
+
+
+## How much damage its Shield can still soak up.
+func shield_left() -> int:
+	var left := 0
+	for s in statuses:
+		if Jobs.STATUSES[s.id].get("absorbs", false):
+			left += int(s.get("amount", 0))
+	return left
+
+
 func is_stunned() -> bool:
 	for s in statuses:
 		if Jobs.STATUSES[s.id].get("no_orders", false):

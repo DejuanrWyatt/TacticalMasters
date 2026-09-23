@@ -22,6 +22,7 @@ extends RefCounted
 ##                       (assets/icons/<name>.svg; default the class id's icon,
 ##                       else a generic icon in the class color).
 ##   "revive"            optional: the ability revives a knocked-out ally.
+##   "taunt"             optional: the ability taunts whoever it hits.
 ##
 ## Astra's **ability type** becomes the game's kind (see Jobs.KINDS):
 ## Active, Passive, Toggle, Channeled, Active + Passive and Aura. A Channeled
@@ -45,9 +46,10 @@ extends RefCounted
 ##   buff_<stat>     a buff (e.g. buff_attdef); lasts buff_turns (default 2)
 ## Other fields: damageType Physical means AttDef and A-Eva resist it,
 ## anything else MagDef and M-Eva. targetTeam Enemies -> enemies, else allies.
-## Effects: Damage / Heal decide what it does (none -> support). Slow, Stun
-## and periodic Damage (Burn) / Heal (Regen) put a status on each unit hit,
-## lasting the effect's duration in *turns* of that unit.
+## Effects: Damage / Heal decide what it does (none -> support). Slow, Stun,
+## Shield, Root, Silence and periodic Damage (Burn) / Heal (Regen) put a
+## status on each unit hit, lasting the effect's duration in *turns* of that
+## unit. The tag "taunt" makes it a Taunt instead.
 ##
 ## Formulas use Astra's rules (numbers, + - * /, parentheses, postfix %,
 ## other parameter keys, Astra's sample stats and rank).
@@ -248,6 +250,9 @@ static func _ability(a: Dictionary, ultimate: bool) -> Dictionary:
 		match str(e.get("type", "")):
 			"Slow": status = "slow"
 			"Stun": status = "stun"
+			"Shield": status = "shield"
+			"Root": status = "root"
+			"Silence": status = "silence"
 			"Damage": status = "burn" if e.get("timing") == "Periodic" else ""
 			"Heal": status = "regen" if e.get("timing") == "Periodic" else ""
 		if status == "":
@@ -258,6 +263,8 @@ static func _ability(a: Dictionary, ultimate: bool) -> Dictionary:
 		if turns >= 1.0:
 			ab["status"] = {"id": status, "turns": clampi(roundi(turns), 1, 10)}
 			break
+	if a.tags.has("taunt") and not ab.has("status"):
+		ab["status"] = {"id": "taunt", "turns": clampi(roundi(v.get("status_duration", 2.0)), 1, 10)}
 	ab["fx"] = _fx(a, ab)
 	return ab
 

@@ -125,6 +125,7 @@ func _test_rules() -> void:
 	_test_target_shapes()
 	_test_roles_and_icons()
 	_test_victory_conditions()
+	_test_new_statuses()
 	_test_ko_and_raise()
 	_test_line_of_sight()
 
@@ -513,6 +514,55 @@ func _test_victory_conditions() -> void:
 		u.ko_ticks = 0
 	both._check_winner()
 	_check(both.winner == GameState.DRAW, "nobody left on either side is a draw")
+
+
+## Shield soaks damage, Root stops walking, Silence stops abilities, and a
+## taunted unit has to attack whoever taunted it.
+func _test_new_statuses() -> void:
+	var state := _new_state()
+	var hitter = state.units[4]
+	var victim = state.units[0]
+	_stage(state, hitter, victim, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
+
+	# Shield: damage comes off it first, and it breaks when used up.
+	state._add_status(victim, "shield", 3, {"amount": 12})
+	_check(victim.shield_left() == 12, "a Shield holds what it was given")
+	var hp_before: int = victim.hp
+	var expected: int = state.preview(hitter, 0, hitter.pos, victim.pos)[0].amount
+	state.apply({"type": "ability", "unit": hitter.id, "serial": hitter.serial, "slot": 0, "target": victim.pos})
+	if expected <= 12:
+		_check(victim.hp == hp_before and victim.shield_left() == 12 - expected, "a Shield soaks the whole hit")
+	else:
+		_check(victim.hp == hp_before - (expected - 12) and not victim.has_status("shield"), "a Shield soaks what it can, then breaks")
+
+	# Root: can't walk, can still act. Silence: the other way round.
+	var rooted := _new_state()
+	var u = rooted.units[0]
+	_force_ready(rooted, u)
+	var spot := rooted.snap(u.pos + Vector2(1, 0))
+	rooted._add_status(u, "root", 2)
+	_check(rooted.validate({"type": "move", "unit": u.id, "serial": u.serial, "to": spot}) != "", "a rooted unit can't walk")
+	_check(rooted.ability_blocked_reason(u, 0) == "", "a rooted unit can still use abilities")
+	u.statuses.clear()
+	rooted._add_status(u, "silence", 2)
+	_check(rooted.ability_blocked_reason(u, 0) != "", "a silenced unit can't use abilities")
+	_check(rooted.validate({"type": "move", "unit": u.id, "serial": u.serial, "to": spot}) == "", "a silenced unit can still walk")
+
+	# Taunt: it must attack the one that taunted it while that one is in reach.
+	var taunt := _new_state()
+	var angry = taunt.units[0]
+	var taunter = taunt.units[4]
+	var other = taunt.units[5]
+	_stage(taunt, angry, taunter, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
+	other.pos = Vector2(11.25, 11.25)
+	taunt._add_status(angry, "taunt", 2, {"by": taunter.id})
+	_check(taunt.validate({"type": "ability", "unit": angry.id, "serial": angry.serial, "slot": 0,
+		"target": other.pos, "follow": other.id}) != "", "a taunted unit can't attack someone else")
+	_check(taunt.validate({"type": "ability", "unit": angry.id, "serial": angry.serial, "slot": 0,
+		"target": taunter.pos, "follow": taunter.id}) == "", "a taunted unit can attack the one that taunted it")
+	taunter.pos = Vector2(20.25, 20.25)  # out of reach: it may hit anyone again
+	_check(taunt.validate({"type": "ability", "unit": angry.id, "serial": angry.serial, "slot": 0,
+		"target": other.pos, "follow": other.id}) == "", "out of reach, a taunt no longer holds")
 
 
 func _test_ko_and_raise() -> void:
@@ -1097,6 +1147,7 @@ func _test_stat_changes() -> void:
 func _test_dev_tools() -> void:
 	var config := root.get_node("GameConfig")
 	var saved: Dictionary = config.tuning.duplicate()
+	config.reset_tuning()  # start from the defaults, whatever was saved
 	var tools: Control = load("res://scripts/ui/dev_tools.gd").new()
 	tools.live = true
 	var sent: Array = []
@@ -1110,9 +1161,14 @@ func _test_dev_tools() -> void:
 	var tip: String = tools._sliders.wits_multiplier.tooltip_text
 	_check(tip.contains("Wits multiplier 1.5") and tip.contains("= "), "the slider tooltip shows the formula with the new value")
 	_check(tools._sliders.patience_multiplier.tooltip_text.contains("Patience"), "the Patience slider tooltip shows the countdown math")
-	for i in 30:
+	# The change is sent once the slider settles (DevTools.APPLY_DELAY), which
+	# is a time, not a number of frames.
+	for i in 2000:
+		if not sent.is_empty():
+			break
 		await process_frame
-	_check(sent.size() == 1 and sent[0].get("wits_multiplier") == 1.5, "a live battle gets the change once, after the slider settles")
+	_check(sent.size() == 1 and sent[0].get("wits_multiplier") == 1.5,
+		"a live battle gets the change once, after the slider settles (got %s, live=%s, pending=%s)" % [sent, tools.live, tools._pending])
 	tools._reset_all()
 	_check(config.tuning.is_empty(), "Reset all restores the defaults")
 	tools.queue_free()

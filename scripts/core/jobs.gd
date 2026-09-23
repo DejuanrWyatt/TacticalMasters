@@ -79,9 +79,13 @@ const SHAPES := {
 ## Status effects last a number of the affected unit's own turns. Each of its
 ## turns, the status acts and then counts down by one (so "2 turns" means its
 ## next two turns); Burn and Regen change HP at the start of that turn.
-##   per_turn    HP change as a fraction of max HP (negative = damage)
-##   tg_factor   multiplier on Turn Gauge filling (0 = frozen)
-##   no_orders   the unit can't be given orders while it lasts
+##   per_turn      HP change as a fraction of max HP (negative = damage)
+##   tg_factor     multiplier on Turn Gauge filling (0 = frozen)
+##   no_orders     the unit can't be given orders while it lasts
+##   no_move       the unit can't walk
+##   no_abilities  the unit can't use abilities
+##   absorbs       damage comes off the status's `amount` before its HP
+##   taunt         it must attack whoever gave it the status, while in reach
 const STATUSES := {
 	"burn": {"name": "Burn", "tag": "BRN", "color": Color(1.0, 0.5, 0.2), "per_turn": -0.1,
 		"desc": "Loses 10% of max HP at the start of each of its turns."},
@@ -91,6 +95,14 @@ const STATUSES := {
 		"desc": "Turn Gauge fills at half speed."},
 	"stun": {"name": "Stun", "tag": "STN", "color": Color(1.0, 0.9, 0.3), "no_orders": true,
 		"desc": "Loses its next turns: the gauge fills, but each turn is lost and the Stun counts down."},
+	"shield": {"name": "Shield", "tag": "SHD", "color": Color(0.6, 0.85, 1.0), "absorbs": true,
+		"desc": "Soaks up damage until it is used up (or its turns run out)."},
+	"root": {"name": "Root", "tag": "ROT", "color": Color(0.7, 0.55, 0.3), "no_move": true,
+		"desc": "Can't walk, but can still use abilities."},
+	"silence": {"name": "Silence", "tag": "SIL", "color": Color(0.8, 0.5, 0.9), "no_abilities": true,
+		"desc": "Can't use abilities, but can still walk."},
+	"taunt": {"name": "Taunt", "tag": "TNT", "color": Color(1.0, 0.6, 0.35), "taunt": true,
+		"desc": "Must attack whoever taunted it while that unit is in reach."},
 }
 
 const DEFAULT_ROSTER := ["knight", "archer", "black_mage", "white_mage"]
