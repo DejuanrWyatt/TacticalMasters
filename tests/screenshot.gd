@@ -21,11 +21,29 @@ func _initialize() -> void:
 	var args := OS.get_cmdline_user_args()
 	var out: String = args[0] if args.size() > 0 else "user://screenshot.png"
 	var seconds: float = args[1].to_float() if args.size() > 1 else 5.0
-	if args.has("menu") or args.has("setup") or args.has("options") or args.has("howto") or args.has("devtools") or args.has("editstats"):
+	if args.has("menu") or args.has("setup") or args.has("setupsize") or args.has("options") or args.has("howto") or args.has("devtools") or args.has("editstats"):
 		# Menu screens instead of a battle.
 		var menu: Node = load("res://scenes/main_menu.tscn").instantiate()
 		root.add_child(menu)
 		await process_frame
+		if args.has("setupsize"):
+			menu._open_setup("ai")
+			await process_frame
+			for i in 5:
+				await process_frame
+			var widest := 0.0
+			for b in menu.setup.find_children("*", "Button", true, false):
+				widest = maxf(widest, b.global_position.x + b.size.x)
+			for b in menu.setup.find_children("*", "OptionButton", true, false):
+				widest = maxf(widest, b.global_position.x + b.size.x)
+			var who := ""
+			for b in menu.setup.find_children("*", "Control", true, false):
+				if b.global_position.x + b.size.x >= widest - 0.5 and b is Button:
+					who = "%s '%s' at %s size %s" % [b.get_class(), b.text, b.global_position, b.size]
+			print("rightmost control ends at ", widest, " window ", root.get_viewport().size, " -> ", who)
+			print("setup size ", menu.setup.size, " min ", menu.setup.get_combined_minimum_size(),
+				" menu size ", menu.size, " min ", menu.get_combined_minimum_size(),
+				" viewport ", root.get_viewport().get_visible_rect().size)
 		if args.has("setup"):
 			menu._open_setup("cpu" if args.has("cpu") else "ai")
 			await process_frame

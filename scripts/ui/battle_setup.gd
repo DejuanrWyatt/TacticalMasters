@@ -80,10 +80,15 @@ func _ready() -> void:
 	start.add_theme_font_size_override("font_size", 16)
 	header.add_child(start)
 
+	var body_scroll := ScrollContainer.new()
+	body_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_child(body_scroll)
 	var body := HBoxContainer.new()
 	body.add_theme_constant_override("separation", 20)
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	column.add_child(body)
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body_scroll.add_child(body)
 
 	# Map picker.
 	var map_panel := PanelContainer.new()
@@ -130,31 +135,31 @@ func _ready() -> void:
 
 	if setup_mode == "ai" or setup_mode == "cpu":
 		teams_box.add_child(HSeparator.new())
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 10)
+		var row := HFlowContainer.new()
+		row.add_theme_constant_override("h_separation", 10)
+		row.add_theme_constant_override("v_separation", 6)
 		teams_box.add_child(row)
 		if setup_mode == "cpu":
 			_difficulty_blue = _difficulty_picker(row, "Blue computer", GameConfig.ai_difficulty_blue)
 		_difficulty = _difficulty_picker(row, "Red computer" if setup_mode == "cpu" else "Computer difficulty", GameConfig.ai_difficulty)
 	# How the battle can be won.
 	teams_box.add_child(HSeparator.new())
-	var rules := HBoxContainer.new()
-	rules.add_theme_constant_override("separation", 10)
+	var rules := HFlowContainer.new()
+	rules.add_theme_constant_override("h_separation", 10)
+	rules.add_theme_constant_override("v_separation", 6)
 	teams_box.add_child(rules)
 	_win_rule = _rule_picker(rules, "Victory", WIN_RULES, GameConfig.battle_tuning().get("capture_seconds", 0.0))
 	_time_limit = _rule_picker(rules, "Time", TIME_LIMITS, GameConfig.battle_tuning().get("battle_seconds", 0.0))
 	_planning = _rule_picker(rules, "Planning", PLANNING_TIMES, GameConfig.battle_tuning().get("planning_seconds", 0.0))
 	# A seed of 0 means a fresh battle every time; any other number plays out
 	# the same way again, which is how a battle can be repeated exactly.
-	var seed_label := Label.new()
-	seed_label.text = "Seed"
-	rules.add_child(seed_label)
+	var seed_pair := _labelled(rules, "Seed")
 	_seed_field = LineEdit.new()
-	_seed_field.custom_minimum_size = Vector2(110, 38)
+	_seed_field.custom_minimum_size = Vector2(120, 38)
 	_seed_field.placeholder_text = "0 = random"
 	_seed_field.tooltip_text = "The same seed and the same teams play out exactly the same battle. 0 picks a new one each time."
 	_seed_field.text = str(GameConfig.battle_seed_setting) if GameConfig.battle_seed_setting != 0 else ""
-	rules.add_child(_seed_field)
+	seed_pair.add_child(_seed_field)
 
 	var tip := Label.new()
 	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -168,30 +173,40 @@ func _ready() -> void:
 
 
 ## A picker over one of the rule lists above, starting on the saved value.
-func _rule_picker(row: HBoxContainer, text: String, entries: Array, current: float) -> OptionButton:
-	var label := Label.new()
-	label.text = text
-	row.add_child(label)
+func _rule_picker(row: Container, text: String, entries: Array, current: float) -> OptionButton:
+	var pair := _labelled(row, text)
 	var picker := OptionButton.new()
-	picker.custom_minimum_size = Vector2(210, 38)
+	picker.focus_mode = Control.FOCUS_NONE
+	picker.custom_minimum_size = Vector2(170, 38)
 	for i in entries.size():
 		picker.add_item(entries[i][0])
 		if is_equal_approx(float(entries[i][1]), current):
 			picker.select(i)
-	row.add_child(picker)
+	pair.add_child(picker)
 	return picker
 
 
-func _difficulty_picker(row: HBoxContainer, text: String, current: String) -> OptionButton:
+## A box holding one setting's name and the control that changes it, so the
+## two never get split across lines when the row wraps.
+func _labelled(row: Container, text: String) -> HBoxContainer:
+	var pair := HBoxContainer.new()
+	pair.add_theme_constant_override("separation", 6)
+	row.add_child(pair)
 	var label := Label.new()
 	label.text = text
-	row.add_child(label)
+	label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	pair.add_child(label)
+	return pair
+
+
+func _difficulty_picker(row: Container, text: String, current: String) -> OptionButton:
+	var pair := _labelled(row, text)
 	var picker := OptionButton.new()
 	picker.focus_mode = Control.FOCUS_NONE
 	for level in DIFFICULTIES:
 		picker.add_item(level.capitalize())
 	picker.select(maxi(0, DIFFICULTIES.find(current)))
-	row.add_child(picker)
+	pair.add_child(picker)
 	return picker
 
 

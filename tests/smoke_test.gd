@@ -130,6 +130,7 @@ func _test_rules() -> void:
 	_test_sprint_engage_hustle()
 	_test_log_entries()
 	_test_planning_stage()
+	await _test_menus_fit()
 	_test_new_statuses()
 	_test_ko_and_raise()
 	_test_line_of_sight()
@@ -805,6 +806,47 @@ func _test_planning_stage() -> void:
 
 	var straight := _new_state()
 	_check(not straight.is_planning(), "without planning time a battle starts fighting")
+
+
+## Nothing on the menu screens may run off the right-hand edge: the canvas is
+## a fixed width, so a control past it is simply cut off (as Battle Setup's
+## settings row was once it had four pickers on it).
+func _test_menus_fit() -> void:
+	var menu: Node = load("res://scenes/main_menu.tscn").instantiate()
+	root.add_child(menu)
+	await process_frame
+	var width: float = root.get_viewport().get_visible_rect().size.x
+	for screen in ["setup", "guide", "options", "how_to", "dev_tools"]:
+		match screen:
+			"setup":
+				menu._open_setup("ai")
+			"guide":
+				menu._open_guide()
+			"options":
+				menu._open_options()
+			"how_to":
+				menu._open_how_to()
+			"dev_tools":
+				menu._open_dev_tools()
+		for i in 4:
+			await process_frame
+		var panel: Node = menu.get(screen)
+		var widest := 0.0
+		var culprit := ""
+		for c in panel.find_children("*", "Control", true, false):
+			if not c.visible or not c.is_visible_in_tree():
+				continue
+			var right: float = c.global_position.x + c.size.x
+			if right > widest and (c is Button or c is OptionButton or c is LineEdit or c is SpinBox):
+				widest = right
+				culprit = "%s '%s'" % [c.get_class(), c.text if "text" in c else c.name]
+		_check(widest <= width, "%s fits the screen (%s ends at %d of %d)" % [screen, culprit, roundi(widest), roundi(width)])
+		if panel.has_method("close_setup"):
+			panel.close_setup()
+		else:
+			panel.hide()
+		await process_frame
+	menu.free()
 
 
 func _test_ko_and_raise() -> void:
