@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "93aaa4e0-9f9c-4532-8f6b-c78cfe512d98",
+      "id": "bac0f9b8-f39d-44cd-aacc-12be13848033",
       "name": "Ember Pugilist",
       "description": "Fast melee fighter, fire element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "82c7cb89-d18f-4c4f-91f3-cbf8fe37255e",
+          "id": "feb00357-7df5-4c18-8f64-3d7220e1c16b",
           "key": "hp",
           "name": "HP",
           "base": 82,
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "b1c0e921-84d0-4ba5-898c-0a095e79b0c1",
+          "id": "be910a35-2bc2-4de5-bafa-42d9f26ab218",
           "key": "power",
           "name": "Power",
-          "base": 16,
+          "base": 17,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "6204d548-42dc-45a4-8751-31a217c1a327",
+          "id": "25a2e0ff-e531-45c4-9a25-6bd60d1729d7",
           "key": "aeva",
           "name": "A-Eva",
           "base": 18,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "2f5b8bcc-76ae-417f-87a6-9ba16cb98882",
+          "id": "feb5af1c-d308-4524-a005-709824453880",
           "key": "meva",
           "name": "M-Eva",
           "base": 8,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "8e7ca354-0721-4ac5-b740-f9c4d9d3b4e2",
+          "id": "e8840fb3-2460-4529-9828-fba6c4a00c65",
           "key": "crit",
           "name": "Crit",
           "base": 12,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "e5687409-0e93-44e9-95bf-26c040b09931",
+          "id": "a485aa9d-bca9-4940-afc8-d541f2d58e55",
           "key": "attdef",
           "name": "AttDef",
           "base": 8,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "fa099191-32b2-4e37-b88b-158025c74523",
+          "id": "342d1d4d-f8e8-407e-a583-2b2c7be85558",
           "key": "magdef",
           "name": "MagDef",
           "base": 5,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "b726deea-0d8c-4334-850a-6b1aa32f1071",
+          "id": "779453c0-3ce0-41eb-86d0-5b45216b4627",
           "key": "wits",
           "name": "Wits",
           "base": 12,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "3a176635-5faa-475b-b22d-51ac8f0892cc",
+          "id": "40d8e453-ee45-4593-b752-2f6aaccad717",
           "key": "move",
           "name": "Move",
           "base": 8,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "f25d8f0f-524f-497c-945d-c60ecd77989a",
+          "id": "031ab388-6b39-49e8-bb1f-721710250a71",
           "key": "patience",
           "name": "Patience",
           "base": 5,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "ab23c42a-e7ca-4e20-b55c-67f0f5c974f2",
+          "id": "0ae9c5e6-cf03-4f88-99c5-49a29e1054cd",
           "key": "sight",
           "name": "Sight",
           "base": 9,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "d388bd63-8bb5-472d-a2b0-6d040d927c51",
+          "id": "1b890f29-d178-4006-985f-78a80e6f6d7e",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.207Z",
-      "updatedAt": "2026-09-23T05:05:02.209Z"
+      "createdAt": "2026-09-23T08:22:25.080Z",
+      "updatedAt": "2026-09-23T08:22:25.082Z"
     },
     {
-      "id": "73d3d62f-c499-4aba-a326-0ac2a076bcf1",
+      "id": "11969b6d-ebf7-4793-b49c-d01665b3d0fc",
       "name": "Flame Jab",
       "description": "Punch an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "3cd33cda-a8d4-4083-b7f4-64b7a4e2c192",
+          "id": "27888111-deb9-41e7-9f6e-6c8d39b9c650",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "3c091e4a-eb43-4d73-bdb1-1de6aef82016",
+          "id": "17b9e194-32de-47e0-b933-537fcf31d703",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.210Z",
-      "updatedAt": "2026-09-23T05:05:02.210Z"
+      "createdAt": "2026-09-23T08:22:25.082Z",
+      "updatedAt": "2026-09-23T08:22:25.082Z"
     },
     {
-      "id": "bb6c34c3-4f20-48f2-8f4c-3e5333755b11",
+      "id": "4dafe1c0-cbcd-4e96-b24a-846edfac930a",
       "name": "Flame Uppercut",
       "description": "A rising blow on an adjacent enemy; Burns for 2 turns.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "fbc04436-1ed3-4b7a-99b5-3236751873fb",
+          "id": "8c77e153-78a5-466e-9b5f-63034531ef0f",
           "key": "power",
           "name": "Power",
           "base": 27,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "0f74e1a6-a5a3-4ed4-8a19-f078cd89f0fc",
+          "id": "31d2e3ae-2acf-4a1b-8c62-b5e66892162d",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "d6713f2a-301e-4574-968d-75a08bcb41e9",
+          "id": "279e05bb-62b8-40a1-98d4-dd2033bd8609",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "9b0f7584-4b9e-442f-8d93-223262421f4a",
+          "id": "497b0328-02a3-4c25-9392-56b4bc468f51",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1024,7 +1024,7 @@
           "notes": ""
         },
         {
-          "id": "540e470b-f0d2-473c-a0eb-df07b1635b54",
+          "id": "edcda370-55f1-4c53-9e87-0298cf70db67",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1062,11 +1062,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.210Z",
-      "updatedAt": "2026-09-23T05:05:02.210Z"
+      "createdAt": "2026-09-23T08:22:25.082Z",
+      "updatedAt": "2026-09-23T08:22:25.082Z"
     },
     {
-      "id": "352e8126-a847-4104-b61c-ce7b922a13ce",
+      "id": "90975157-8d1e-457c-bee0-cea22e430ba6",
       "name": "Flame Stance",
       "description": "Take a fighting stance; Power +5 for 2 turns. Switched on and off.",
       "kind": "Toggle",
@@ -1091,7 +1091,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "6bb17e86-7c1c-4f2b-ad3c-500b6da1281c",
+          "id": "12ece1b1-af68-4611-98eb-d5eb78b5b21f",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "62abb31e-5a86-4608-9928-9e3027885258",
+          "id": "41d886f8-6c7a-4aad-b507-0399f5ad1a3f",
           "key": "buff_power",
           "name": "Buff Power",
           "base": 5,
@@ -1117,7 +1117,7 @@
       ],
       "effects": [
         {
-          "id": "f058fd59-ed22-4aac-a5a6-8d0e7d2fd668",
+          "id": "cd6f79cb-7fc6-4759-80b9-bd11fcdf513e",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1155,11 +1155,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.210Z",
-      "updatedAt": "2026-09-23T05:05:02.210Z"
+      "createdAt": "2026-09-23T08:22:25.082Z",
+      "updatedAt": "2026-09-23T08:22:25.082Z"
     },
     {
-      "id": "19c14c8c-6adb-421f-9e71-70e2f44fa845",
+      "id": "95bb4d37-9e45-4373-b455-00011014356d",
       "name": "Flame Fury",
       "description": "A flurry hitting every enemy within 2.5 m of you; Burns for 2 turns.",
       "kind": "Active",
@@ -1185,7 +1185,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "0bea0542-c369-47a4-b30a-3ee5a8c86f1f",
+          "id": "f957494b-52c7-4092-b2b4-541edd2bb7cb",
           "key": "power",
           "name": "Power",
           "base": 32,
@@ -1197,7 +1197,7 @@
           "overrides": {}
         },
         {
-          "id": "fd007f32-f191-45f9-a5fb-be7859311a7b",
+          "id": "bf79c907-d637-49c2-8457-acdf9c84bcef",
           "key": "radius",
           "name": "Radius",
           "base": 2.5,
@@ -1209,7 +1209,7 @@
           "overrides": {}
         },
         {
-          "id": "c43e3cdb-a487-45c4-a227-63ad4466061c",
+          "id": "d8419b1e-ae4c-40e1-89a6-ce6f71079e0a",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1223,7 +1223,7 @@
       ],
       "effects": [
         {
-          "id": "efbd7288-1c62-49fd-8c46-47d4598a6bf5",
+          "id": "bb581faf-23f1-4708-9195-8fcbac3612fe",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1236,7 +1236,7 @@
           "notes": ""
         },
         {
-          "id": "34395f7c-4722-497c-bbcc-e3308126fea9",
+          "id": "8635721e-96b0-4129-9324-a24a20b23b12",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1274,8 +1274,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.210Z",
-      "updatedAt": "2026-09-23T05:05:02.210Z"
+      "createdAt": "2026-09-23T08:22:25.082Z",
+      "updatedAt": "2026-09-23T08:22:25.082Z"
     }
   ]
 }

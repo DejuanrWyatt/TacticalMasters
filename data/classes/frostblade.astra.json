@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "efbc0805-0cf9-4294-80e0-32289354f3ba",
+      "id": "7313f9cf-f97c-47d9-b115-cc8ee58b46dc",
       "name": "Frostblade",
       "description": "Melee fighter with blade magic, ice element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "68d47a20-ccdd-4cbb-97e1-1e92e202136a",
+          "id": "99b0cc10-1b55-46a4-8c66-15086b93867c",
           "key": "hp",
           "name": "HP",
           "base": 95,
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "597e7b9b-a186-4724-b23e-e5c842119941",
+          "id": "96cdccbe-4af2-4aa2-bd1e-adb71f8f3f44",
           "key": "power",
           "name": "Power",
-          "base": 15,
+          "base": 13,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "e12b7e06-ee04-461e-a864-6133e7c8a79b",
+          "id": "f644da01-4433-417c-9928-17fac2979a94",
           "key": "aeva",
           "name": "A-Eva",
           "base": 10,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "a4728791-b9f2-4068-8482-fe0664fd6d58",
+          "id": "58bf3346-fd90-42e8-a9e8-c53450b05cab",
           "key": "meva",
           "name": "M-Eva",
           "base": 10,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "3bcf936d-fdd9-481b-a53e-3f7a347cb4f7",
+          "id": "1d9365ba-4d45-4aab-9912-3519477cc9ff",
           "key": "crit",
           "name": "Crit",
           "base": 12,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "68dbfc8b-6665-4395-82b1-9bb965c756a2",
+          "id": "7ecf7ff0-2a20-4cf7-96c5-4ecc0e722b10",
           "key": "attdef",
           "name": "AttDef",
           "base": 10,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "12c4fa1c-f9ab-49fb-8a06-f961f1bb244e",
+          "id": "94229014-eb2b-43e4-84e7-732ab6ac8c90",
           "key": "magdef",
           "name": "MagDef",
           "base": 11,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "bfd03241-da8b-4338-be78-fd7e8e75669b",
+          "id": "10a766c4-c260-4631-811b-d0b8a5bf8ffb",
           "key": "wits",
           "name": "Wits",
           "base": 8,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "06b0fcae-030e-442e-a3eb-5fd33445d93c",
+          "id": "d9334d6a-3f61-4ed5-829e-e4fb3e8f6ebf",
           "key": "move",
           "name": "Move",
           "base": 7,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "2a8042cd-d5bf-4a08-965c-49553645e224",
+          "id": "ccf857d7-42a9-4a65-8770-796943ccf668",
           "key": "patience",
           "name": "Patience",
           "base": 6,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "50c6e405-a540-490f-9c87-6dbb0e87e472",
+          "id": "3b99087b-2c05-4ea8-b1df-d7dc6ff4b11f",
           "key": "sight",
           "name": "Sight",
           "base": 9,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "29bb693a-c29c-4a4d-b08b-1abf03887b3c",
+          "id": "7635e59c-d3e5-4f33-b9df-ba4b56874c8e",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.229Z",
-      "updatedAt": "2026-09-23T05:05:02.229Z"
+      "createdAt": "2026-09-23T08:22:25.100Z",
+      "updatedAt": "2026-09-23T08:22:25.100Z"
     },
     {
-      "id": "1e9d9505-8e56-4cca-9d87-b71738c3879b",
+      "id": "09f6ce28-37a9-4620-8c39-6f21fddd623c",
       "name": "Frost Slash",
       "description": "Cut an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "ef4c1e3b-3c12-49d3-bddc-b7743a4de75d",
+          "id": "fa52ffac-6b40-4ff5-8869-4c8d1af6f9d1",
           "key": "power",
           "name": "Power",
           "base": 18,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "8c687033-60d8-41c3-a631-2011f60f425b",
+          "id": "a75b9852-b81c-483d-826b-ca17fc74cf4d",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.229Z",
-      "updatedAt": "2026-09-23T05:05:02.229Z"
+      "createdAt": "2026-09-23T08:22:25.100Z",
+      "updatedAt": "2026-09-23T08:22:25.100Z"
     },
     {
-      "id": "494ceef8-cedc-4445-9ca9-9fe713275fb3",
+      "id": "1c7ead69-9383-4275-987e-7a61ef068428",
       "name": "Frost Edge",
       "description": "A spell-charged cut on an adjacent enemy; Slows for 2 turns.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "3a9888bd-2681-4bb0-ba0b-4532a17a013b",
+          "id": "5d728735-2013-4c0d-bb6e-524d290a55d6",
           "key": "power",
           "name": "Power",
           "base": 25,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "c07c28de-0c01-4027-8701-c7e11f3af040",
+          "id": "3ce554d6-ffdc-4355-bef6-f6c5d838125c",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "9578afda-7add-41f9-9338-d2c54c1f07fc",
+          "id": "fbac2728-3377-4ef6-a03b-049483188bd6",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "568b1d6e-dc81-450b-af3e-0d36e6639ae3",
+          "id": "075798a3-4dbb-4b5b-9fcf-33e658d72ed7",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1024,7 +1024,7 @@
           "notes": ""
         },
         {
-          "id": "c2cf1ccf-cc12-44f3-bbf8-466a5288e7aa",
+          "id": "14d5f226-f9d7-4bb6-919f-1d4ba5c495b3",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1062,11 +1062,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.229Z",
-      "updatedAt": "2026-09-23T05:05:02.229Z"
+      "createdAt": "2026-09-23T08:22:25.100Z",
+      "updatedAt": "2026-09-23T08:22:25.100Z"
     },
     {
-      "id": "6598af05-8934-4a38-898d-28182b6feea3",
+      "id": "b2d2f573-27b9-45d4-89df-776ddfa56fbc",
       "name": "Frost Lance",
       "description": "A spear of magic through everyone in a line up to 7 m. (1 s)",
       "kind": "Active",
@@ -1091,7 +1091,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "749e693d-f14c-4a4d-a0e5-46d5ec22e7f7",
+          "id": "de300354-3d65-4d81-9977-fa58e7672432",
           "key": "power",
           "name": "Power",
           "base": 13,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "c3ac93dc-196f-441f-9668-5df188a526ec",
+          "id": "c9ebe724-2bfa-4aae-8164-e4ef83c6da0e",
           "key": "min_range",
           "name": "Min range",
           "base": 2,
@@ -1115,7 +1115,7 @@
           "overrides": {}
         },
         {
-          "id": "b84dd6cb-004b-4bf5-9a8b-c99c630d8b17",
+          "id": "35a3bf48-b72f-4a3b-8958-1beccd39f9b6",
           "key": "cast_range",
           "name": "Cast range",
           "base": 7,
@@ -1127,7 +1127,7 @@
           "overrides": {}
         },
         {
-          "id": "2a9fee26-6d09-428c-8025-fb80b86c6030",
+          "id": "838c2c05-4dad-4564-b46e-6ea96e8a13f2",
           "key": "radius",
           "name": "Radius",
           "base": 0.7,
@@ -1139,7 +1139,7 @@
           "overrides": {}
         },
         {
-          "id": "38cb1e80-b49b-4b79-85c7-a2647026a627",
+          "id": "d3e0fa1e-fbde-4b92-813e-cf6cccd6bd77",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1153,7 +1153,7 @@
       ],
       "effects": [
         {
-          "id": "25e29f5e-0a5d-465f-b07f-487d166f11c3",
+          "id": "6ae4631e-aa8e-4293-8153-5417620487bc",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1191,11 +1191,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.229Z",
-      "updatedAt": "2026-09-23T05:05:02.229Z"
+      "createdAt": "2026-09-23T08:22:25.100Z",
+      "updatedAt": "2026-09-23T08:22:25.100Z"
     },
     {
-      "id": "241dfe13-b6f7-432b-8233-b298f2b206ad",
+      "id": "1067180f-2688-4b74-b7ae-b33476f70960",
       "name": "Frost Maelstrom",
       "description": "Blade magic hits every enemy within 2.5 m of you; Slows for 2 turns. (1 s)",
       "kind": "Active",
@@ -1221,7 +1221,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "a6325f61-5fbc-4372-ac4f-dccee74e9b9a",
+          "id": "ab9ac509-6400-4d2b-8ddc-83883b0671a5",
           "key": "power",
           "name": "Power",
           "base": 29,
@@ -1233,7 +1233,7 @@
           "overrides": {}
         },
         {
-          "id": "eed15981-9c3b-49ff-bf25-04412db28568",
+          "id": "7bdf9238-2875-439f-aa7f-d8d0a4f7af0f",
           "key": "radius",
           "name": "Radius",
           "base": 2.5,
@@ -1245,7 +1245,7 @@
           "overrides": {}
         },
         {
-          "id": "2fdd5cfc-eba9-44a7-80d7-75de5b4e0e41",
+          "id": "58522616-e94c-46b6-923e-d4862b642934",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1257,7 +1257,7 @@
           "overrides": {}
         },
         {
-          "id": "bae3a609-c942-4cf5-9682-fc15411f85bb",
+          "id": "8e8e3dc9-2d9e-42dc-9e88-28393b4603e4",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1271,7 +1271,7 @@
       ],
       "effects": [
         {
-          "id": "e253fd35-2e2a-4ce5-a543-0d4691d2b2c4",
+          "id": "cb595f2b-7f01-495a-b555-909efe94e407",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1284,7 +1284,7 @@
           "notes": ""
         },
         {
-          "id": "c51ff613-f559-4cfb-8371-f84c5711e152",
+          "id": "794cb714-ec3d-4dd9-be62-612c3c9c481d",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1322,8 +1322,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.229Z",
-      "updatedAt": "2026-09-23T05:05:02.229Z"
+      "createdAt": "2026-09-23T08:22:25.100Z",
+      "updatedAt": "2026-09-23T08:22:25.100Z"
     }
   ]
 }

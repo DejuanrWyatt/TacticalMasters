@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "4aea1451-f45b-4a5c-98ee-fe3c31d74089",
+      "id": "b319d543-0da0-4a01-b54e-ca4be8da9add",
       "name": "Temple Fist",
       "description": "Fast melee fighter, holy element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "68e2730d-9321-4a24-8fac-cee688c224c0",
+          "id": "1a3456fc-6e71-4eb6-bcfe-6bcd8f756473",
           "key": "hp",
           "name": "HP",
           "base": 84,
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "fbc3e609-8217-4f20-a25b-76e825924a44",
+          "id": "4c0e74c6-5753-4453-8015-15ff3ec6a581",
           "key": "power",
           "name": "Power",
-          "base": 16,
+          "base": 17,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "a65969b2-f649-45dd-8966-aa22328b07d2",
+          "id": "b7680cdf-1f79-48f0-ab29-8eb5b5ea1dda",
           "key": "aeva",
           "name": "A-Eva",
           "base": 18,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "a45cda71-abbf-4051-990a-b79ad3d2505c",
+          "id": "0c2fe574-5d90-4057-968e-98c3663bac67",
           "key": "meva",
           "name": "M-Eva",
           "base": 8,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "f42e64dc-8476-4a27-983d-44900e2f3be3",
+          "id": "fc71c83d-2f30-42ed-a5a1-8a387271709c",
           "key": "crit",
           "name": "Crit",
           "base": 12,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "9f9e4f5b-4481-4596-b07e-39fb84a11bd4",
+          "id": "4809ee89-fee0-474f-a98a-c2d70a54a47c",
           "key": "attdef",
           "name": "AttDef",
           "base": 8,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "2b826cb1-bbd1-4539-a319-eb84b8b06980",
+          "id": "8b04edb5-eb02-4e3b-bace-867ab8200748",
           "key": "magdef",
           "name": "MagDef",
           "base": 8,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "e45a2663-a256-46b6-bf29-68ca359062a2",
+          "id": "542d3eb2-ab13-4cfe-b59e-fe69e4b6df18",
           "key": "wits",
           "name": "Wits",
           "base": 12,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "200ab67e-1cd7-43f9-8ef5-541dd27e54ba",
+          "id": "567a99ef-4817-49e1-a684-b556d3d2e8ab",
           "key": "move",
           "name": "Move",
           "base": 8,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "256060ca-53cb-4523-b4ef-2cd3114baf66",
+          "id": "11f7047a-b683-407b-8460-34349914eacf",
           "key": "patience",
           "name": "Patience",
           "base": 5,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "5c3bca33-912c-4b31-9c23-ef7e55152c5d",
+          "id": "ecb47b58-f10b-48c1-82a4-e8ea05fd5c92",
           "key": "sight",
           "name": "Sight",
           "base": 9,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "ac5d9284-0304-41aa-b291-04365caa7986",
+          "id": "3a620220-c328-486e-ad01-60b90dd8cb5e",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     },
     {
-      "id": "41eb4540-fd0a-457e-957a-6cd87d931903",
+      "id": "2593fd0d-aa97-495e-9f93-f4cfc18c4489",
       "name": "Holy Jab",
       "description": "Punch an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "4b27b53f-ff3d-4557-92db-023bd1270fef",
+          "id": "bef0e99e-e523-4e71-9a16-f81bb4c990cc",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "81584cc1-aca2-4e22-b097-5742c7bbebd9",
+          "id": "8c79c7c1-0adf-4e18-90a9-5cd75b50d975",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.213Z",
-      "updatedAt": "2026-09-23T05:05:02.213Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     },
     {
-      "id": "ce4da2f9-fea4-4a15-b580-8902fdf41fcf",
+      "id": "20f53e40-9c24-4e2e-be1c-c0a3530c2d11",
       "name": "Holy Uppercut",
       "description": "A rising blow on an adjacent enemy.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "904475df-b8df-4cc3-a2f6-d9a9703401db",
+          "id": "ddbc7555-aa8f-463c-8ed5-e966c829fe22",
           "key": "power",
           "name": "Power",
           "base": 29.7,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "455c3aeb-fe0b-4ccf-9c73-ba5c326385f9",
+          "id": "b073bc4f-b607-480c-ac28-4bce2d9e25a2",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -999,7 +999,7 @@
       ],
       "effects": [
         {
-          "id": "63e104f6-3e6c-4c33-98ad-b016349e8857",
+          "id": "38348892-9a37-4aa1-9c0b-4046c95dc1ea",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1037,11 +1037,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.213Z",
-      "updatedAt": "2026-09-23T05:05:02.213Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     },
     {
-      "id": "c2ec4fc4-5cfa-4869-89e2-78462f8091b0",
+      "id": "aea1d5fb-6e81-495e-a27f-51583a43a7f0",
       "name": "Holy Stance",
       "description": "Take a fighting stance; AttDef +4, MagDef +4 for 2 turns. Switched on and off.",
       "kind": "Toggle",
@@ -1066,7 +1066,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "eb89e809-dafc-4cbd-98ed-dbbed946cd99",
+          "id": "7784a70f-4717-4fa8-9b7b-8d30b24b3bc9",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1078,7 +1078,7 @@
           "overrides": {}
         },
         {
-          "id": "5dc5f438-6a9a-499e-975d-c6a399365375",
+          "id": "1c913b2c-b61e-40f9-8beb-eb9623cb7a19",
           "key": "buff_attdef",
           "name": "Buff AttDef",
           "base": 4,
@@ -1090,7 +1090,7 @@
           "overrides": {}
         },
         {
-          "id": "54d34bc1-164a-498d-9a07-88827f25c7e6",
+          "id": "1407d197-955e-40d5-8f93-8073cb168e62",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": 4,
@@ -1104,7 +1104,7 @@
       ],
       "effects": [
         {
-          "id": "1929f69d-97c5-4430-aa83-402f528c1e5d",
+          "id": "93c569e6-443f-4ffd-b59b-3053d5e97c6d",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1142,11 +1142,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.213Z",
-      "updatedAt": "2026-09-23T05:05:02.213Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     },
     {
-      "id": "8dcad680-1a04-48c0-84eb-5310f296effe",
+      "id": "0c802a55-0e83-4da1-a20f-27cb698edf12",
       "name": "Holy Fury",
       "description": "A flurry hitting every enemy within 2.5 m of you.",
       "kind": "Active",
@@ -1172,7 +1172,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "dbbfed78-c72c-40e1-9744-4971befa1fb7",
+          "id": "b86e711b-cfea-4f6b-a77d-86a07e1a4917",
           "key": "power",
           "name": "Power",
           "base": 35.2,
@@ -1184,7 +1184,7 @@
           "overrides": {}
         },
         {
-          "id": "196a3cf2-13a1-4ae6-ac67-8a3418ac9a7c",
+          "id": "0cb7f76a-fdf8-4555-9c32-b80b8c0192d3",
           "key": "radius",
           "name": "Radius",
           "base": 2.5,
@@ -1198,7 +1198,7 @@
       ],
       "effects": [
         {
-          "id": "0ee318d7-408d-487e-9fc8-5404ebb794f4",
+          "id": "ec2c617b-219b-4849-8400-6dfcedf322aa",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1236,8 +1236,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.213Z",
-      "updatedAt": "2026-09-23T05:05:02.213Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     }
   ]
 }

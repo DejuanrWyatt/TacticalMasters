@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "49f93ad5-79ff-4383-9288-23393b8c4d1a",
+      "id": "b83b245a-e7e8-4a97-9ab6-da86f5fa2f3f",
       "name": "Frost Mender",
       "description": "Healer who revives, ice element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "ee5833f6-1470-41c7-85f5-b315676f80d7",
+          "id": "40d44ebb-13db-4956-bace-10872305af40",
           "key": "hp",
           "name": "HP",
-          "base": 75,
+          "base": 71,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "07f04e45-48f5-43c5-9b2d-b7db5b959ca1",
+          "id": "dd24514a-e31f-4803-ae4a-23111021eb9a",
           "key": "power",
           "name": "Power",
-          "base": 17,
+          "base": 15,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "9c7cc29b-44be-4d9d-8781-e35bdc06d416",
+          "id": "2d3054e9-7438-4811-b32f-5c4deb480fbd",
           "key": "aeva",
           "name": "A-Eva",
           "base": 5,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "98fe8bd5-5663-4ca1-8443-dd960baf9ef7",
+          "id": "96834bca-7f1d-406c-9d4b-a58c4a6acee7",
           "key": "meva",
           "name": "M-Eva",
           "base": 16,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "e1c182be-7bb2-4913-94b2-51e80e64ce36",
+          "id": "4546510e-6ea0-4d02-8458-b12873363cb7",
           "key": "crit",
           "name": "Crit",
           "base": 5,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "a6420c34-734f-489a-b547-c4afeca808d7",
+          "id": "e8793d8c-2777-40a3-b529-b3a46e817d81",
           "key": "attdef",
           "name": "AttDef",
           "base": 5,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "0790c35b-e109-4b50-99e2-7d34b0ab89b9",
+          "id": "dd7a3fbf-9cb5-4935-86cc-81db76a3a2e8",
           "key": "magdef",
           "name": "MagDef",
           "base": 15,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "96168066-628f-41a2-b5f7-477678bbbcb2",
+          "id": "7906180b-6e5b-4e48-bd94-4748d2b0e405",
           "key": "wits",
           "name": "Wits",
           "base": 6,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "90d9a7cf-216f-4865-968b-644b9cfa7e28",
+          "id": "00aa6238-077d-4e12-b517-0a17be13b7a8",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "900c952f-7518-489e-bee6-d857719d9ebf",
+          "id": "410e1892-3d29-4427-8556-4ffa580f89f2",
           "key": "patience",
           "name": "Patience",
           "base": 8,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "b401aae8-50d1-44f1-86f9-704b8cf054a8",
+          "id": "100676b3-d2d7-48d8-920a-924032730b0e",
           "key": "sight",
           "name": "Sight",
           "base": 10,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "dba788aa-2ffd-4b7a-b3fe-6741456e4a99",
+          "id": "7672be7e-b70e-4e18-a31c-261764390291",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.223Z",
-      "updatedAt": "2026-09-23T05:05:02.223Z"
+      "createdAt": "2026-09-23T08:22:25.095Z",
+      "updatedAt": "2026-09-23T08:22:25.095Z"
     },
     {
-      "id": "15a6d3f6-1422-469e-a2c5-f440f2859755",
+      "id": "e349fea7-a042-4304-912b-091cac67ac9c",
       "name": "Frost Rod",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "979d2be7-f1df-4536-bd36-e3c4d3feda62",
+          "id": "4298f915-deb9-4de3-aca9-01333d3b7061",
           "key": "power",
           "name": "Power",
           "base": 9,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "d21344d8-3f3e-4038-ad59-f789e421751b",
+          "id": "315f51be-c984-4751-a17b-ed63c75d0b40",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.223Z",
-      "updatedAt": "2026-09-23T05:05:02.223Z"
+      "createdAt": "2026-09-23T08:22:25.095Z",
+      "updatedAt": "2026-09-23T08:22:25.095Z"
     },
     {
-      "id": "97a41a67-6a4e-4bcd-befa-800d2c68b969",
+      "id": "d00b9cad-f64d-40b5-83e1-d8f1cdf9cca6",
       "name": "Frost Mend",
       "description": "Heal an ally up to 6 m away. (1 s)",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "fd88470a-9f93-4ba1-85bb-0c5aa7a07171",
+          "id": "9abc35f6-ce6a-45e5-ab86-7934f5cb0bbd",
           "key": "power",
           "name": "Power",
           "base": 7,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "f1b1b9f3-73d3-4557-900a-9e755cea2d84",
+          "id": "4888a4d0-4c73-4271-bb89-aaa83e285506",
           "key": "cast_range",
           "name": "Cast range",
           "base": 6,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "5b344664-36db-4d7a-be98-95f49c74c709",
+          "id": "df166e21-711d-46d0-bf1a-95f925eed872",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "8e5b34b7-e06b-4e54-a27a-754b4fa07c10",
+          "id": "8e578f53-b254-4283-9afd-5b809782abe1",
           "name": "Heal",
           "type": "Heal",
           "trigger": "On hit",
@@ -1049,11 +1049,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.223Z",
-      "updatedAt": "2026-09-23T05:05:02.223Z"
+      "createdAt": "2026-09-23T08:22:25.095Z",
+      "updatedAt": "2026-09-23T08:22:25.095Z"
     },
     {
-      "id": "c810dc51-45df-45db-8bfc-b6e329b6720d",
+      "id": "29b225cc-f565-4a52-a016-4ec0e3531fa3",
       "name": "Frost Rebirth",
       "description": "Revive a knocked-out ally up to 5 m away with 30% HP. (2 s)",
       "kind": "Active",
@@ -1079,7 +1079,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "76a00b56-8d95-42a9-80d8-502176577982",
+          "id": "24561967-7d0c-4532-9a77-11365ed50e08",
           "key": "power",
           "name": "Power",
           "base": 0.3,
@@ -1091,7 +1091,7 @@
           "overrides": {}
         },
         {
-          "id": "71b66ec9-a509-4a6a-8ac0-baab62bfd263",
+          "id": "995d4f72-580a-46ae-a3bf-4d99ec023345",
           "key": "cast_range",
           "name": "Cast range",
           "base": 5,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "319045b0-a546-4870-9d07-63931bcd0080",
+          "id": "5877d058-99fc-405f-a45f-ced72e6679fb",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1115,7 +1115,7 @@
           "overrides": {}
         },
         {
-          "id": "ebe2c93d-deba-4158-af21-7032733688c8",
+          "id": "5892ef84-1b81-4226-ae41-4dc5dfbc1116",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 4,
@@ -1129,7 +1129,7 @@
       ],
       "effects": [
         {
-          "id": "80d9a807-13a4-406c-b544-f7f2bc4f2593",
+          "id": "514bda7a-c698-42f8-bdac-9d003b5aeb0e",
           "name": "Heal",
           "type": "Heal",
           "trigger": "On hit",
@@ -1167,11 +1167,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.223Z",
-      "updatedAt": "2026-09-23T05:05:02.223Z"
+      "createdAt": "2026-09-23T08:22:25.095Z",
+      "updatedAt": "2026-09-23T08:22:25.095Z"
     },
     {
-      "id": "85b0c916-d969-493f-8fd8-ad1cff30b3d2",
+      "id": "531d3da5-72c9-4a32-8d7e-6ce251d1226d",
       "name": "Frost Sanctuary",
       "description": "Heal every ally within 3.5 m of a point up to 8 m away; Regen for 3 turns. (3 s)",
       "kind": "Active",
@@ -1197,7 +1197,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "e2b81a72-3dcf-4538-a389-6ce27854269f",
+          "id": "28200f85-2c08-4eb3-a5c1-d670906b71bb",
           "key": "power",
           "name": "Power",
           "base": 12,
@@ -1209,7 +1209,7 @@
           "overrides": {}
         },
         {
-          "id": "557510f8-6538-469e-8e43-e3188147df29",
+          "id": "72a247a6-dabc-4bd7-8cac-179ab5666903",
           "key": "cast_range",
           "name": "Cast range",
           "base": 8,
@@ -1221,7 +1221,7 @@
           "overrides": {}
         },
         {
-          "id": "65567b5b-36e3-40d7-a02e-a17312716115",
+          "id": "91e67854-e5ee-4083-a134-d4de5a1e4097",
           "key": "radius",
           "name": "Radius",
           "base": 3.5,
@@ -1233,7 +1233,7 @@
           "overrides": {}
         },
         {
-          "id": "14334d19-be4a-493b-a703-3ce6dc230348",
+          "id": "88833bb4-3269-4833-8a8c-7e2b4481cb2a",
           "key": "cast_time",
           "name": "Cast time",
           "base": 3,
@@ -1245,7 +1245,7 @@
           "overrides": {}
         },
         {
-          "id": "dca210fd-b25c-49de-aca1-c658fe7b0a17",
+          "id": "3c04e66e-bf17-405f-9358-4f420a5810c2",
           "key": "status_duration",
           "name": "Status turns",
           "base": 3,
@@ -1259,7 +1259,7 @@
       ],
       "effects": [
         {
-          "id": "edc646fe-a79c-4d7a-a5f6-0452c9fe2d30",
+          "id": "5ff29ef8-e39d-4e21-8493-f5b628b57d13",
           "name": "Heal",
           "type": "Heal",
           "trigger": "On hit",
@@ -1297,8 +1297,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.223Z",
-      "updatedAt": "2026-09-23T05:05:02.223Z"
+      "createdAt": "2026-09-23T08:22:25.095Z",
+      "updatedAt": "2026-09-23T08:22:25.095Z"
     }
   ]
 }

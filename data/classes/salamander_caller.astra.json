@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "c9b109a4-af51-47e9-a10f-1e197abd6f9c",
+      "id": "f5e425c1-5620-4895-b289-a87328c0e381",
       "name": "Salamander Caller",
       "description": "Slow caster of huge summons, fire element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "782a4d3a-c190-46c3-8b22-8ee416057be7",
+          "id": "7ee6c46f-e7b0-4020-ac90-9007b23a2d13",
           "key": "hp",
           "name": "HP",
-          "base": 73,
+          "base": 67,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "c0725b77-8153-43ba-b563-9045e57679d4",
+          "id": "dbb1b64f-ad08-4b1d-bd60-fe93812fd3fb",
           "key": "power",
           "name": "Power",
-          "base": 21,
+          "base": 19,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "8c04ca9a-8f37-4feb-b492-ca05002a66de",
+          "id": "53f7bd19-580c-40d7-8cb8-4fd69763189a",
           "key": "aeva",
           "name": "A-Eva",
           "base": 5,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "2c57d6bd-76e8-4cae-9eda-12874476e076",
+          "id": "141c1dc7-0388-4f12-a533-6ae4bc99622d",
           "key": "meva",
           "name": "M-Eva",
           "base": 14,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "fa3651a6-1557-42bb-bbbd-735376b92f64",
+          "id": "27fe37ea-3c05-4ca0-abd9-57dd7735af0b",
           "key": "crit",
           "name": "Crit",
           "base": 10,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "2c580b7c-3597-43fa-934b-9bf1edae82ee",
+          "id": "5a00bba4-d9b1-430f-b3cf-5c68a745b50d",
           "key": "attdef",
           "name": "AttDef",
           "base": 4,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "0ecfde55-fee3-4495-aab2-9d13fba6a232",
+          "id": "acf7d890-4649-4be7-970f-74a8a9284288",
           "key": "magdef",
           "name": "MagDef",
           "base": 11,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "1e4cf9a2-f3fe-4821-8cb0-d1497fafbbc8",
+          "id": "1f1e2912-1a2c-4576-b63c-ea16724c1bfa",
           "key": "wits",
           "name": "Wits",
           "base": 6,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "0f87a9cf-d45c-4d4c-9f03-eff3eee4e2d3",
+          "id": "41bf708e-ff2b-4c74-b149-f4d0a393c381",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "f3d7e138-121c-4b53-9cd0-98d8b5c340c7",
+          "id": "1402e162-cd9c-4bea-8dd0-91384f231091",
           "key": "patience",
           "name": "Patience",
           "base": 9,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "dd4d54c7-a3a3-460f-8a2f-fbd6a0251abf",
+          "id": "a94bfa93-eb50-45f8-9e73-a5d43ba3b12a",
           "key": "sight",
           "name": "Sight",
           "base": 10,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "5c8101dc-384d-4b7c-bb9c-660b4f2eea34",
+          "id": "3101d07c-0ed8-4c56-9bb0-9de7b2e7707e",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.227Z",
-      "updatedAt": "2026-09-23T05:05:02.227Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     },
     {
-      "id": "d2847331-cb54-4f44-90a0-9ab3f62304e2",
+      "id": "3731974d-10e3-4ea3-a493-334026d0c0d9",
       "name": "Flame Rod",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "9193336d-144d-49e6-ba60-3cd9d28eb7e7",
+          "id": "90279680-be67-4c8b-9d19-3a8bd1882060",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "6f037acd-279b-4be4-b046-7ce90b6b8870",
+          "id": "ff3cfbcf-4f8e-4cec-a342-2f9f8ed15030",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.227Z",
-      "updatedAt": "2026-09-23T05:05:02.227Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     },
     {
-      "id": "1c038b8d-df11-40b2-a9e1-a4e3bf0c5a73",
+      "id": "3eae9353-8dc4-4aa8-ba68-1dc0bed6e6cd",
       "name": "Summon Salamander",
       "description": "The Salamander strikes every enemy within 2 m of a point 3-9 m away; Burns for 2 turns. (2 s)",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "10933b1d-451e-4b39-ba0a-eac2e4631bf5",
+          "id": "ccedb4c4-7918-4c73-8b8b-865fff07cf4c",
           "key": "power",
           "name": "Power",
           "base": 27,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "0e50aa12-ce97-4b3b-add6-4cde8c7ce1e8",
+          "id": "6c6a4be4-43ce-44e4-bb23-1bc642b6b130",
           "key": "min_range",
           "name": "Min range",
           "base": 3,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "b7300e65-3d12-4d5d-8281-c2f8001a31a7",
+          "id": "a8abaf47-eebc-4262-80fd-3e8389cf99e2",
           "key": "cast_range",
           "name": "Cast range",
           "base": 9,
@@ -1009,7 +1009,7 @@
           "overrides": {}
         },
         {
-          "id": "184e907d-955c-4f5f-9b81-b8d372811f89",
+          "id": "da312aa3-f63f-4c44-8012-29646f778b66",
           "key": "radius",
           "name": "Radius",
           "base": 2,
@@ -1021,7 +1021,7 @@
           "overrides": {}
         },
         {
-          "id": "c6ef9319-a435-45a8-95dd-43d2c0f0dfcb",
+          "id": "322e750c-cd8c-47ce-89c4-5d6835eb744b",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1033,7 +1033,7 @@
           "overrides": {}
         },
         {
-          "id": "0845b899-64ca-4928-9769-38c6aa7c1e6d",
+          "id": "0c19bfdb-06b3-4f3d-9d65-c0926b8c9c5b",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -1045,7 +1045,7 @@
           "overrides": {}
         },
         {
-          "id": "9e0ccea9-9bde-459a-b5b1-6f7f24ddd7e0",
+          "id": "ca601282-ab7a-43a0-875a-34e6b02e8189",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1059,7 +1059,7 @@
       ],
       "effects": [
         {
-          "id": "f4a38725-c395-487a-ad05-1098b6a9d174",
+          "id": "8ba8644f-2408-4212-adba-c6cd7f24d4a7",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1072,7 +1072,7 @@
           "notes": ""
         },
         {
-          "id": "752fba88-a3de-4110-be24-a8f851300198",
+          "id": "8a0fd3a1-046d-4e96-9746-b58317499b98",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1110,11 +1110,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.227Z",
-      "updatedAt": "2026-09-23T05:05:02.227Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     },
     {
-      "id": "ec985886-fff0-4865-87e0-6e611e0746c3",
+      "id": "37f7f384-1b6d-4e6d-bc14-4481226fc9d5",
       "name": "Salamander Pact",
       "description": "Bless every ally within 3 m of a point up to 6 m away; Power +5 for 2 turns. (1 s)",
       "kind": "Active",
@@ -1139,7 +1139,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "d7b63376-d062-4042-944d-7264f8589e6a",
+          "id": "aed0c52d-630b-456d-8125-e8d4df74f6fb",
           "key": "cast_range",
           "name": "Cast range",
           "base": 6,
@@ -1151,7 +1151,7 @@
           "overrides": {}
         },
         {
-          "id": "0d095ad3-5406-444b-b29f-424d4c24d0e6",
+          "id": "065c593e-050c-4730-9f89-e7c8b8036446",
           "key": "radius",
           "name": "Radius",
           "base": 3,
@@ -1163,7 +1163,7 @@
           "overrides": {}
         },
         {
-          "id": "62bc4e54-7d3c-4a01-8c8c-f77998bb5737",
+          "id": "eebe233a-91e7-4c2b-815b-8f78c2ab7b5b",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1175,7 +1175,7 @@
           "overrides": {}
         },
         {
-          "id": "b3e07825-2cec-4ad3-af61-cb555ebf98ee",
+          "id": "d1cec16c-7c2d-4aa1-aa76-a1e76fe14b8a",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 3,
@@ -1187,7 +1187,7 @@
           "overrides": {}
         },
         {
-          "id": "689f9740-a9de-45a2-a563-32506001049d",
+          "id": "b1f3d9ba-a32a-46ae-8a79-2da053736390",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1199,7 +1199,7 @@
           "overrides": {}
         },
         {
-          "id": "2da1e555-d2cc-40fe-856f-5d4de7360e04",
+          "id": "3b4d67b5-3684-4dc5-bdbf-f2dc597e0599",
           "key": "buff_power",
           "name": "Buff Power",
           "base": 5,
@@ -1213,7 +1213,7 @@
       ],
       "effects": [
         {
-          "id": "984b40e2-ccf3-48fb-97c0-6b93578a66d0",
+          "id": "d2e6ba1e-9564-4bf7-9452-0d7680887d0b",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1251,11 +1251,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     },
     {
-      "id": "99d160cb-a33b-4653-a4da-79641fd17583",
+      "id": "5e27292c-7813-44ef-a43d-ef3b2cb0b453",
       "name": "Salamander Ascendant",
       "description": "Every enemy within 4 m of a point 4-11 m away; Burns for 2 turns. (4 s)",
       "kind": "Active",
@@ -1281,7 +1281,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "9e89f5c7-013e-48fc-a2ca-dd8bbfeb78a0",
+          "id": "70c49af8-aa88-429a-8716-94c10945014b",
           "key": "power",
           "name": "Power",
           "base": 42,
@@ -1293,7 +1293,7 @@
           "overrides": {}
         },
         {
-          "id": "3977ad25-c194-4ae6-a1b9-e3b2563f65f6",
+          "id": "b8c4d89e-826e-4882-904e-4547815d1dc1",
           "key": "min_range",
           "name": "Min range",
           "base": 4,
@@ -1305,7 +1305,7 @@
           "overrides": {}
         },
         {
-          "id": "def40974-1aa7-43ac-ac96-507037b570a4",
+          "id": "66d359b3-8158-4c34-a9ab-1b865347fd8e",
           "key": "cast_range",
           "name": "Cast range",
           "base": 11,
@@ -1317,7 +1317,7 @@
           "overrides": {}
         },
         {
-          "id": "10de9f96-a626-4b3c-87de-f38efd05f603",
+          "id": "da857f86-1030-4f42-81eb-175aca590be5",
           "key": "radius",
           "name": "Radius",
           "base": 4,
@@ -1329,7 +1329,7 @@
           "overrides": {}
         },
         {
-          "id": "10ba0b5d-23c1-4743-ba42-525b91a7f151",
+          "id": "8b01603d-a35c-4b9c-b45a-7aa63e98677e",
           "key": "cast_time",
           "name": "Cast time",
           "base": 4,
@@ -1341,7 +1341,7 @@
           "overrides": {}
         },
         {
-          "id": "177eddf4-8088-4193-a6bb-0cfbd3f4ddbd",
+          "id": "de656400-d020-4d34-85e2-4963d3c6459e",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1355,7 +1355,7 @@
       ],
       "effects": [
         {
-          "id": "bcd84472-76e5-41fd-ac82-caa1757981ff",
+          "id": "75b01946-02bf-4760-8753-155736c228a5",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1368,7 +1368,7 @@
           "notes": ""
         },
         {
-          "id": "a0e2f66e-e2a5-4cd3-b33a-db51fd2b94a7",
+          "id": "c598fc6c-2926-4ddf-a998-f26a0e3aa979",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1406,8 +1406,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     }
   ]
 }

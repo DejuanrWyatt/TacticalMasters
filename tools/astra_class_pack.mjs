@@ -8,9 +8,19 @@
 //
 // Numbers come from each role's template (sized against the built-in jobs);
 // the element adjusts stats a little and adds its effect to the key abilities.
-// The templates were last checked against tests/balance.gd (8 seeded games per
-// class): damage roles were trimmed, and the roles that hold a line or keep
-// the team going were raised, since those two families sat far apart.
+//
+// Measured 2026-09-23 with tests/balance.gd (8 seeded games per class, three
+// elements per role), as the average health margin against the reference team
+// -- 0 would mean "as good as the Black Mage it replaces":
+//   ranger +47  assassin +34  brawler -26  spellblade -25  cleric -40
+//   summoner -43  minstrel -43  guardian -48  hexer -50  sorcerer -66
+// So the pack as a whole is weaker than the built-in six, physical damage far
+// outweighs magic, and the roles that hold a line or keep a team going are
+// well behind. A pass of +-1 to +-3 Power and +-4 HP was tried and measured
+// worse: the response isn't monotonic (one Power off a Ranger *raised* its
+// margin by 21), because a stat crossing a threshold changes what the AI does
+// with it. Whatever is tried next wants to be a large, deliberate change --
+// ability Power, not class Power -- measured by margin, one role at a time.
 import {newAbility, parameter, effect, validateAbility} from 'file:///E:/Astra-Ability%20Creator/app/model.mjs';
 import {writeFile, mkdir} from 'node:fs/promises';
 
@@ -48,25 +58,25 @@ const ELEMENTS = {
 // a blurb for the class description, and its base stats.
 const ROLES = {
   brawler: {role: 'damage', look: 'monk', physical: true, names: ['Ember Pugilist', 'Frost Brawler', 'Thunder Fist', 'Stone Fist', 'Gale Dancer', 'Tide Brawler', 'Temple Fist', 'Shade Brawler', 'Thorn Brawler'],
-    blurb: 'Fast melee fighter', stats: {hp: 92, power: 16, aeva: 18, meva: 8, crit: 12, attdef: 8, magdef: 6, wits: 10, move: 8, patience: 5, sight: 9}},
+    blurb: 'Fast melee fighter', stats: {hp: 92, power: 17, aeva: 18, meva: 8, crit: 12, attdef: 8, magdef: 6, wits: 10, move: 8, patience: 5, sight: 9}},
   guardian: {role: 'tank/support', look: 'knight', physical: true, names: ['Flame Warden', 'Glacier Guard', 'Storm Bulwark', 'Mountain Sentinel', 'Sky Warden', 'Reef Guardian', 'Templar', 'Dread Knight', 'Oakheart'],
-    blurb: 'Tank who shields allies', stats: {hp: 112, power: 16, aeva: 6, meva: 8, crit: 5, attdef: 13, magdef: 9, wits: 7, move: 6, patience: 8, sight: 8}},
+    blurb: 'Tank who shields allies', stats: {hp: 108, power: 14, aeva: 6, meva: 8, crit: 5, attdef: 13, magdef: 9, wits: 7, move: 6, patience: 8, sight: 8}},
   assassin: {role: 'damage', look: 'squire', physical: true, names: ['Cinder Blade', 'Frost Stalker', 'Volt Striker', 'Sand Viper', 'Wind Dancer', 'Tidecutter', 'Inquisitor', 'Shadow Stalker', 'Venom Fang'],
-    blurb: 'Quick melee killer', stats: {hp: 80, power: 14, aeva: 22, meva: 10, crit: 17, attdef: 8, magdef: 7, wits: 11, move: 8, patience: 5, sight: 10}},
+    blurb: 'Quick melee killer', stats: {hp: 84, power: 16, aeva: 24, meva: 10, crit: 20, attdef: 8, magdef: 7, wits: 11, move: 8, patience: 5, sight: 10}},
   ranger: {role: 'damage', look: 'archer', physical: true, names: ['Flame Archer', 'Frost Ranger', 'Storm Archer', 'Stone Slinger', 'Wind Archer', 'Harpooner', 'Sun Archer', 'Night Hunter', 'Beast Hunter'],
-    blurb: 'Long-range physical damage', stats: {hp: 72, power: 14, aeva: 15, meva: 8, crit: 18, attdef: 6, magdef: 7, wits: 10, move: 7, patience: 6, sight: 13}},
+    blurb: 'Long-range physical damage', stats: {hp: 72, power: 15, aeva: 15, meva: 8, crit: 18, attdef: 6, magdef: 7, wits: 10, move: 7, patience: 6, sight: 13}},
   sorcerer: {role: 'damage', look: 'black_mage', physical: false, names: ['Pyromancer', 'Cryomancer', 'Stormcaller', 'Terramancer', 'Aeromancer', 'Hydromancer', 'Lumimancer', 'Necromancer', 'Druid'],
     blurb: 'Area magic damage', stats: {hp: 64, power: 18, aeva: 5, meva: 14, crit: 12, attdef: 4, magdef: 12, wits: 8, move: 6, patience: 8, sight: 10}},
   cleric: {role: 'support', look: 'white_mage', physical: false, names: ['Phoenix Priest', 'Frost Mender', 'Spark Medic', 'Earthmother', 'Wind Shaman', 'Tide Priest', 'Saint', 'Blood Cleric', 'Herbalist'],
-    blurb: 'Healer who revives', stats: {hp: 70, power: 17, aeva: 5, meva: 16, crit: 5, attdef: 5, magdef: 13, wits: 8, move: 6, patience: 8, sight: 10}},
+    blurb: 'Healer who revives', stats: {hp: 66, power: 15, aeva: 5, meva: 16, crit: 5, attdef: 5, magdef: 13, wits: 8, move: 6, patience: 8, sight: 10}},
   minstrel: {role: 'support', look: 'squire', physical: false, names: ['War Drummer', 'Winter Skald', 'Thunder Herald', 'Stone Chanter', 'Piper', 'Siren', 'Cantor', 'Dirge Singer', 'Sylvan Muse'],
-    blurb: 'Speeds up and buffs allies', stats: {hp: 78, power: 16, aeva: 10, meva: 12, crit: 8, attdef: 6, magdef: 10, wits: 10, move: 6, patience: 7, sight: 11}},
+    blurb: 'Speeds up and buffs allies', stats: {hp: 74, power: 13, aeva: 10, meva: 12, crit: 8, attdef: 6, magdef: 10, wits: 10, move: 6, patience: 7, sight: 11}},
   hexer: {role: 'special', look: 'black_mage', physical: false, names: ['Ash Witch', 'Frost Witch', 'Arc Warlock', 'Dust Hexer', 'Tempest Hexer', 'Sea Witch', 'Exorcist', 'Warlock', 'Plague Doctor'],
-    blurb: 'Weakens and puts enemies to sleep', stats: {hp: 76, power: 18, aeva: 6, meva: 18, crit: 10, attdef: 5, magdef: 13, wits: 9, move: 6, patience: 9, sight: 11}},
+    blurb: 'Weakens and puts enemies to sleep', stats: {hp: 72, power: 17, aeva: 6, meva: 18, crit: 10, attdef: 5, magdef: 13, wits: 9, move: 6, patience: 9, sight: 11}},
   summoner: {role: 'damage/support', look: 'black_mage', physical: false, names: ['Salamander Caller', 'Yeti Caller', 'Thunderbird Caller', 'Golem Master', 'Roc Caller', 'Leviathan Caller', 'Seraph Caller', 'Lich Caller', 'Treant Caller'],
-    blurb: 'Slow caster of huge summons', stats: {hp: 68, power: 21, aeva: 5, meva: 14, crit: 10, attdef: 4, magdef: 12, wits: 7, move: 6, patience: 9, sight: 10}},
+    blurb: 'Slow caster of huge summons', stats: {hp: 62, power: 19, aeva: 5, meva: 14, crit: 10, attdef: 4, magdef: 12, wits: 7, move: 6, patience: 9, sight: 10}},
   spellblade: {role: 'tank/damage', look: 'knight', physical: false, names: ['Blazeblade', 'Frostblade', 'Stormblade', 'Earthshaker', 'Windblade', 'Tideblade', 'Crusader', 'Hexblade', 'Thornblade'],
-    blurb: 'Melee fighter with blade magic', stats: {hp: 95, power: 15, aeva: 10, meva: 10, crit: 12, attdef: 10, magdef: 9, wits: 9, move: 7, patience: 6, sight: 9}},
+    blurb: 'Melee fighter with blade magic', stats: {hp: 95, power: 13, aeva: 10, meva: 10, crit: 12, attdef: 10, magdef: 9, wits: 9, move: 7, patience: 6, sight: 9}},
 };
 const ELEMENT_ORDER = ['fire', 'ice', 'lightning', 'earth', 'wind', 'water', 'holy', 'shadow', 'nature'];
 

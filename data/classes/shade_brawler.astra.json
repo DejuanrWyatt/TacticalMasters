@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "1b97721c-6c45-4d86-8d29-8760d700ebeb",
+      "id": "6edd5227-77a1-4dfe-9a3a-2f2518d0e4b8",
       "name": "Shade Brawler",
       "description": "Fast melee fighter, shadow element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "2ac984e6-dbdb-40d3-bc41-2918264e3f70",
+          "id": "c3e7404d-2cc6-4a08-8a5a-ba69f4381f9d",
           "key": "hp",
           "name": "HP",
           "base": 82,
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "7ba574d2-c691-432f-b80b-c2c1c407d306",
+          "id": "52d1f34e-5fe1-405d-8ff9-dd8872ff69e5",
           "key": "power",
           "name": "Power",
-          "base": 16,
+          "base": 17,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "27a46174-d270-4308-97ae-d8c177cdbc9e",
+          "id": "bc088921-eaf4-4506-bd2e-dfb69acc19be",
           "key": "aeva",
           "name": "A-Eva",
           "base": 18,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "d5b4c662-f623-47a5-a929-8f90ed37e1ba",
+          "id": "6accab33-dde5-464d-a899-3ecec4ff9718",
           "key": "meva",
           "name": "M-Eva",
           "base": 11,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "70feef91-00d4-4266-bac8-9db34d020961",
+          "id": "cb32b1dd-4189-4115-bf1d-6648249ab6bf",
           "key": "crit",
           "name": "Crit",
           "base": 14,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "07953104-2f3e-4160-b6f0-0dee9a525fb5",
+          "id": "a29acb7f-0862-4899-bed4-c4312937df17",
           "key": "attdef",
           "name": "AttDef",
           "base": 7,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "75942f57-8719-4d7f-8456-84d8c013f9e7",
+          "id": "06dbfb92-cc62-4b2a-858d-10d2e138e4a5",
           "key": "magdef",
           "name": "MagDef",
           "base": 6,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "32ff7222-f681-4a95-9be8-85c921574b4e",
+          "id": "6f07b453-fd29-4dc6-8b1b-ce033b712a94",
           "key": "wits",
           "name": "Wits",
           "base": 12,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "3d46d567-5c57-4370-8dad-5b78dd9eab22",
+          "id": "b5ad4ad3-9cef-4306-a7f5-b3498e3f11ac",
           "key": "move",
           "name": "Move",
           "base": 8,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "6d8f92c4-98c1-4f1b-8690-88c82a9851ae",
+          "id": "20282c2e-860b-4632-ba10-d41c08f83111",
           "key": "patience",
           "name": "Patience",
           "base": 5,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "46e0e17d-6a9c-4f68-8aa2-ea184eb6076a",
+          "id": "a6d993d3-9c6b-4890-9e6e-36abc58a4ccf",
           "key": "sight",
           "name": "Sight",
           "base": 9,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "77cdd98f-a96e-4ba3-9e26-375afb6d7da4",
+          "id": "bc355140-7a5b-4ab0-853e-7b5e45b65993",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.213Z",
-      "updatedAt": "2026-09-23T05:05:02.213Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     },
     {
-      "id": "ada9555c-e40e-45fa-a6a9-a1c023666bf8",
+      "id": "b63f3738-ae76-4313-b8da-ec240718bc52",
       "name": "Shadow Jab",
       "description": "Punch an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "df9133fe-e6cd-4cff-9879-fd701d6877c6",
+          "id": "e83d1581-e3e2-4f47-a149-9f5192d59847",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "a853a755-d35a-4dc7-a20a-c675efa138d9",
+          "id": "584497f4-7cdf-4f05-97ec-4ee54ffd95c5",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.213Z",
-      "updatedAt": "2026-09-23T05:05:02.213Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     },
     {
-      "id": "2388b108-f901-49de-a2c2-9b1f9dec3cbd",
+      "id": "edb0aa9a-dcd3-4831-a455-dcf1e8eaf34b",
       "name": "Shadow Uppercut",
       "description": "A rising blow on an adjacent enemy; MagDef -6, AttDef -3 for 2 turns.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "ace9b6e9-c51a-4b58-ab25-5526dcc165cc",
+          "id": "1615d7e7-28db-44eb-8413-3fdc3cc80600",
           "key": "power",
           "name": "Power",
           "base": 27,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "b6235a7d-57e6-4029-89c6-7feb2cd864b8",
+          "id": "61abe8ba-c3cc-417f-9f6e-8453aec6a8c7",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "66197cfc-b01d-472f-a8b4-1e8a7cd17228",
+          "id": "d8a271b9-0bc9-493a-bd97-2f3fd7011dcc",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": -6,
@@ -1009,7 +1009,7 @@
           "overrides": {}
         },
         {
-          "id": "1018cd1b-3eac-44a1-a815-265c30c3d49b",
+          "id": "36548286-beda-4db8-96d7-1a0735401e72",
           "key": "buff_attdef",
           "name": "Buff AttDef",
           "base": -3,
@@ -1021,7 +1021,7 @@
           "overrides": {}
         },
         {
-          "id": "c748289b-e422-49f2-bb6f-5f75c8eb6d4d",
+          "id": "3b8e4a1b-5380-4e99-a1ff-21512b21a029",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1035,7 +1035,7 @@
       ],
       "effects": [
         {
-          "id": "b4af980b-157b-4506-8658-791c78a2fa7f",
+          "id": "505b78fa-4242-4da9-90e4-1cb5d4a48b0b",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1048,7 +1048,7 @@
           "notes": ""
         },
         {
-          "id": "04c23ea8-5f17-42b1-bf62-e1f143ab67b6",
+          "id": "9ad6e1cb-7eeb-4ca0-89ef-57028e86aae7",
           "name": "Debuff",
           "type": "Debuff",
           "trigger": "On hit",
@@ -1086,11 +1086,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.213Z",
-      "updatedAt": "2026-09-23T05:05:02.213Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     },
     {
-      "id": "52832302-aa6a-4c8c-8b01-cb30d4f8b575",
+      "id": "3fe60ecc-3411-4c41-af07-693293426ffb",
       "name": "Shadow Stance",
       "description": "Take a fighting stance; Power +4 for 2 turns. Switched on and off.",
       "kind": "Toggle",
@@ -1115,7 +1115,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "666d4270-e557-4aa5-9249-b54d32395c44",
+          "id": "127bf2b2-cc16-4b05-98eb-b580bcee8c5d",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1127,7 +1127,7 @@
           "overrides": {}
         },
         {
-          "id": "9cf692eb-3278-481e-8bf4-02074d69828e",
+          "id": "1b2c03af-0709-41f7-85a4-1a463df8654d",
           "key": "buff_power",
           "name": "Buff Power",
           "base": 4,
@@ -1141,7 +1141,7 @@
       ],
       "effects": [
         {
-          "id": "8e63ebae-0b63-4ad5-9164-e84cb0e79593",
+          "id": "a1a49733-30c6-450e-b92a-2e7ed9aa034a",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1179,11 +1179,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.213Z",
-      "updatedAt": "2026-09-23T05:05:02.213Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     },
     {
-      "id": "e9ea2dae-6712-442b-b72b-fe6a2e0e0241",
+      "id": "9379c37b-6480-496a-90b5-17cdeaee595b",
       "name": "Shadow Fury",
       "description": "A flurry hitting every enemy within 2.5 m of you; MagDef -6, AttDef -3 for 2 turns.",
       "kind": "Active",
@@ -1209,7 +1209,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "05da9289-1ac0-4786-b558-580b4c38a5db",
+          "id": "3ceceb69-df7d-41e0-9f68-74e65acb397b",
           "key": "power",
           "name": "Power",
           "base": 32,
@@ -1221,7 +1221,7 @@
           "overrides": {}
         },
         {
-          "id": "18fb3e7b-4e52-4f0c-8c37-734b2f8ef2e1",
+          "id": "3fa78a9a-a6e7-4663-9afd-151b1ac10fd1",
           "key": "radius",
           "name": "Radius",
           "base": 2.5,
@@ -1233,7 +1233,7 @@
           "overrides": {}
         },
         {
-          "id": "842668b5-2bd6-4ed1-81b9-c1fdca615dd5",
+          "id": "1add019e-271d-4349-9e4c-abb526d30d6f",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": -6,
@@ -1245,7 +1245,7 @@
           "overrides": {}
         },
         {
-          "id": "cf2ceb33-2981-410a-b8e9-55a59d25b07a",
+          "id": "9924ed02-984c-42ba-abcc-053185dc6023",
           "key": "buff_attdef",
           "name": "Buff AttDef",
           "base": -3,
@@ -1257,7 +1257,7 @@
           "overrides": {}
         },
         {
-          "id": "98ef5617-685a-4b24-b22d-5cb61ac2d370",
+          "id": "374b65bc-cad6-4506-b61f-ce26146fcfe0",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1271,7 +1271,7 @@
       ],
       "effects": [
         {
-          "id": "55bf0d10-1000-4c47-8684-be0fcae14be4",
+          "id": "1046c26e-5db0-4277-8bbc-010782db46a1",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1284,7 +1284,7 @@
           "notes": ""
         },
         {
-          "id": "a02efed1-d003-402b-81b9-63b52d86dad6",
+          "id": "a4df91ac-b1b8-4094-b2c0-938b6b360ce9",
           "name": "Debuff",
           "type": "Debuff",
           "trigger": "On hit",
@@ -1322,8 +1322,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.213Z",
-      "updatedAt": "2026-09-23T05:05:02.213Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     }
   ]
 }

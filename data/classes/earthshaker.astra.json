@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "4a18bcdc-3984-4d3c-b90d-53b8cb91695d",
+      "id": "a4f1ad89-bc34-4f01-979a-d1dee8ecedd2",
       "name": "Earthshaker",
       "description": "Melee fighter with blade magic, earth element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "c3a5e1bc-1edc-4731-9177-be0ac62f80f3",
+          "id": "b9a35800-e26f-4498-9994-366f9b6acf98",
           "key": "hp",
           "name": "HP",
           "base": 98,
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "92f49281-2bfd-492f-b545-ebe4ea6476ca",
+          "id": "a4ecfd88-bfe8-458e-a9f1-919d1d6cf468",
           "key": "power",
           "name": "Power",
-          "base": 15,
+          "base": 13,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "99668dc9-6474-4a08-8a1a-847a16bc53e0",
+          "id": "144c9545-b9d5-4897-93c2-aa0241a62624",
           "key": "aeva",
           "name": "A-Eva",
           "base": 10,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "c7533e94-88c8-4e38-b911-6f014be2c186",
+          "id": "3a4dae40-e9ff-4720-96b1-35e9dcd3861c",
           "key": "meva",
           "name": "M-Eva",
           "base": 10,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "73dbb9f2-0c0b-4e31-a895-4d2abc171db3",
+          "id": "a7f8f0c8-16ad-4ffd-994e-bef4f230aaa0",
           "key": "crit",
           "name": "Crit",
           "base": 12,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "0ffd2697-1d1b-43e5-9861-441c3aa27f1e",
+          "id": "e8a2e1c4-7804-4a98-8f9d-da358ef868c1",
           "key": "attdef",
           "name": "AttDef",
           "base": 12,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "c8fdcf33-2f95-4ccb-8571-79b249c3eeee",
+          "id": "e6a4f73e-9eda-40e6-88e0-888c646126bf",
           "key": "magdef",
           "name": "MagDef",
           "base": 9,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "6ad0de6b-01f9-4a94-a1b6-261be2da7fe4",
+          "id": "b0045cc2-22bf-4559-8488-b8f261bd20f2",
           "key": "wits",
           "name": "Wits",
           "base": 10,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "592cd427-2a0e-4c63-a41d-377bafa49ddb",
+          "id": "db1d5348-7795-405d-9dc1-986f6b696601",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "e8a6c556-79a1-41bc-acc8-7f2b9b184b84",
+          "id": "800a4aa8-2635-47fc-91f7-96a49d852695",
           "key": "patience",
           "name": "Patience",
           "base": 6,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "674b2c30-1858-4f2d-8e92-b9e4eb32ad9c",
+          "id": "1f641363-4941-4093-898d-282ba8755cdd",
           "key": "sight",
           "name": "Sight",
           "base": 9,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "22d3fdc5-22a2-4965-9fa9-22bef78a376e",
+          "id": "869c6a92-7130-48fc-a2d5-dc4f4e0c9f5c",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.229Z",
-      "updatedAt": "2026-09-23T05:05:02.229Z"
+      "createdAt": "2026-09-23T08:22:25.101Z",
+      "updatedAt": "2026-09-23T08:22:25.101Z"
     },
     {
-      "id": "26292154-03e8-4976-a453-2d559591c1c2",
+      "id": "62fa4d2c-160a-49d0-ac0b-6f38b585cf2f",
       "name": "Stone Slash",
       "description": "Cut an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "2f62b37a-a242-430e-b3c5-ed173603c598",
+          "id": "9c68802d-947d-4031-b36b-36e36c909c09",
           "key": "power",
           "name": "Power",
           "base": 18,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "1bdf8bd7-b9c6-4b96-8435-cefc3cf7f66e",
+          "id": "9940c277-f8c2-435d-bbb6-168bcf269e87",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.229Z",
-      "updatedAt": "2026-09-23T05:05:02.229Z"
+      "createdAt": "2026-09-23T08:22:25.101Z",
+      "updatedAt": "2026-09-23T08:22:25.101Z"
     },
     {
-      "id": "05b1054d-1097-4cb9-84fc-0aee625f5fff",
+      "id": "5c89a365-62b1-481c-b052-80fc9631cd27",
       "name": "Stone Edge",
       "description": "A spell-charged cut on an adjacent enemy; Stuns for 1 turn.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "c6377a4c-3199-486e-98c5-604bfa37b273",
+          "id": "1c14dfb8-09c5-421c-9dcb-2cad9030877e",
           "key": "power",
           "name": "Power",
           "base": 25,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "70808482-00d9-48ac-a08b-b2a10752bb56",
+          "id": "796d53ce-7b80-4afe-96c1-bdc81221a575",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "a2f10283-713a-40fc-9d3a-c1e02e1564ef",
+          "id": "1c3ad14a-34ef-43a5-9a4e-7fb0209bbc0f",
           "key": "status_duration",
           "name": "Status turns",
           "base": 1,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "ba38f3bd-a649-4929-bca2-20399cf24774",
+          "id": "3875bdbc-3896-41c3-967d-a1c5d4588d89",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1024,7 +1024,7 @@
           "notes": ""
         },
         {
-          "id": "6ff75267-8d86-487d-9b1a-58739ec4772f",
+          "id": "c571c7f8-01d5-4c3f-8046-cb2f2d5c6ab5",
           "name": "Stun",
           "type": "Stun",
           "trigger": "On hit",
@@ -1062,11 +1062,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.229Z",
-      "updatedAt": "2026-09-23T05:05:02.229Z"
+      "createdAt": "2026-09-23T08:22:25.101Z",
+      "updatedAt": "2026-09-23T08:22:25.101Z"
     },
     {
-      "id": "7f93dd4e-60ed-4f2e-a59b-58fcdcae10cb",
+      "id": "327171d5-aaa0-45e0-8ce4-074437ea81d8",
       "name": "Stone Lance",
       "description": "A spear of magic through everyone in a line up to 7 m. (1 s)",
       "kind": "Active",
@@ -1091,7 +1091,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "4db7982e-0e32-401b-ad32-d0770d5f8c30",
+          "id": "273655a6-ed97-41f1-8b82-6df04d31a294",
           "key": "power",
           "name": "Power",
           "base": 13,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "c2368671-3b28-45d2-ac90-af1e71e92036",
+          "id": "8204ef70-2d20-46dc-b217-a0e31a9dad41",
           "key": "min_range",
           "name": "Min range",
           "base": 2,
@@ -1115,7 +1115,7 @@
           "overrides": {}
         },
         {
-          "id": "f4137920-a172-4419-88ed-0f80f0d4c62c",
+          "id": "035f15c1-eaf9-479a-ad52-5d2c7803b368",
           "key": "cast_range",
           "name": "Cast range",
           "base": 7,
@@ -1127,7 +1127,7 @@
           "overrides": {}
         },
         {
-          "id": "1c8a3023-a29d-4e24-87ba-dcfebd865749",
+          "id": "db0c0a12-4237-458a-90f2-fd50f071617d",
           "key": "radius",
           "name": "Radius",
           "base": 0.7,
@@ -1139,7 +1139,7 @@
           "overrides": {}
         },
         {
-          "id": "2b4dcf5c-a91f-4bb5-8b83-e9e89c7c7361",
+          "id": "d23f14d9-5b6e-493c-85bf-062e4a79ddd6",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1153,7 +1153,7 @@
       ],
       "effects": [
         {
-          "id": "c0062e3f-458a-47a3-911e-8e221a5eb607",
+          "id": "6b54f4c6-c323-41e7-ab9b-92c3a50a0275",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1191,11 +1191,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.229Z",
-      "updatedAt": "2026-09-23T05:05:02.229Z"
+      "createdAt": "2026-09-23T08:22:25.101Z",
+      "updatedAt": "2026-09-23T08:22:25.101Z"
     },
     {
-      "id": "56e9aed4-9804-4dea-a01c-f0118ffce0fc",
+      "id": "2ebbe9dc-6ece-4745-ba62-c2a91222ac18",
       "name": "Stone Maelstrom",
       "description": "Blade magic hits every enemy within 2.5 m of you; Stuns for 1 turn. (1 s)",
       "kind": "Active",
@@ -1221,7 +1221,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "422b8d8b-05b5-4328-a704-e178447ec398",
+          "id": "cd3b4c44-026d-47cd-ba8b-7b3bb382c3b0",
           "key": "power",
           "name": "Power",
           "base": 29,
@@ -1233,7 +1233,7 @@
           "overrides": {}
         },
         {
-          "id": "a955325c-4baa-4066-af6d-328cf4b3dd21",
+          "id": "f8ed4f56-bb2d-4c37-b33f-47af57351d24",
           "key": "radius",
           "name": "Radius",
           "base": 2.5,
@@ -1245,7 +1245,7 @@
           "overrides": {}
         },
         {
-          "id": "77b764d4-7860-4207-8a34-395da104203d",
+          "id": "bd0c4e5e-9deb-4f6f-b9c2-d10f82d45483",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1257,7 +1257,7 @@
           "overrides": {}
         },
         {
-          "id": "3cc998f6-fecd-41f2-897d-d4950aa0e42c",
+          "id": "93fd48a9-e388-448c-905a-1bca8e65335c",
           "key": "status_duration",
           "name": "Status turns",
           "base": 1,
@@ -1271,7 +1271,7 @@
       ],
       "effects": [
         {
-          "id": "ec59b2a2-518e-4bf9-a317-b9547ff0cdb1",
+          "id": "d4043a2f-57dd-46e1-ab6a-c8b56df2d3ad",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1284,7 +1284,7 @@
           "notes": ""
         },
         {
-          "id": "78fa097f-9dae-4301-81be-8911b707c16a",
+          "id": "b549cf8c-3cc5-4ccb-bc09-66aabe8d4a18",
           "name": "Stun",
           "type": "Stun",
           "trigger": "On hit",
@@ -1322,8 +1322,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.229Z",
-      "updatedAt": "2026-09-23T05:05:02.229Z"
+      "createdAt": "2026-09-23T08:22:25.101Z",
+      "updatedAt": "2026-09-23T08:22:25.101Z"
     }
   ]
 }

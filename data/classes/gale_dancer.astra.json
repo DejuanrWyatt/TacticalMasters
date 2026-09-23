@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "2bb6f8bb-5924-46df-83f9-48f8b12177e1",
+      "id": "140bfd45-4ff5-467f-b951-2dc948c10c51",
       "name": "Gale Dancer",
       "description": "Fast melee fighter, wind element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "c5530aa4-de56-400a-aca1-4b2b81571f7e",
+          "id": "8e0549cb-d655-4aa7-9f7a-dca60b25eb4e",
           "key": "hp",
           "name": "HP",
           "base": 75,
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "5aabe1a1-9fe7-4ead-8da7-2afd1325fc65",
+          "id": "a140823b-906f-45c8-a8bd-a31151d3fa42",
           "key": "power",
           "name": "Power",
-          "base": 16,
+          "base": 17,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "709ae3cd-b870-4032-82ce-06d55eb76d18",
+          "id": "8c91bc78-c9f9-439f-a59c-15515d383734",
           "key": "aeva",
           "name": "A-Eva",
           "base": 18,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "071661f7-24ba-4232-b3d2-33cbc6be09f4",
+          "id": "a0c4da90-4edd-4f31-8297-967bd320b513",
           "key": "meva",
           "name": "M-Eva",
           "base": 8,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "1313c7fb-8607-4fb8-b220-8fb680014dcc",
+          "id": "50be3f03-f35e-409a-a756-4ce85b71eec7",
           "key": "crit",
           "name": "Crit",
           "base": 12,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "0dd0db71-4a60-4709-a0b8-11df8b5255d8",
+          "id": "683da51d-1f83-4e8a-97d9-76ac32df6050",
           "key": "attdef",
           "name": "AttDef",
           "base": 8,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "00b6d696-e56d-43e0-aac1-300843e05836",
+          "id": "06d788b6-b103-4067-b4ef-fedb9dff5aac",
           "key": "magdef",
           "name": "MagDef",
           "base": 6,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "2a4fde0b-d3c6-4387-ac40-1369839debb1",
+          "id": "3cab2282-c00f-4e0c-b0ac-356386c61910",
           "key": "wits",
           "name": "Wits",
           "base": 14,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "97c5b681-53af-487a-ba5c-ba21ce930d38",
+          "id": "6b758582-43f1-41f3-86df-979cc7b64a94",
           "key": "move",
           "name": "Move",
           "base": 9,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "bc024f17-ed5e-4b5d-ab0e-62477ccb306e",
+          "id": "533d1ebf-ac48-41b6-b1ae-14012d4a7173",
           "key": "patience",
           "name": "Patience",
           "base": 5,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "0e1fcdf8-4788-45be-a4fa-8ea21c35d18b",
+          "id": "8536d802-e11a-4207-959f-0e9a07c71785",
           "key": "sight",
           "name": "Sight",
           "base": 9,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "0e1b6758-5b14-43dd-8c11-84eb51fa7bf3",
+          "id": "57c4151f-5f23-46ff-9b60-0f8c279eabf8",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.084Z",
+      "updatedAt": "2026-09-23T08:22:25.084Z"
     },
     {
-      "id": "720006cd-bce6-473b-abef-885093a5eea3",
+      "id": "e17c6c34-67bd-49cb-8dba-6aff315fee03",
       "name": "Gale Jab",
       "description": "Punch an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "d8faff9c-ae7c-46d7-9687-1c5b9d38c306",
+          "id": "d932145f-ece1-423d-8631-c19032a02c15",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "b62cc0bf-e5e8-46e5-b384-880d92bf5d9f",
+          "id": "b233d552-3b91-470a-81f9-63f0ed8f8864",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.084Z",
+      "updatedAt": "2026-09-23T08:22:25.084Z"
     },
     {
-      "id": "22c7ef68-7d59-49cd-8c60-0a31ed33157a",
+      "id": "f9599f30-7cab-433d-bca2-1c83db0dd381",
       "name": "Gale Uppercut",
       "description": "A rising blow on an adjacent enemy; TG -25%.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "12d931e2-8d67-4fa4-816c-2397991b8eff",
+          "id": "ff501fc0-0129-494d-95a1-bf638328e53a",
           "key": "power",
           "name": "Power",
           "base": 27,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "c1bf1fe9-d74b-4a2c-ae0b-7397fea1bc4d",
+          "id": "40550b9c-6442-4d4b-8c48-afffb6979403",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "5c04c8dd-1d1b-4d47-b068-5705a540b188",
+          "id": "a6659a29-d127-411e-9bde-ca6dde7d5957",
           "key": "tg_change",
           "name": "TG change",
           "base": -25,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "c2b0aefc-67aa-4924-9664-814e7e78cecd",
+          "id": "6d543db1-701f-4c4f-a8b0-c545987028e0",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1024,7 +1024,7 @@
           "notes": ""
         },
         {
-          "id": "1e87e5cc-1ebb-47fa-b88d-20a576f8268f",
+          "id": "6a1acb05-adb1-4a09-8b3b-51f846b6aa03",
           "name": "Knock back TG",
           "type": "Debuff",
           "trigger": "On hit",
@@ -1062,11 +1062,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.084Z",
+      "updatedAt": "2026-09-23T08:22:25.084Z"
     },
     {
-      "id": "37a9eb05-0ef0-4341-8c45-1d223ffcd149",
+      "id": "3dc74736-a06d-4c57-af57-35465f439abb",
       "name": "Gale Stance",
       "description": "Take a fighting stance; TG +20%. Switched on and off.",
       "kind": "Toggle",
@@ -1091,7 +1091,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "afadb131-35de-4fde-a40f-4cf7cdbc547b",
+          "id": "16abdd90-8288-4e29-9e8f-fc3e541bfbba",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "d7bb2e28-cf40-4bcb-ad5a-b06b47ae7de2",
+          "id": "fb2349b3-3de3-4d95-badb-5d8489e2e5a9",
           "key": "tg_change",
           "name": "TG change",
           "base": 20,
@@ -1117,7 +1117,7 @@
       ],
       "effects": [
         {
-          "id": "7a1d5b70-7baa-4c77-90a1-087ebb973e3e",
+          "id": "46e2abe9-06bb-4fca-9aad-c2f5cde23c5c",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1155,11 +1155,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.084Z",
+      "updatedAt": "2026-09-23T08:22:25.084Z"
     },
     {
-      "id": "20a0e674-31ff-4d7f-88fc-38e2aa0ee920",
+      "id": "50403f8d-0290-487c-9ce2-edf09b84954b",
       "name": "Gale Fury",
       "description": "A flurry hitting every enemy within 2.5 m of you; TG -25%.",
       "kind": "Active",
@@ -1185,7 +1185,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "d5aecf53-2e26-437f-945a-0dfb3e30c418",
+          "id": "5d915cf4-e19d-4311-8133-11c3025376de",
           "key": "power",
           "name": "Power",
           "base": 32,
@@ -1197,7 +1197,7 @@
           "overrides": {}
         },
         {
-          "id": "42f47b14-7e63-4274-99c5-94b7552cfd37",
+          "id": "d47bc98c-cae2-45e1-bfd6-77a600b31757",
           "key": "radius",
           "name": "Radius",
           "base": 2.5,
@@ -1209,7 +1209,7 @@
           "overrides": {}
         },
         {
-          "id": "e3d66df6-2a79-4fef-aee2-2806d7e50378",
+          "id": "0c89e678-3a85-4b16-8c7b-061757121e40",
           "key": "tg_change",
           "name": "TG change",
           "base": -25,
@@ -1223,7 +1223,7 @@
       ],
       "effects": [
         {
-          "id": "653a961e-dc0f-4a0c-aacd-e34dfcd231ca",
+          "id": "cc1fa619-b778-463a-afd8-627c520dafef",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1236,7 +1236,7 @@
           "notes": ""
         },
         {
-          "id": "4a328db8-b5c4-4c1a-bcca-c6d7830218fe",
+          "id": "770dbee4-f02e-465d-9984-1f6a7bfb06b5",
           "name": "Knock back TG",
           "type": "Debuff",
           "trigger": "On hit",
@@ -1274,8 +1274,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.084Z",
+      "updatedAt": "2026-09-23T08:22:25.084Z"
     }
   ]
 }

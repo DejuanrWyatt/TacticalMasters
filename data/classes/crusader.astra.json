@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "af22ea3d-f550-4810-97b1-53853441d0c8",
+      "id": "e495cad6-ece6-425e-9045-26ccfd0fb5f5",
       "name": "Crusader",
       "description": "Melee fighter with blade magic, holy element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "3467a395-c0e5-4973-8b98-c2e02dba7990",
+          "id": "18241988-1b3e-43aa-875b-8417aa1b7000",
           "key": "hp",
           "name": "HP",
           "base": 92,
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "05efba7b-4144-42bf-9dae-9a502d249602",
+          "id": "a9a2c253-a32b-42d3-a28f-03eb1af1ac1d",
           "key": "power",
           "name": "Power",
-          "base": 15,
+          "base": 13,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "a4e177ae-3b15-49bb-9a60-49f481c3f9db",
+          "id": "0ff17782-36c0-4ba6-8b52-78392e451c86",
           "key": "aeva",
           "name": "A-Eva",
           "base": 10,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "0d60c4ca-b2f7-407c-a206-6d605341e46d",
+          "id": "9972ab74-b844-484e-8c9d-8a8689fe8897",
           "key": "meva",
           "name": "M-Eva",
           "base": 10,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "1e537d88-1bbe-4261-bb17-f4d3c0481636",
+          "id": "d9826a8a-514a-4e1f-bf2f-080064d339db",
           "key": "crit",
           "name": "Crit",
           "base": 12,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "067cbdd4-4e7e-43d2-bc9e-5bf148da74ba",
+          "id": "f0778953-e0ad-45c8-b09e-8f34a7fffc6c",
           "key": "attdef",
           "name": "AttDef",
           "base": 10,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "86212916-709b-4547-8995-d526247083e8",
+          "id": "11c2f991-30a8-47c6-9dbb-b507548787f7",
           "key": "magdef",
           "name": "MagDef",
           "base": 11,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "f9d4dcb7-5d87-4ce5-b878-e2e99afa609a",
+          "id": "b569b924-b772-4a52-921e-0605ab9cba4c",
           "key": "wits",
           "name": "Wits",
           "base": 10,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "b1de839e-5be4-4f51-8b52-2d9e6520b4d3",
+          "id": "d6822d77-aed4-4898-afd8-72d9384c8a51",
           "key": "move",
           "name": "Move",
           "base": 7,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "7bf7d47b-5c4f-46bb-b62a-24d5547c2fc8",
+          "id": "bdb7fb74-32fc-447d-939d-e6be27d19fad",
           "key": "patience",
           "name": "Patience",
           "base": 6,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "586f27d3-16b7-42d4-9ba0-6a4275e305e0",
+          "id": "748033a9-caa7-43dc-95c9-daa354e1d0dd",
           "key": "sight",
           "name": "Sight",
           "base": 9,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "660087b1-078d-4d48-a890-222e5f375442",
+          "id": "8989e10b-7a7a-4d92-ac05-21204795a1e2",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.230Z",
-      "updatedAt": "2026-09-23T05:05:02.230Z"
+      "createdAt": "2026-09-23T08:22:25.101Z",
+      "updatedAt": "2026-09-23T08:22:25.101Z"
     },
     {
-      "id": "8430d194-1878-4926-8ad1-bc367c515c56",
+      "id": "31988e28-1bce-4bda-a6d5-b582c0579e1b",
       "name": "Holy Slash",
       "description": "Cut an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "b38622eb-5bcf-458e-b7bd-05b1d38abe4a",
+          "id": "5fcd3f7a-4551-4457-9939-d863090283df",
           "key": "power",
           "name": "Power",
           "base": 18,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "0b39a27d-db26-496d-b103-ac2a2372b9aa",
+          "id": "722f75dd-220b-4240-b9c6-1e15c1881caf",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.230Z",
-      "updatedAt": "2026-09-23T05:05:02.230Z"
+      "createdAt": "2026-09-23T08:22:25.101Z",
+      "updatedAt": "2026-09-23T08:22:25.101Z"
     },
     {
-      "id": "f7164f77-ea93-4d9c-9c80-def1ab67b5de",
+      "id": "dc0ca3f5-9734-4fe6-ab4c-3e546ce7c4de",
       "name": "Holy Edge",
       "description": "A spell-charged cut on an adjacent enemy.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "15c4b747-0707-4ec1-877a-889efb8fbb22",
+          "id": "49d73390-0d08-44ed-9c40-7b97253d3174",
           "key": "power",
           "name": "Power",
           "base": 27.5,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "f27e41c0-3a59-4306-b7b0-d4e33ab20b97",
+          "id": "4042301b-6364-427a-8930-8bef61511e77",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -999,7 +999,7 @@
       ],
       "effects": [
         {
-          "id": "144bbff7-7e4a-4e75-b791-076270a57e3f",
+          "id": "7c2784b9-e3f6-49c1-928d-4584c470942e",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1037,11 +1037,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.230Z",
-      "updatedAt": "2026-09-23T05:05:02.230Z"
+      "createdAt": "2026-09-23T08:22:25.101Z",
+      "updatedAt": "2026-09-23T08:22:25.101Z"
     },
     {
-      "id": "03278816-bc52-4e2b-be37-929bc47a0817",
+      "id": "7cb0a647-9679-4b61-90ad-274b6b0fad4e",
       "name": "Holy Lance",
       "description": "A spear of magic through everyone in a line up to 7 m. (1 s)",
       "kind": "Active",
@@ -1066,7 +1066,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "da2f6209-26c0-4337-ae2d-2a924e6fcce3",
+          "id": "52f64e94-b38e-4465-9ae4-147b1d2827b8",
           "key": "power",
           "name": "Power",
           "base": 13,
@@ -1078,7 +1078,7 @@
           "overrides": {}
         },
         {
-          "id": "c2875735-d38c-4b31-8aa0-5767055a88d8",
+          "id": "e14f0f1f-b194-4978-8be2-eb9a835d39fc",
           "key": "min_range",
           "name": "Min range",
           "base": 2,
@@ -1090,7 +1090,7 @@
           "overrides": {}
         },
         {
-          "id": "9970e6f3-195b-430b-a6b2-7b08a9104eb0",
+          "id": "ef1a8818-881d-418a-849e-32254d933f00",
           "key": "cast_range",
           "name": "Cast range",
           "base": 7,
@@ -1102,7 +1102,7 @@
           "overrides": {}
         },
         {
-          "id": "04aa561f-a241-4e7a-8c69-b4c974983916",
+          "id": "d2a1ade9-0702-42b4-8c7e-7ed26ec451cc",
           "key": "radius",
           "name": "Radius",
           "base": 0.7,
@@ -1114,7 +1114,7 @@
           "overrides": {}
         },
         {
-          "id": "eccf1440-3033-45d5-b644-55c3f0b4a881",
+          "id": "253a0588-914f-44c0-a810-4d1706e3ed63",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1128,7 +1128,7 @@
       ],
       "effects": [
         {
-          "id": "0a673912-b5a8-44f1-ba8f-791f2369d3cc",
+          "id": "ddb5aca3-ec36-4cc5-a919-5bd880237f0b",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1166,11 +1166,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.230Z",
-      "updatedAt": "2026-09-23T05:05:02.230Z"
+      "createdAt": "2026-09-23T08:22:25.101Z",
+      "updatedAt": "2026-09-23T08:22:25.101Z"
     },
     {
-      "id": "709628b1-d4f5-463c-9e46-5b495f22dc80",
+      "id": "1444c03e-38ff-4ea3-9fda-58a23c716b41",
       "name": "Holy Maelstrom",
       "description": "Blade magic hits every enemy within 2.5 m of you. (1 s)",
       "kind": "Active",
@@ -1196,7 +1196,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "1f28f3e2-4d3d-435e-ac5c-7c0a308dec66",
+          "id": "26ce7aa6-5a3c-439a-b0e1-ecb62e821bbe",
           "key": "power",
           "name": "Power",
           "base": 31.9,
@@ -1208,7 +1208,7 @@
           "overrides": {}
         },
         {
-          "id": "14430b8b-ac45-4bfc-8588-6d6adeb65d87",
+          "id": "3e7679fc-4a9d-45ab-8e7e-009ba71cbab1",
           "key": "radius",
           "name": "Radius",
           "base": 2.5,
@@ -1220,7 +1220,7 @@
           "overrides": {}
         },
         {
-          "id": "b79fb10c-396b-4c20-be9e-5faa3e87250b",
+          "id": "b4c7f2c3-b8c3-4fef-923a-b582a00d85c4",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1234,7 +1234,7 @@
       ],
       "effects": [
         {
-          "id": "b0117d7e-3963-4a70-9d76-985db553c817",
+          "id": "c7f7e07e-dd26-4763-a149-b597b12bc8d7",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1272,8 +1272,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.230Z",
-      "updatedAt": "2026-09-23T05:05:02.230Z"
+      "createdAt": "2026-09-23T08:22:25.101Z",
+      "updatedAt": "2026-09-23T08:22:25.101Z"
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "a9dd5466-8cc9-4c97-92e3-3b0c82b1cbd4",
+      "id": "8599efd1-3cfc-4995-81e4-86a420cf1e8e",
       "name": "Lich Caller",
       "description": "Slow caster of huge summons, shadow element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "ab0bb567-f29b-4e46-bf0a-d2c1c57d1ea6",
+          "id": "9383e23f-eb04-4be2-be9c-3d37e41fdcd8",
           "key": "hp",
           "name": "HP",
-          "base": 73,
+          "base": 67,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "ad672ae0-780c-4d1e-b893-3d508f63f481",
+          "id": "87ced892-7d67-481f-9493-9f76db768678",
           "key": "power",
           "name": "Power",
-          "base": 21,
+          "base": 19,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "dbdeaae5-97c9-4563-9a77-b66db98872e7",
+          "id": "f9224fe2-3676-4cc9-95ca-36e5e60f2494",
           "key": "aeva",
           "name": "A-Eva",
           "base": 5,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "e0dbf50e-6360-4c15-9310-b8b11f9dba6c",
+          "id": "28dadc70-0f5e-466b-8f6d-eb49b846dd1d",
           "key": "meva",
           "name": "M-Eva",
           "base": 17,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "f91ab3bc-a4ef-4f12-9ef1-08b92b5d1c59",
+          "id": "838fbee6-c64f-4e38-a1ec-41ac3c0f6d93",
           "key": "crit",
           "name": "Crit",
           "base": 12,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "1f54f4c3-39a0-4f60-97a9-c0667cf34f35",
+          "id": "8f4f588e-3d79-4ef8-a7dd-ccbdcec318e8",
           "key": "attdef",
           "name": "AttDef",
           "base": 3,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "5a284120-e3be-45de-8600-7cbf43a38bdb",
+          "id": "adf06c80-9dc9-4999-9f9e-8094579a9a50",
           "key": "magdef",
           "name": "MagDef",
           "base": 12,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "94482a9d-366d-405b-8608-45799b176569",
+          "id": "43a19f78-7196-43e9-a969-fbad90db1b32",
           "key": "wits",
           "name": "Wits",
           "base": 6,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "3fa8d3d5-9894-4fb7-9169-b2f352798771",
+          "id": "8480b7d8-7ef0-46ff-a06e-5c287dec7dfa",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "d2600494-7c05-40d1-ae6e-08d2840ab103",
+          "id": "ad662464-7b2b-43c2-bb5c-85db607d74f2",
           "key": "patience",
           "name": "Patience",
           "base": 9,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "38df704f-5954-409d-96b5-c89cd54a5921",
+          "id": "6f58a419-5bf4-4bc2-bb6b-bf119cb01ff1",
           "key": "sight",
           "name": "Sight",
           "base": 10,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "1e598bcc-23d0-4c4c-b5f3-9f21578dc161",
+          "id": "91196a28-125c-4021-8c65-c65f7daa444a",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.100Z",
+      "updatedAt": "2026-09-23T08:22:25.100Z"
     },
     {
-      "id": "1a76726a-d58a-4d38-a3bd-e0d7d97a8a49",
+      "id": "70cf33f8-c4e1-44b2-8aa9-a859c2320431",
       "name": "Shadow Rod",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "32415e73-e168-408e-b611-fde9c8c34d32",
+          "id": "b90fade2-3756-4f4f-be2d-214720e528b0",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "4cd4f059-c29e-4ffa-a4b6-285dbeb791cc",
+          "id": "3e133669-7f28-47c1-af39-e1196ed629b5",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.100Z",
+      "updatedAt": "2026-09-23T08:22:25.100Z"
     },
     {
-      "id": "0f648aba-570b-4896-8626-b5431b7ba992",
+      "id": "3a590d14-d9b0-4815-a226-0d2c0ed39d1a",
       "name": "Summon Lich",
       "description": "The Lich strikes every enemy within 2 m of a point 3-9 m away; MagDef -6, AttDef -3 for 2 turns. (2 s)",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "51bcc060-a57c-46ad-a433-4757a14708b5",
+          "id": "621dba7f-cfb3-451b-8500-b7e5a8cdaca6",
           "key": "power",
           "name": "Power",
           "base": 27,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "f6f72b3d-3842-43c0-9ec3-9962aefadf90",
+          "id": "107d34a0-10a5-4624-9a9f-70359ab41a0c",
           "key": "min_range",
           "name": "Min range",
           "base": 3,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "f3aa9e27-fe87-4612-8b49-d3d986806771",
+          "id": "48848c8a-b553-4de0-83a8-ee36f6c15c2e",
           "key": "cast_range",
           "name": "Cast range",
           "base": 9,
@@ -1009,7 +1009,7 @@
           "overrides": {}
         },
         {
-          "id": "953cbdc2-90c7-40c3-9f0e-be2becbad798",
+          "id": "42fd8843-2b43-4042-bdc4-19299cb491b1",
           "key": "radius",
           "name": "Radius",
           "base": 2,
@@ -1021,7 +1021,7 @@
           "overrides": {}
         },
         {
-          "id": "3749524a-5bae-472c-a67a-0c5b4c2fc332",
+          "id": "a769cc89-78c5-4257-bbb3-ce21778341b5",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1033,7 +1033,7 @@
           "overrides": {}
         },
         {
-          "id": "83b345b7-cdd1-47ea-a012-c9af6af68c5e",
+          "id": "888a028a-9d2a-4d72-b159-81499bde4c0f",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -1045,7 +1045,7 @@
           "overrides": {}
         },
         {
-          "id": "a349ec8d-9c28-4bdb-b2fd-72750db2f2d8",
+          "id": "1a37cdce-81c9-4426-bb22-d37fc5fb6ae5",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": -6,
@@ -1057,7 +1057,7 @@
           "overrides": {}
         },
         {
-          "id": "de624181-fba0-4da8-a612-d1d2b7ecef3e",
+          "id": "c72a07b1-b407-49f4-929d-5a309c212362",
           "key": "buff_attdef",
           "name": "Buff AttDef",
           "base": -3,
@@ -1069,7 +1069,7 @@
           "overrides": {}
         },
         {
-          "id": "0db10e40-f3ad-466b-9ed8-5d00ce83052f",
+          "id": "e558afe7-4343-4648-afb6-734ad15cc42c",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1083,7 +1083,7 @@
       ],
       "effects": [
         {
-          "id": "3fc93fba-6548-4a20-8efe-e3dbc17befcf",
+          "id": "8a05e122-39d7-4e90-a9ea-95ddcad2649f",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1096,7 +1096,7 @@
           "notes": ""
         },
         {
-          "id": "ef499b2e-128a-4d1c-ae18-b4a820e79d61",
+          "id": "d14c5c86-5dd8-4995-9bb4-acd3fc0103b3",
           "name": "Debuff",
           "type": "Debuff",
           "trigger": "On hit",
@@ -1134,11 +1134,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.100Z",
+      "updatedAt": "2026-09-23T08:22:25.100Z"
     },
     {
-      "id": "8c645ee5-6c9b-4242-b521-c930e9556ea5",
+      "id": "48aeb9d1-9602-4d22-9602-557544e840da",
       "name": "Lich Pact",
       "description": "Bless every ally within 3 m of a point up to 6 m away; Power +4 for 2 turns. (1 s)",
       "kind": "Active",
@@ -1163,7 +1163,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "cb73a693-8ddf-446b-9e46-44c82d0ac8b9",
+          "id": "ce80724f-3384-457d-a89d-e4e752e373c6",
           "key": "cast_range",
           "name": "Cast range",
           "base": 6,
@@ -1175,7 +1175,7 @@
           "overrides": {}
         },
         {
-          "id": "0b2389a0-edb5-4da9-b54b-a0234c37dc92",
+          "id": "54cd0c8c-23fa-4f03-871a-64a943b54b1b",
           "key": "radius",
           "name": "Radius",
           "base": 3,
@@ -1187,7 +1187,7 @@
           "overrides": {}
         },
         {
-          "id": "1c61d114-17bb-4430-bd3e-2538057cde1b",
+          "id": "c1ce82fb-1cbb-4ba5-a13e-5a536417a665",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1199,7 +1199,7 @@
           "overrides": {}
         },
         {
-          "id": "f669e0df-493d-46a6-a9e9-d83e2be9b522",
+          "id": "771e1df9-921d-4485-8e34-5fb8b8e1f19f",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 3,
@@ -1211,7 +1211,7 @@
           "overrides": {}
         },
         {
-          "id": "11375cc7-4fea-4753-a970-c81de90e509b",
+          "id": "b399a237-0da3-40ed-af6e-39e9eba829ea",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1223,7 +1223,7 @@
           "overrides": {}
         },
         {
-          "id": "10768c94-544b-4be9-bfc5-c88561f76b5e",
+          "id": "5034037e-2ce4-42f4-a026-56866a161176",
           "key": "buff_power",
           "name": "Buff Power",
           "base": 4,
@@ -1237,7 +1237,7 @@
       ],
       "effects": [
         {
-          "id": "33184c98-5541-4ce3-a604-573540d6fee0",
+          "id": "972212d6-7afc-43c7-920c-d5da630449bc",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1275,11 +1275,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.100Z",
+      "updatedAt": "2026-09-23T08:22:25.100Z"
     },
     {
-      "id": "e6878b32-c466-4668-b032-7e321bd36fc4",
+      "id": "2b921c00-e758-4019-a447-cf3f58d669ed",
       "name": "Lich Ascendant",
       "description": "Every enemy within 4 m of a point 4-11 m away; MagDef -6, AttDef -3 for 2 turns. (4 s)",
       "kind": "Active",
@@ -1305,7 +1305,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "fc164c88-6f13-42f7-a953-6b472cbba293",
+          "id": "34151a69-3480-496b-b4a3-fe0634579323",
           "key": "power",
           "name": "Power",
           "base": 42,
@@ -1317,7 +1317,7 @@
           "overrides": {}
         },
         {
-          "id": "81a2a3ee-b0cf-4733-b811-bca1665cf685",
+          "id": "96e596b2-9a84-4df0-8b14-a2536dbe3f33",
           "key": "min_range",
           "name": "Min range",
           "base": 4,
@@ -1329,7 +1329,7 @@
           "overrides": {}
         },
         {
-          "id": "12dc4fe0-1c3b-4cb1-8397-7e41d796aa87",
+          "id": "e6c74f20-e990-4e59-8b4c-43d8cf1a41b1",
           "key": "cast_range",
           "name": "Cast range",
           "base": 11,
@@ -1341,7 +1341,7 @@
           "overrides": {}
         },
         {
-          "id": "e8d36bc6-f51d-4cda-ace0-d4d018cdca16",
+          "id": "19b1364a-3a27-4efc-8a35-482997a9dd56",
           "key": "radius",
           "name": "Radius",
           "base": 4,
@@ -1353,7 +1353,7 @@
           "overrides": {}
         },
         {
-          "id": "b8afd72c-4867-4165-910c-6390bb9b59ec",
+          "id": "40d1a328-d345-452d-9dac-e03dd1550731",
           "key": "cast_time",
           "name": "Cast time",
           "base": 4,
@@ -1365,7 +1365,7 @@
           "overrides": {}
         },
         {
-          "id": "8e64a535-dddd-4d36-bc36-17b50d1ee9ee",
+          "id": "e9ce607e-1d2d-44e9-a393-7661c439e337",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": -6,
@@ -1377,7 +1377,7 @@
           "overrides": {}
         },
         {
-          "id": "ebbdb763-4ce4-4d76-97e8-a4bc22e0ee2f",
+          "id": "1bd706ae-760c-4e12-b70b-370293ada726",
           "key": "buff_attdef",
           "name": "Buff AttDef",
           "base": -3,
@@ -1389,7 +1389,7 @@
           "overrides": {}
         },
         {
-          "id": "2549da5f-d980-40a1-b0f7-61194f316122",
+          "id": "3b274172-c253-461e-8ef0-fe24cdcefcb1",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1403,7 +1403,7 @@
       ],
       "effects": [
         {
-          "id": "95a8251c-a595-43c5-aad9-9ad4d7e6efa2",
+          "id": "d08ccf99-74f7-4ccc-a954-e4f430ab6963",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1416,7 +1416,7 @@
           "notes": ""
         },
         {
-          "id": "936947c2-2126-4cdc-a40e-f4e7e51b2551",
+          "id": "91543993-7b91-4bf8-8dd8-acc0b665d4a6",
           "name": "Debuff",
           "type": "Debuff",
           "trigger": "On hit",
@@ -1454,8 +1454,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.229Z",
-      "updatedAt": "2026-09-23T05:05:02.229Z"
+      "createdAt": "2026-09-23T08:22:25.100Z",
+      "updatedAt": "2026-09-23T08:22:25.100Z"
     }
   ]
 }

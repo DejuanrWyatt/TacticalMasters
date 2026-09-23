@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "d85992ff-b56b-4860-adc0-68d41ae809b9",
+      "id": "472b1b84-1076-4a47-b68a-1f39303cf6a3",
       "name": "Roc Caller",
       "description": "Slow caster of huge summons, wind element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "bd4bb674-0e60-4dc8-8e37-0cf28d7e751e",
+          "id": "44c11630-e1f9-45d5-a1f9-916ae6ce0a72",
           "key": "hp",
           "name": "HP",
-          "base": 66,
+          "base": 60,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "45617050-8fa0-4e77-8f10-e462c70f6841",
+          "id": "d9cc232f-6645-41c9-ba0e-27e1b2ef4e3c",
           "key": "power",
           "name": "Power",
-          "base": 21,
+          "base": 19,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "f541baf5-c087-4105-900a-cdffc035c85a",
+          "id": "9cca1eb0-027c-4e88-82b6-669b79270e51",
           "key": "aeva",
           "name": "A-Eva",
           "base": 5,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "981eddbf-06ed-47dc-bac4-d0f7737e2a9d",
+          "id": "7799db20-0bdc-4cdf-a17a-e6fc5f793b02",
           "key": "meva",
           "name": "M-Eva",
           "base": 14,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "e2615412-8f67-455d-8cd0-b163207cf421",
+          "id": "f9d9df26-ece5-4631-b68e-04df47340a68",
           "key": "crit",
           "name": "Crit",
           "base": 10,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "0dd0943a-a480-41b3-83be-a0df916a3799",
+          "id": "d4d4e306-a486-4f76-9e74-f5f612c43034",
           "key": "attdef",
           "name": "AttDef",
           "base": 4,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "9ba589b2-118a-4f2d-ad79-c453acf59739",
+          "id": "34cbec50-c728-4d87-aeaf-981661e71f8e",
           "key": "magdef",
           "name": "MagDef",
           "base": 12,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "8a9315f6-6016-4f5d-b7d2-52b29cd2d8b3",
+          "id": "f997cf90-1ab7-4ef7-8b2b-4d42f027ff0b",
           "key": "wits",
           "name": "Wits",
           "base": 8,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "6af64f3f-710d-4ed5-9131-6da7d9b50c8b",
+          "id": "e67e3d5c-50c4-45a8-9012-5cc2d74c8c50",
           "key": "move",
           "name": "Move",
           "base": 7,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "db5ad961-9725-4eff-9417-2b6b699ff332",
+          "id": "c21dfc02-41b8-4a31-8822-2d4f65a0e22b",
           "key": "patience",
           "name": "Patience",
           "base": 9,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "67d0a7ac-a78f-43d6-9aa2-05c919877234",
+          "id": "cdeff509-3f61-4a32-ac51-e9cdd4d8dddb",
           "key": "sight",
           "name": "Sight",
           "base": 10,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "4b10d5b1-6d43-4851-bef8-dc12446cd0dd",
+          "id": "eb4156d4-b367-4c49-bb3e-2084d014d3bd",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     },
     {
-      "id": "374c07bb-286f-46b5-8183-02d9589171e6",
+      "id": "4975fbb2-b832-4fbd-97b4-3767b32410a4",
       "name": "Gale Rod",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "233e5029-996d-4043-9e1c-e9a33b36b101",
+          "id": "2df98701-56e2-4683-ae20-a3cd9fa1f344",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "be85d961-01e5-410a-9ae5-f79fa76454d4",
+          "id": "95cda828-b17d-491d-832f-91735ffb8e8f",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     },
     {
-      "id": "fce26f75-fa6b-4ab5-9c60-b8e645801ada",
+      "id": "1fd48db4-5de0-4d67-a51e-ec5277cc2e58",
       "name": "Summon Roc",
       "description": "The Roc strikes every enemy within 2 m of a point 3-9 m away; TG -25%. (2 s)",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "2a7c29e0-9f62-43e1-8a06-435a908c5787",
+          "id": "2f5e976b-f573-44a8-8b1d-b54ae54a5649",
           "key": "power",
           "name": "Power",
           "base": 27,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "4598564f-0b30-43cf-9b0d-4bba427956c3",
+          "id": "43ad178d-0d13-4e75-bb15-8fd557bd628e",
           "key": "min_range",
           "name": "Min range",
           "base": 3,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "9e21178b-6e2c-43b0-b136-d2b7ef3c212b",
+          "id": "e87d4ba9-241f-4f30-b5e0-d8d2acda5245",
           "key": "cast_range",
           "name": "Cast range",
           "base": 9,
@@ -1009,7 +1009,7 @@
           "overrides": {}
         },
         {
-          "id": "a37522b7-5ef9-483a-90a9-f20123e029fa",
+          "id": "6d9ca4a4-35c3-499a-8fc7-bea4a75c12f1",
           "key": "radius",
           "name": "Radius",
           "base": 2,
@@ -1021,7 +1021,7 @@
           "overrides": {}
         },
         {
-          "id": "aedb5453-db6f-414d-be72-b77006b2d1e1",
+          "id": "0e516382-2a47-42c0-b4a8-f3c1d8675591",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1033,7 +1033,7 @@
           "overrides": {}
         },
         {
-          "id": "b26b317b-f94d-41d5-b519-7a6c02e49bc2",
+          "id": "6eb1a1d8-e786-4571-a050-84375a016b0f",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -1045,7 +1045,7 @@
           "overrides": {}
         },
         {
-          "id": "b3ac86d2-004c-46b5-a13e-d690bf65f021",
+          "id": "7a796e46-7127-4c7b-8723-b602848dcb30",
           "key": "tg_change",
           "name": "TG change",
           "base": -25,
@@ -1059,7 +1059,7 @@
       ],
       "effects": [
         {
-          "id": "60175895-134e-4003-baaa-be0d8d7d8d04",
+          "id": "f7846f1a-3691-4954-936d-321d64836595",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1072,7 +1072,7 @@
           "notes": ""
         },
         {
-          "id": "99356663-655b-4ec8-af90-acfe2f2b30f5",
+          "id": "30c80552-984a-4457-aa31-3ff60d09da68",
           "name": "Knock back TG",
           "type": "Debuff",
           "trigger": "On hit",
@@ -1110,11 +1110,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     },
     {
-      "id": "9a6e77a2-65e5-4138-8d15-8689cd7adb2e",
+      "id": "e16c0ceb-3886-402c-8f23-489e4dfd0e97",
       "name": "Roc Pact",
       "description": "Bless every ally within 3 m of a point up to 6 m away; TG +20%. (1 s)",
       "kind": "Active",
@@ -1139,7 +1139,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "4555bd57-cb3c-4f23-8b83-7bb3b28e5f83",
+          "id": "c535f71a-0630-4b48-b70d-e1ab30992bc4",
           "key": "cast_range",
           "name": "Cast range",
           "base": 6,
@@ -1151,7 +1151,7 @@
           "overrides": {}
         },
         {
-          "id": "6feb5847-b522-4f18-9428-e59ef5206e7b",
+          "id": "18c7d505-9ca5-4f1f-810d-cbf0b86a27a9",
           "key": "radius",
           "name": "Radius",
           "base": 3,
@@ -1163,7 +1163,7 @@
           "overrides": {}
         },
         {
-          "id": "14830791-562a-4302-a193-41c1b1a74bac",
+          "id": "78ebbc5e-7435-465a-ac3c-c8e4ad0ebd3d",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1175,7 +1175,7 @@
           "overrides": {}
         },
         {
-          "id": "c306d3c3-94c5-4f67-bc58-925a13aabfe5",
+          "id": "3c517191-a733-4596-af66-00921570d19d",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 3,
@@ -1187,7 +1187,7 @@
           "overrides": {}
         },
         {
-          "id": "9fbeadbe-5dd6-41de-970d-ed1926ba7fe6",
+          "id": "2e9f69a2-5fd3-4f08-86c9-62452877bfb1",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1199,7 +1199,7 @@
           "overrides": {}
         },
         {
-          "id": "06bdfdd7-9e59-45d3-acf8-d8977c047496",
+          "id": "9aca3e99-3eef-458f-81c2-1befcf0bff3f",
           "key": "tg_change",
           "name": "TG change",
           "base": 20,
@@ -1213,7 +1213,7 @@
       ],
       "effects": [
         {
-          "id": "82e52f8e-7363-4245-bb3f-8f211ed86c0e",
+          "id": "9b20c9a4-99e7-4189-9718-5046983d4595",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1251,11 +1251,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     },
     {
-      "id": "19e58b1c-8be5-4832-9fc1-5fcc61710115",
+      "id": "df6aca09-3395-465f-8e68-7e4deb7d593c",
       "name": "Roc Ascendant",
       "description": "Every enemy within 4 m of a point 4-11 m away; TG -25%. (4 s)",
       "kind": "Active",
@@ -1281,7 +1281,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "fe4616ce-0026-4f97-923b-12d7951d9938",
+          "id": "1dfc27ad-52d4-4354-8e50-2bd8c64e92b5",
           "key": "power",
           "name": "Power",
           "base": 42,
@@ -1293,7 +1293,7 @@
           "overrides": {}
         },
         {
-          "id": "7ea69473-7204-44ac-8fe0-df8c4f5d1f12",
+          "id": "e1e880b5-47af-445f-8f34-18aa4bc558cf",
           "key": "min_range",
           "name": "Min range",
           "base": 4,
@@ -1305,7 +1305,7 @@
           "overrides": {}
         },
         {
-          "id": "f8dd197f-fa6d-4681-88e5-3b422073de37",
+          "id": "d08ad064-c4ee-45a6-836b-926e2c5501db",
           "key": "cast_range",
           "name": "Cast range",
           "base": 11,
@@ -1317,7 +1317,7 @@
           "overrides": {}
         },
         {
-          "id": "d6585437-88c0-468b-9d4c-2a5407228854",
+          "id": "88986aa0-e0b6-4e4a-a610-bf8830491d26",
           "key": "radius",
           "name": "Radius",
           "base": 4,
@@ -1329,7 +1329,7 @@
           "overrides": {}
         },
         {
-          "id": "84734e13-1e64-48ae-9ab1-8c3a820dc28b",
+          "id": "0495f636-68ac-462d-b4a8-5227f9a88b17",
           "key": "cast_time",
           "name": "Cast time",
           "base": 4,
@@ -1341,7 +1341,7 @@
           "overrides": {}
         },
         {
-          "id": "8aa93ad6-3bd9-4ef1-978a-d2dd4510f7ce",
+          "id": "dc712099-4dd5-464d-9e1b-4fa419b24070",
           "key": "tg_change",
           "name": "TG change",
           "base": -25,
@@ -1355,7 +1355,7 @@
       ],
       "effects": [
         {
-          "id": "7557d728-a5e4-42ad-9c94-8d65ba05298e",
+          "id": "144b2ef2-7792-4e08-ba5a-8c57d90101ae",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1368,7 +1368,7 @@
           "notes": ""
         },
         {
-          "id": "4723defd-3289-4256-9394-e0e1429d646a",
+          "id": "4c5f171f-f1a9-40ab-b205-322bfac65d65",
           "name": "Knock back TG",
           "type": "Debuff",
           "trigger": "On hit",
@@ -1406,8 +1406,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     }
   ]
 }

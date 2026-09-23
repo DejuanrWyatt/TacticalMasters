@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "0e52858b-fba9-41b3-bbfa-4c66d747caf9",
+      "id": "337ab37c-26a1-4a25-830e-408afe064c42",
       "name": "Stone Fist",
       "description": "Fast melee fighter, earth element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "5fc6b00c-855a-4989-bce2-f04c05121ee9",
+          "id": "ab86a40d-602a-4a81-aed5-463a4155959f",
           "key": "hp",
           "name": "HP",
           "base": 90,
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "05915f03-01ce-4e6e-9b3a-f4babc189ee1",
+          "id": "cc56f973-6eb5-466d-8b74-452edb86f0f4",
           "key": "power",
           "name": "Power",
-          "base": 16,
+          "base": 17,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "9212adde-ff4c-4088-a231-a12132523a8b",
+          "id": "3a36d374-cfd3-4e23-b157-7f1a37910e6c",
           "key": "aeva",
           "name": "A-Eva",
           "base": 18,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "9799e5ca-828f-4d6a-97f7-3e7df567dad6",
+          "id": "e8449b90-1bea-4ac1-a53e-b970e570eba5",
           "key": "meva",
           "name": "M-Eva",
           "base": 8,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "4a925659-e8a2-4c97-848f-f1caa006d765",
+          "id": "74461fe9-6d49-461b-9a80-f070c4a68914",
           "key": "crit",
           "name": "Crit",
           "base": 12,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "b54ab168-cf31-4914-a34d-308def2472ed",
+          "id": "52487010-8d16-4950-aa81-42b378c9d3cd",
           "key": "attdef",
           "name": "AttDef",
           "base": 10,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "749183bd-adc4-4d03-a315-672ac8c81d33",
+          "id": "d871ccd8-d267-4918-872a-2e1a8fc7cb10",
           "key": "magdef",
           "name": "MagDef",
           "base": 6,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "4d52c7c8-6024-402e-885a-3097748e02c0",
+          "id": "359f9a70-ea0a-44c3-b9ac-767031b6af43",
           "key": "wits",
           "name": "Wits",
           "base": 12,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "c24afa11-ce9b-4866-96cd-057099417fc7",
+          "id": "c6c998be-7360-40aa-a707-464bd5169488",
           "key": "move",
           "name": "Move",
           "base": 7,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "9dcd1640-4417-4e27-a38b-bf6b4c48c791",
+          "id": "279509d2-83ed-436b-a1b0-38c6f3914677",
           "key": "patience",
           "name": "Patience",
           "base": 5,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "14e57f3a-47ae-4018-9ba0-306c6b738a4f",
+          "id": "e95b25e2-be36-4940-93cf-5838d2c036f7",
           "key": "sight",
           "name": "Sight",
           "base": 9,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "30fb8d76-5acb-4556-a9ca-2e9edc52e29e",
+          "id": "bb44b344-d9e9-4c0d-a431-f837ee1a35b6",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.084Z",
+      "updatedAt": "2026-09-23T08:22:25.084Z"
     },
     {
-      "id": "6c8caf38-dc85-4ef6-a85d-d1e7b5690f2f",
+      "id": "7dbe065d-b7d3-4b65-b799-56a028e1a012",
       "name": "Stone Jab",
       "description": "Punch an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "a19b5887-4fa3-4645-97bd-99b1c4fe8768",
+          "id": "5b7ae309-5523-4e77-9ae4-96d8aac69b0c",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "09d629f9-2e5b-43ed-8c2b-1747df6c03b6",
+          "id": "ca6b569f-f8ce-4dcd-921e-548784b95b9d",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.084Z",
+      "updatedAt": "2026-09-23T08:22:25.084Z"
     },
     {
-      "id": "f31e3741-8424-43c9-8f9a-242ef9405c45",
+      "id": "db259afa-12c4-4ec6-85b0-6f3e83fee8b4",
       "name": "Stone Uppercut",
       "description": "A rising blow on an adjacent enemy; Stuns for 1 turn.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "7fb0ff88-d136-49c1-a832-5a2df1da3c8f",
+          "id": "65c827b2-1d51-40fc-bf31-1447c14019bc",
           "key": "power",
           "name": "Power",
           "base": 27,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "508e5d9e-3634-4f28-9231-0588d606beb7",
+          "id": "bcd04604-d9a4-4073-b696-cfd04329cd8b",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "4d1fbb38-ade8-480e-aef3-4e8350289e87",
+          "id": "504034de-1658-48e7-9073-e982d501ce3f",
           "key": "status_duration",
           "name": "Status turns",
           "base": 1,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "8b222e63-3e1e-4eb9-97b9-c98c7da2c7fd",
+          "id": "e468dee8-a283-4ff9-96aa-aa28a738ec81",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1024,7 +1024,7 @@
           "notes": ""
         },
         {
-          "id": "302335de-704f-448e-a9ae-6e4ccb0b0861",
+          "id": "8cb034c9-4e72-4e5d-a9a5-3bb7907094a6",
           "name": "Stun",
           "type": "Stun",
           "trigger": "On hit",
@@ -1062,11 +1062,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.084Z",
+      "updatedAt": "2026-09-23T08:22:25.084Z"
     },
     {
-      "id": "0a1b1044-6a8a-4722-9158-ff6bb14cef00",
+      "id": "9fd99780-bcb2-4cc4-b6be-5d2319f49dd9",
       "name": "Stone Stance",
       "description": "Take a fighting stance; AttDef +6 for 2 turns. Switched on and off.",
       "kind": "Toggle",
@@ -1091,7 +1091,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "0b410762-2f03-4680-92d5-d1c49a30c715",
+          "id": "74625616-dcb1-449b-b19a-dd2e2839d887",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "269994b4-6536-4695-ae45-320169ebded1",
+          "id": "ebb9e806-6b38-437b-a385-ac3bff8cd1da",
           "key": "buff_attdef",
           "name": "Buff AttDef",
           "base": 6,
@@ -1117,7 +1117,7 @@
       ],
       "effects": [
         {
-          "id": "203516d1-fc94-45be-a414-18932136564d",
+          "id": "e7041851-3b7a-4257-a3db-a747db5a9022",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1155,11 +1155,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.084Z",
+      "updatedAt": "2026-09-23T08:22:25.084Z"
     },
     {
-      "id": "3aa46640-4171-4879-beb9-95f3c6491f31",
+      "id": "e7d2d58e-a4ff-44f2-b05f-65a1ba0270db",
       "name": "Stone Fury",
       "description": "A flurry hitting every enemy within 2.5 m of you; Stuns for 1 turn.",
       "kind": "Active",
@@ -1185,7 +1185,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "bad21516-7e4b-48a5-98b4-6c190bdc0418",
+          "id": "df32dac5-bd93-4a70-b668-168b623b4f7a",
           "key": "power",
           "name": "Power",
           "base": 32,
@@ -1197,7 +1197,7 @@
           "overrides": {}
         },
         {
-          "id": "93fea916-7470-4dbd-95ef-e7c8be63bf49",
+          "id": "ce78fac1-a692-4ab1-bed2-bf51db44a9ba",
           "key": "radius",
           "name": "Radius",
           "base": 2.5,
@@ -1209,7 +1209,7 @@
           "overrides": {}
         },
         {
-          "id": "0a46e3af-7c44-4576-88ec-1e410ba5db37",
+          "id": "decac234-a3ce-404f-ac4b-cd222e5d835b",
           "key": "status_duration",
           "name": "Status turns",
           "base": 1,
@@ -1223,7 +1223,7 @@
       ],
       "effects": [
         {
-          "id": "3bded207-9c4e-4de3-bc4d-bce766bf1dd6",
+          "id": "064aa4d7-716b-4203-b350-8b256d69b677",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1236,7 +1236,7 @@
           "notes": ""
         },
         {
-          "id": "977a3302-b12d-4cfb-80f2-af71612fece3",
+          "id": "8c0b25df-4470-4960-8490-67fc828859a0",
           "name": "Stun",
           "type": "Stun",
           "trigger": "On hit",
@@ -1274,8 +1274,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.084Z",
+      "updatedAt": "2026-09-23T08:22:25.084Z"
     }
   ]
 }

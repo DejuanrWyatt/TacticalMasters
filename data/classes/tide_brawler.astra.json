@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "1b84c639-f0a0-41c7-ac36-eff4ae700a85",
+      "id": "b73064e3-ea10-4cc7-b961-9790e16201f9",
       "name": "Tide Brawler",
       "description": "Fast melee fighter, water element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "9e33a220-f797-4d95-b007-73a5dc373778",
+          "id": "b35e1293-63d6-45f1-ba4f-3f407bf982a0",
           "key": "hp",
           "name": "HP",
           "base": 92,
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "6cf8de9b-f015-4fa7-96e9-ea13178a0e64",
+          "id": "a81abf11-6f7a-4905-95d5-5b8b042d5426",
           "key": "power",
           "name": "Power",
-          "base": 16,
+          "base": 17,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "6064f772-6a96-4961-b373-5cf406f7ad56",
+          "id": "96834d51-4e8d-44a6-b000-e6813dbc8959",
           "key": "aeva",
           "name": "A-Eva",
           "base": 18,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "47cde2c6-d80a-4d27-842a-6cddc380b5ab",
+          "id": "249810a7-c1e0-4a2e-bd3f-88627d76a1cb",
           "key": "meva",
           "name": "M-Eva",
           "base": 8,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "4e68eeff-5015-4e3d-8f6e-b11089a737e4",
+          "id": "8d34b2df-f687-4795-bfaa-5766605fc46e",
           "key": "crit",
           "name": "Crit",
           "base": 12,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "d263b5f0-1da9-41d5-a159-d7b9c21613f4",
+          "id": "836867d1-5339-4576-b6aa-bbdbbb340b66",
           "key": "attdef",
           "name": "AttDef",
           "base": 8,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "d0ba5911-39ad-4b7b-a506-7a613d8035ac",
+          "id": "314b9b6b-fb1a-43f2-b4d9-5e22d19a4e07",
           "key": "magdef",
           "name": "MagDef",
           "base": 7,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "fc8243ee-be3f-49c9-bb65-d3a9978f169a",
+          "id": "20f55e72-56d8-4165-b565-38537921a28d",
           "key": "wits",
           "name": "Wits",
           "base": 12,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "e317e867-e3d7-4406-af48-85630726d908",
+          "id": "f20e359e-e264-4209-855c-192a0f229323",
           "key": "move",
           "name": "Move",
           "base": 8,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "71645e7b-711c-4455-b5bb-febf5534612c",
+          "id": "ed03b969-8a81-47af-a1c3-84426f250460",
           "key": "patience",
           "name": "Patience",
           "base": 5,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "aefeec0e-cdbd-4d92-83a7-47ac7b645f73",
+          "id": "1191ae66-9995-4bba-9cf4-30b903d12033",
           "key": "sight",
           "name": "Sight",
           "base": 9,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "bd9cedfa-a732-47b3-af96-97ffc7073cd3",
+          "id": "b7bfeb5e-49c4-49dc-adda-c8e5401b18c8",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.084Z",
+      "updatedAt": "2026-09-23T08:22:25.084Z"
     },
     {
-      "id": "d86ee12e-0825-4e7b-b481-0c110521be9d",
+      "id": "56f87bbf-a174-4a0d-b2cf-297465bb2a3c",
       "name": "Tide Jab",
       "description": "Punch an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "f5269a9a-7da5-417e-94f4-749889e6177e",
+          "id": "da9b3e6c-cb76-4d38-9f19-c6c2b972f3ae",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "2d239e1d-8396-48ee-bedb-343b7178dc2f",
+          "id": "186fd7e8-a824-4df9-b265-6cb3e033841b",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     },
     {
-      "id": "0f0b76ff-4520-47a5-8985-088644e22cc7",
+      "id": "bec0af83-bf0e-43d0-be12-25863993f75d",
       "name": "Tide Uppercut",
       "description": "A rising blow on an adjacent enemy; Slows for 2 turns.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "bd83b5bc-3ac6-417a-9855-f04dc59f9af6",
+          "id": "7d05f5c4-4eb8-4999-828a-27fe841636c1",
           "key": "power",
           "name": "Power",
           "base": 27,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "6e36478c-b20a-47d9-b5c5-3d686d0d64fa",
+          "id": "5cbe2e6a-bc0f-4620-a606-109c3aad4da0",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "cfbd02f8-808c-4d03-bfad-f3c27805cb62",
+          "id": "687f7443-dec2-4cbe-9475-1712d78d1ed1",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "cde1f3f8-9642-48c1-80a7-9ac3d5f9c36b",
+          "id": "12112db6-661b-470f-92c0-f0015103ce08",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1024,7 +1024,7 @@
           "notes": ""
         },
         {
-          "id": "86ad8198-e5f8-49d6-861d-3a632bb52c90",
+          "id": "943b3d7b-2323-471a-a120-f4692a92cd2d",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1062,11 +1062,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     },
     {
-      "id": "ea092eb6-c74f-4f9e-94df-e9c88b69cfdf",
+      "id": "1ea79cf0-e27f-4369-95db-3bcbf478038d",
       "name": "Tide Stance",
       "description": "Take a fighting stance; MagDef +5 for 2 turns. Switched on and off.",
       "kind": "Toggle",
@@ -1091,7 +1091,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "888ac745-282c-4ca0-9f86-1c7578c0da19",
+          "id": "d0d6912a-21d4-4422-801d-8741652d8262",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "661f26e2-c107-4340-a445-0f558d7fc28a",
+          "id": "16809f21-a429-4752-88ad-e5a2cf648859",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": 5,
@@ -1117,7 +1117,7 @@
       ],
       "effects": [
         {
-          "id": "50345083-3d31-4a46-a9f6-8d96f7378eb0",
+          "id": "aa4a2116-acf9-4633-80f4-909c5bb8844f",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1155,11 +1155,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     },
     {
-      "id": "233a9111-3c65-499a-9af5-f8b517360075",
+      "id": "9445975d-2f47-4fb8-ae40-36b842433d49",
       "name": "Tide Fury",
       "description": "A flurry hitting every enemy within 2.5 m of you; Slows for 2 turns.",
       "kind": "Active",
@@ -1185,7 +1185,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "0b621620-1ca1-4f50-9b17-0ad02f4c141d",
+          "id": "97a06bc2-4766-47df-9abf-978ed2f6571e",
           "key": "power",
           "name": "Power",
           "base": 32,
@@ -1197,7 +1197,7 @@
           "overrides": {}
         },
         {
-          "id": "ee09632c-7fd8-46e5-8fb1-ec0ca8c16ea5",
+          "id": "96691161-decb-4a06-9cf0-93a9ec771c3a",
           "key": "radius",
           "name": "Radius",
           "base": 2.5,
@@ -1209,7 +1209,7 @@
           "overrides": {}
         },
         {
-          "id": "359d12e7-4146-44db-8d34-0e3397f9dc22",
+          "id": "3a8cab33-d6ef-44f0-a2bc-df80815fb36a",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1223,7 +1223,7 @@
       ],
       "effects": [
         {
-          "id": "f80f8e2a-d26f-41e9-b325-bb046b0ca66b",
+          "id": "e9db5477-d12f-422f-b22b-a503bb41bfef",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1236,7 +1236,7 @@
           "notes": ""
         },
         {
-          "id": "c338745c-b200-434b-b1e0-56a4cc4c5d9a",
+          "id": "5d9c7f8b-2f17-4235-8d0f-6ebc50f0b9bc",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1274,8 +1274,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.212Z",
-      "updatedAt": "2026-09-23T05:05:02.212Z"
+      "createdAt": "2026-09-23T08:22:25.085Z",
+      "updatedAt": "2026-09-23T08:22:25.085Z"
     }
   ]
 }

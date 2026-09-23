@@ -287,6 +287,10 @@ Run them with `& "E:\Astra-Ability Creator\runtime\node.exe" tools/<script>`.
 `tests/balance.gd` pits each class, in a mixed team, against a fixed team in computer-vs-computer battles and reports
 win rate, damage dealt, which abilities it used and how long it survived:
 `godot --headless --script res://tests/balance.gd -- [games per class] [class ids...]`.
+Compare classes by **margin** (how much more of its health the class's team finished with than the other side, averaged
+over the games), not by the win rate: a battle is one coin flip, so win rates at 8 games move by 25 points between
+runs, while the margin moves smoothly with a class's strength. Every game is seeded, including the computer's own
+mistakes, so two runs of the same classes give the same numbers and a change can actually be measured.
 
 ## Developer Tools
 

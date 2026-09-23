@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 34,
+  "revision": 35,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "2e8194e5-58f1-442a-8da2-b6d6b79b7cbe",
+      "id": "fd5622be-c23b-4b97-ba39-885cb194a7cc",
       "name": "Yeti Caller",
       "description": "Slow caster of huge summons, ice element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "85cdc645-2d38-4eff-9923-6a65848adef8",
+          "id": "0462ae44-30db-4479-b4e3-90ca2bf9e7af",
           "key": "hp",
           "name": "HP",
-          "base": 78,
+          "base": 72,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "e87b1570-28e2-4274-9142-2afd4ad57fd3",
+          "id": "25b72d88-a929-4172-bbfa-fe56a2de8806",
           "key": "power",
           "name": "Power",
-          "base": 21,
+          "base": 19,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "1cfc3413-4f2a-4f8f-b54e-b249c1098381",
+          "id": "3d27ac48-5fc9-4130-aa0e-6def1d7579e0",
           "key": "aeva",
           "name": "A-Eva",
           "base": 5,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "37dd32f7-1726-4253-919c-3eb22970f8df",
+          "id": "a3c93740-b408-432f-a98d-895ee7ffded9",
           "key": "meva",
           "name": "M-Eva",
           "base": 14,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "7b9df782-90dd-41cc-b125-3e9673f7e750",
+          "id": "be5d1496-608b-4650-b46f-56291cd73d28",
           "key": "crit",
           "name": "Crit",
           "base": 10,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "860d6827-cba6-4c32-80e0-c2ecc48d098b",
+          "id": "fd3d1b87-f1d2-4c88-a015-cf8638123cf2",
           "key": "attdef",
           "name": "AttDef",
           "base": 4,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "dfe2a131-d6dc-408d-be17-f04b3cc0b720",
+          "id": "a5b4392f-6337-432c-a7a9-913fafbf5897",
           "key": "magdef",
           "name": "MagDef",
           "base": 14,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "510dc53d-ea51-4b6a-986b-c27cc34a004e",
+          "id": "7f573ff4-811b-421d-b1bd-1aa7b667c3a7",
           "key": "wits",
           "name": "Wits",
           "base": 4,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "be8ae785-d5fe-40d9-98c2-79f1c15191df",
+          "id": "7a6c9952-0e5e-4e96-bad8-007c27254e8f",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "5aa8c1cb-c4ee-4ef7-b245-27a5e6bc4eea",
+          "id": "aac8ed27-9db9-41d4-9879-a1ea87b6b245",
           "key": "patience",
           "name": "Patience",
           "base": 9,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "16811e47-1661-4112-9d0d-cbb16b80af79",
+          "id": "ec08195d-7aeb-4bce-b01f-04e34c0c06b7",
           "key": "sight",
           "name": "Sight",
           "base": 10,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "48e42211-f973-4c2a-a112-542aef9e8832",
+          "id": "ee757210-566e-42c7-a88d-d09380e96fe4",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     },
     {
-      "id": "c941247f-dd4f-4833-a730-09084e59045d",
+      "id": "faafd18e-7962-4ca4-a01d-97c945ece7a5",
       "name": "Frost Rod",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "a7ebfa72-b76d-4bb5-a24d-974c9dd4d1cf",
+          "id": "09dc7b79-4ee6-4dd7-a678-e619fcd834fd",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "1578ec14-61b2-41f5-97fc-ba281ed911da",
+          "id": "e0a7f867-4962-4d87-b811-2a3c63e4fc6b",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     },
     {
-      "id": "093fa783-96f5-4c95-8ca6-f7dbf0a676c3",
+      "id": "2d166eec-af9c-4857-af25-a5fd0ccdb02b",
       "name": "Summon Yeti",
       "description": "The Yeti strikes every enemy within 2 m of a point 3-9 m away; Slows for 2 turns. (2 s)",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "597b0d41-d0cc-4fcc-b1bb-ebaccac0d0e4",
+          "id": "7fcd2986-cba8-436e-82f9-4d7650d4b306",
           "key": "power",
           "name": "Power",
           "base": 27,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "ea9dae05-aa4d-40bc-9ecc-ceb53c16e00c",
+          "id": "862477aa-95e1-4746-bc6d-df983d21bd05",
           "key": "min_range",
           "name": "Min range",
           "base": 3,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "b446053e-9f97-450a-af67-bc3ced461f57",
+          "id": "dffe09d9-87e6-4810-8dd0-7691f19b5cbc",
           "key": "cast_range",
           "name": "Cast range",
           "base": 9,
@@ -1009,7 +1009,7 @@
           "overrides": {}
         },
         {
-          "id": "07daa420-a83e-4317-8dcf-606db264986e",
+          "id": "e7a76ce5-eced-4fbf-bf51-7c1d541e67dc",
           "key": "radius",
           "name": "Radius",
           "base": 2,
@@ -1021,7 +1021,7 @@
           "overrides": {}
         },
         {
-          "id": "3c2fa8a5-92f2-42f5-8dfc-0fce86cb06f1",
+          "id": "28b4ffcb-1b3a-4de7-a264-781f26d4f5ca",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1033,7 +1033,7 @@
           "overrides": {}
         },
         {
-          "id": "2e057e9b-ed83-4655-b8ca-f8e387129546",
+          "id": "35bf356d-54b0-4dda-a85b-021a9097e0d0",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -1045,7 +1045,7 @@
           "overrides": {}
         },
         {
-          "id": "c6a677cc-f416-4abf-ab77-2e562b24599a",
+          "id": "39be71c4-937d-4c41-9d12-c3459b1b6280",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1059,7 +1059,7 @@
       ],
       "effects": [
         {
-          "id": "2e4076ae-68ac-4d96-9d91-eba8c7289b5e",
+          "id": "3eec8848-05a6-451e-965a-6cb7a205c788",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1072,7 +1072,7 @@
           "notes": ""
         },
         {
-          "id": "1db911c0-8ac9-45f6-b9ed-3c586d471a5c",
+          "id": "58faecd3-cabc-459f-bbb2-3313849c926c",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1110,11 +1110,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     },
     {
-      "id": "d12cd4e2-02f3-402b-a086-a987ab2aa31c",
+      "id": "ec785d38-bcd3-4419-b46c-067d3b1a7b71",
       "name": "Yeti Pact",
       "description": "Bless every ally within 3 m of a point up to 6 m away; MagDef +6 for 2 turns. (1 s)",
       "kind": "Active",
@@ -1139,7 +1139,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "493edc54-80d5-4c5c-9bb0-38a7be8d7ad9",
+          "id": "e282cd07-e15e-4507-9ee0-e8ae3b134abb",
           "key": "cast_range",
           "name": "Cast range",
           "base": 6,
@@ -1151,7 +1151,7 @@
           "overrides": {}
         },
         {
-          "id": "1f5e46ce-7833-47cd-9956-97b346792d66",
+          "id": "e652368c-adfd-4c09-966a-6fca43dce2d1",
           "key": "radius",
           "name": "Radius",
           "base": 3,
@@ -1163,7 +1163,7 @@
           "overrides": {}
         },
         {
-          "id": "a06fa1b8-e0e5-467e-8b98-be0e188c4ee0",
+          "id": "117232fc-e7b4-4b75-87b5-e7d30df24675",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1175,7 +1175,7 @@
           "overrides": {}
         },
         {
-          "id": "cbc3e942-471d-4192-b6c2-f942c5137bae",
+          "id": "3f4b10ed-7507-4e0b-ada8-35a3147a07f2",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 3,
@@ -1187,7 +1187,7 @@
           "overrides": {}
         },
         {
-          "id": "20a7568d-1193-4efa-a9b6-35f78f8b7f53",
+          "id": "863a7eaf-c846-4cfb-b56e-c834d673bd9b",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1199,7 +1199,7 @@
           "overrides": {}
         },
         {
-          "id": "6905270c-4357-4266-94a3-fc0efa2b8a96",
+          "id": "236b4e16-3c59-44ac-a145-48e17b6895aa",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": 6,
@@ -1213,7 +1213,7 @@
       ],
       "effects": [
         {
-          "id": "6aa63cff-e65a-4730-956b-a35a3d3c8acc",
+          "id": "cb0b37b0-49ac-4d67-81b4-4111a6a01f80",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1251,11 +1251,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     },
     {
-      "id": "5191de1f-f023-43f8-9111-db70aa0f1118",
+      "id": "dbbee83c-aeda-4c9d-acac-55f63e871d1d",
       "name": "Yeti Ascendant",
       "description": "Every enemy within 4 m of a point 4-11 m away; Slows for 2 turns. (4 s)",
       "kind": "Active",
@@ -1281,7 +1281,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "1010f1af-ae66-4071-8899-a628ba0c08b9",
+          "id": "790b9204-885d-44ba-aa43-95f3c032a15b",
           "key": "power",
           "name": "Power",
           "base": 42,
@@ -1293,7 +1293,7 @@
           "overrides": {}
         },
         {
-          "id": "b58f3644-1142-4528-806e-1fa6ca74cad3",
+          "id": "dd4bd5c7-3adb-4bd4-af1a-1689b3c7e8e7",
           "key": "min_range",
           "name": "Min range",
           "base": 4,
@@ -1305,7 +1305,7 @@
           "overrides": {}
         },
         {
-          "id": "86eb8688-bbbb-43f6-9c9e-8f485e9a798c",
+          "id": "c6395273-4c45-4802-80a7-c4a6d9f9490d",
           "key": "cast_range",
           "name": "Cast range",
           "base": 11,
@@ -1317,7 +1317,7 @@
           "overrides": {}
         },
         {
-          "id": "b816b116-7709-41a7-88c3-ae386132f0ae",
+          "id": "790b684c-a965-4f13-9a18-3e53da221ae3",
           "key": "radius",
           "name": "Radius",
           "base": 4,
@@ -1329,7 +1329,7 @@
           "overrides": {}
         },
         {
-          "id": "81e05bf6-7203-4e76-b349-538f5a44e0f2",
+          "id": "bebf9530-164e-48a7-bb9a-7900db90ae2e",
           "key": "cast_time",
           "name": "Cast time",
           "base": 4,
@@ -1341,7 +1341,7 @@
           "overrides": {}
         },
         {
-          "id": "c7938ffd-0798-427e-9886-52f0cece7b3e",
+          "id": "f21f2f67-3dd0-4032-9627-5d58f78b57fa",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1355,7 +1355,7 @@
       ],
       "effects": [
         {
-          "id": "b1bb8138-b095-470b-acbf-17a4d03ae6f9",
+          "id": "f5d5a37d-ba36-4dfe-9a73-3958981744b4",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1368,7 +1368,7 @@
           "notes": ""
         },
         {
-          "id": "f8c6dcc7-42fb-4913-aca3-7e02c2baad46",
+          "id": "b75060db-d620-4c58-8342-6d3905ba4e65",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1406,8 +1406,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-23T05:05:02.228Z",
-      "updatedAt": "2026-09-23T05:05:02.228Z"
+      "createdAt": "2026-09-23T08:22:25.099Z",
+      "updatedAt": "2026-09-23T08:22:25.099Z"
     }
   ]
 }
