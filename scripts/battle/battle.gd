@@ -135,6 +135,7 @@ func _ready() -> void:
 	hud.ability_pressed.connect(_select_ability)
 	hud.end_turn_pressed.connect(_on_end_turn_pressed)
 	hud.menu_pressed.connect(_back_to_menu)
+	hud.surrender_pressed.connect(_surrender)
 	hud.pause_pressed.connect(_toggle_pause)
 	hud.chip_pressed.connect(_on_chip_pressed)
 	hud.overlay_changed.connect(_on_overlay_changed)
@@ -800,6 +801,15 @@ func _cancel() -> void:
 	_refresh()
 
 
+## Give up: the other side wins. Recorded like any other command, so a
+## replay of the battle ends the same way.
+func _surrender() -> void:
+	var team: int = GameConfig.local_team if GameConfig.mode == "online" else (1 - GameConfig.ai_team if GameConfig.mode == "ai" else 0)
+	if team == -1 or state.winner != -1 or replaying:
+		return
+	_submit({"type": "surrender", "team": team})
+
+
 func _on_end_turn_pressed() -> void:
 	_order({"type": "end_turn"})
 
@@ -857,10 +867,15 @@ func _game_over() -> void:
 	_deselect()
 	var text: String
 	var local_team: int = GameConfig.local_team if GameConfig.mode == "online" else (1 - GameConfig.ai_team if GameConfig.mode == "ai" else -1)
-	if local_team == -1:
+	if state.winner == GameState.DRAW:
+		text = "Draw"
+	elif local_team == -1:
 		text = "%s wins!" % GameState.TEAM_NAMES[state.winner]
 	else:
 		text = "Victory!" if state.winner == local_team else "Defeat"
+	# When the time ran out, say how close it was.
+	if state.tune("battle_seconds") > 0.0 and state.tick >= roundi(state.tune("battle_seconds") * GameState.TICKS_PER_SECOND):
+		text += "\nTime: Blue %d%% health, Red %d%%" % [roundi(state.health_share(0) * 100), roundi(state.health_share(1) * 100)]
 	var rows := []
 	var mvp := -1
 	var best := -1

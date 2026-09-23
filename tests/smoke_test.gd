@@ -124,6 +124,7 @@ func _test_rules() -> void:
 	_test_ability_kinds()
 	_test_target_shapes()
 	_test_roles_and_icons()
+	_test_victory_conditions()
 	_test_ko_and_raise()
 	_test_line_of_sight()
 
@@ -477,6 +478,41 @@ func _test_roles_and_icons() -> void:
 	var good := Jobs.classes_for([["time_mage"], []])
 	var cleaned := Jobs.clean_classes(good)
 	_check(cleaned.jobs.has("time_mage") and cleaned.abilities.size() == 4, "a whole class passes the check")
+
+
+## A battle can have a time limit (the healthier side wins, level shares
+## draw), and a player can give up.
+func _test_victory_conditions() -> void:
+	var state := GameState.new()
+	state.setup(MapData.highlands(), {"battle_seconds": 5.0})
+	state.units[4].hp = 10  # Red is hurt, so Blue should win on health
+	while state.winner == -1 and state.tick < 200:
+		state.apply({"type": "advance", "ticks": 1})
+	_check(state.winner == 0 and state.tick == 50, "the time limit ends the battle and the healthier side wins (winner %d at %d)" % [state.winner, state.tick])
+	_check(state.health_share(0) > state.health_share(1), "health share tells the sides apart")
+
+	var level := GameState.new()
+	level.setup(MapData.highlands(), {"battle_seconds": 3.0})
+	while level.winner == -1 and level.tick < 200:
+		level.apply({"type": "advance", "ticks": 1})
+	_check(level.winner == GameState.DRAW, "an even battle at the time limit is a draw")
+
+	var endless := _new_state()
+	endless.apply({"type": "advance", "ticks": 50})
+	_check(endless.winner == -1, "without a limit a battle keeps going")
+
+	var give_up := _new_state()
+	_check(give_up.validate({"type": "surrender", "team": 3}) != "", "a surrender needs a real team")
+	give_up.apply({"type": "surrender", "team": 1})
+	_check(give_up.winner == 0, "surrendering hands the battle to the other side")
+
+	# Both sides wiped out at once is a draw, not a win.
+	var both := _new_state()
+	for u in both.units:
+		u.hp = 0
+		u.ko_ticks = 0
+	both._check_winner()
+	_check(both.winner == GameState.DRAW, "nobody left on either side is a draw")
 
 
 func _test_ko_and_raise() -> void:

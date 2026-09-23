@@ -16,6 +16,7 @@ signal move_pressed
 signal ability_pressed(slot: int)
 signal end_turn_pressed
 signal menu_pressed
+signal surrender_pressed
 signal pause_pressed
 signal chip_pressed(unit_id: int)
 ## An overlay (menu, Options or Unit Guide) opened or closed.
@@ -109,6 +110,7 @@ var _chat: LineEdit
 var _guide: Control
 var _options: Control
 var _game_menu: Control
+var _surrender_button: Button
 var _how_to: Control
 var _dev_tools: Control
 ## The battle's rules, for the calculation tooltips (set by Battle).
@@ -538,6 +540,7 @@ func _build_game_menu() -> void:
 	_menu_button(box, "Unit Guide", open_guide)
 	_menu_button(box, "How to Play", _open_how_to)
 	_menu_button(box, "Developer Tools", _open_dev_tools)
+	_surrender_button = _menu_button(box, "Surrender", _on_surrender)
 	_menu_button(box, "Quit to Main Menu", menu_pressed.emit)
 
 
@@ -1043,7 +1046,19 @@ func toggle_guide() -> void:
 		_emit_overlay()
 
 
+## Give up, from the in-game menu (asks once).
+func _on_surrender() -> void:
+	if _surrender_button.text == "Surrender":
+		_surrender_button.text = "Surrender: are you sure?"
+		return
+	_surrender_button.text = "Surrender"
+	toggle_game_menu()
+	surrender_pressed.emit()
+
+
 func toggle_game_menu() -> void:
+	if _surrender_button != null:
+		_surrender_button.text = "Surrender"
 	_game_menu.visible = not _game_menu.visible
 	_emit_overlay()
 

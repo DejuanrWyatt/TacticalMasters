@@ -57,6 +57,7 @@ extends RefCounted
 ##    "follow": unit id or -1}      follow = the unit clicked on (-1: the ground)
 ##   {"type": "end_turn", "unit": id, "serial": s}
 ##   {"type": "tune", "values": {tuning key: number}}   Developer Tools
+##   {"type": "surrender", "team": 0 or 1}
 ## "serial" must match the unit's current serial, so an order for an earlier
 ## turn of that unit is rejected. There is no randomness, so applying the
 ## same commands always produces the same game. Online play relies on this.
@@ -65,6 +66,8 @@ const Unit = preload("res://scripts/core/unit.gd")
 const Jobs = preload("res://scripts/core/jobs.gd")
 
 const TEAM_NAMES := ["Blue", "Red"]
+## `winner` when neither side won (the time limit ran out level).
+const DRAW := 2
 
 # Space
 const TILE_SIZE := 2.0
@@ -149,6 +152,7 @@ const TUNING := {
 	"crit_multiplier": [CRIT_BONUS, 1.0, 3.0, 0.05, "Critical hit multiplier", "What a critical hit multiplies damage by."],
 	"evade_multiplier": [1.0, 0.0, 3.0, 0.05, "Evasion multiplier", "Multiplier on every unit's A-Eva and M-Eva."],
 	"crit_chance_multiplier": [1.0, 0.0, 3.0, 0.05, "Crit chance multiplier", "Multiplier on every unit's Crit chance."],
+	"battle_seconds": [0.0, 0.0, 600.0, 15.0, "Battle time limit (s)", "0 = no limit. When it runs out, the side with more of its health left wins; level shares draw."],
 }
 
 var tiles_x := 0
@@ -162,6 +166,7 @@ var _nav_levels := PackedInt32Array()
 var units: Array[Unit] = []
 var spawn_points: Array[Vector2] = []
 var tick := 0
+## -1 while the battle runs, 0 or 1 for the winning team, DRAW for a draw.
 var winner := -1
 ## Evasion and critical hits are rolled with this, so a battle plays out the
 ## same for both players online and in a replay: it is seeded at setup, only
@@ -944,6 +949,9 @@ func validate(cmd: Dictionary) -> String:
 	if type == "tune":
 		var values = cmd.get("values")
 		return "" if values is Dictionary and clean_tuning(values).size() == values.size() else "Bad tuning values."
+	if type == "surrender":
+		var team = cmd.get("team")
+		return "" if team is int and (team == 0 or team == 1) else "Bad team."
 	var id = cmd.get("unit")
 	var u: Unit = get_unit(id) if id is int else null
 	if u == null or not u.is_alive():
@@ -1027,6 +1035,9 @@ func apply(cmd: Dictionary) -> Dictionary:
 		"tune":
 			tuning.merge(clean_tuning(cmd["values"]), true)
 			result.logs.append("Developer Tools: rule numbers updated.")
+		"surrender":
+			winner = 1 - int(cmd["team"])
+			result.logs.append("%s surrenders." % TEAM_NAMES[int(cmd["team"])])
 	return result
 
 
@@ -1034,6 +1045,12 @@ func _tick(result: Dictionary) -> void:
 	if winner != -1:
 		return
 	tick += 1
+	# A battle can have a time limit, so it can't run for ever.
+	var limit: float = tune("battle_seconds")
+	if limit > 0.0 and tick >= roundi(limit * TICKS_PER_SECOND):
+		_finish_on_time()
+		result.logs.append("Time! %s" % ("It's a draw." if winner == DRAW else "%s wins on health." % TEAM_NAMES[winner]))
+		return
 	for u in units:
 		if u.is_ko():
 			u.ko_ticks -= 1
@@ -1164,8 +1181,29 @@ func _knock_out(t: Unit, who: String, result: Dictionary) -> void:
 func _check_winner() -> void:
 	for team in 2:
 		if team_units(team).is_empty():
-			winner = 1 - team
+			winner = DRAW if team_units(1 - team).is_empty() else 1 - team
 			return
+
+
+## How much of its health a team has left, as a share of what it started with.
+func health_share(team: int) -> float:
+	var alive := 0.0
+	var total := 0.0
+	for u in units:
+		if u.team == team:
+			total += u.max_hp()
+			alive += maxi(0, u.hp)
+	return alive / total if total > 0.0 else 0.0
+
+
+## The time limit ran out: the healthier side wins, level shares draw.
+func _finish_on_time() -> void:
+	var blue := health_share(0)
+	var red := health_share(1)
+	if absf(blue - red) < 0.01:
+		winner = DRAW
+	else:
+		winner = 0 if blue > red else 1
 
 
 func _become_ready(u: Unit, result: Dictionary) -> void:
