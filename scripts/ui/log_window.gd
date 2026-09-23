@@ -2,7 +2,9 @@ extends PanelContainer
 ## Combat log window: every battle message, newest at the bottom. Drag the
 ## title bar to move it, drag the corner grip to resize it, "–" collapses it
 ## to its title bar and "×" hides it (the Log button or L shows it again).
-## The cog opens its options: text size, text color and background opacity.
+## The cog opens its options: text size, background opacity, and the color of
+## each kind of message (damage, healing, buffs, and so on). Each line carries
+## the icon of the unit it is about.
 ## Where it is, its size, whether it's shown and its options are saved
 ## between battles.
 
@@ -17,7 +19,26 @@ const TEXT := Color(0.92, 0.94, 1.0)
 const DEFAULT_FONT_SIZE := 12
 const FONT_SIZES := Vector2i(8, 28)
 const DEFAULT_OPACITY := 0.72
+## How tall the window grows to when its options are opened.
+const OPTIONS_HEIGHT := 330.0
 const DIM := Color(0.92, 0.94, 1.0, 0.55)
+
+## What each kind of message is called in the options, and the color it is
+## written in until the player picks another.
+const KIND_NAMES := {
+	"damage": "Damage", "heal": "Healing", "buff": "Buffs", "debuff": "Debuffs",
+	"status": "Statuses", "ko": "Knock-outs", "cast": "Casting",
+}
+const DEFAULT_KIND_COLORS := {
+	"damage": Color(1.0, 0.45, 0.38),
+	"heal": Color(0.45, 0.95, 0.5),
+	"buff": Color(0.45, 0.75, 1.0),
+	"debuff": Color(0.82, 0.55, 1.0),
+	"status": Color(1.0, 0.85, 0.35),
+	"ko": Color(1.0, 0.3, 0.25),
+	"cast": Color(0.75, 0.5, 1.0),
+	"move": Color(0.75, 0.8, 0.9),
+}
 
 var _scroll: ScrollContainer
 var _lines: VBoxContainer
@@ -33,6 +54,9 @@ var _rect_from := Rect2()
 var font_size := DEFAULT_FONT_SIZE
 var text_color := TEXT
 var opacity := DEFAULT_OPACITY
+## The color each kind of message is written in.
+var kind_colors := DEFAULT_KIND_COLORS.duplicate()
+var _kind_buttons := {}
 var _style: StyleBoxFlat
 var _options: HFlowContainer
 var _size_box: SpinBox
@@ -109,15 +133,36 @@ func _ready() -> void:
 
 ## Adds a message at the bottom (keeps the view at the bottom unless the
 ## player scrolled up to read older ones).
-func add_message(text: String) -> void:
+func add_message(entry) -> void:
+	var text: String = entry.get("text", "") if entry is Dictionary else str(entry)
+	var kind: String = entry.get("kind", "system") if entry is Dictionary else "system"
+	var icon_path: String = entry.get("icon", "") if entry is Dictionary else ""
 	var at_bottom := _scroll.scroll_vertical >= int(_scroll.get_v_scroll_bar().max_value - _scroll.size.y) - 4
+	# A row so the unit's icon can sit beside its line.
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.set_meta("kind", kind)
+	var icon := TextureRect.new()
+	icon.name = "Icon"
+	icon.custom_minimum_size = Vector2(font_size + 2, font_size + 2)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	if icon_path != "" and ResourceLoader.exists(icon_path):
+		icon.texture = load(icon_path)
+	else:
+		icon.visible = false
+	row.add_child(icon)
 	var line := Label.new()
+	line.name = "Text"
 	line.text = text
 	line.add_theme_font_size_override("font_size", font_size)
-	line.add_theme_color_override("font_color", text_color)
+	line.add_theme_color_override("font_color", color_for(kind))
 	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_lines.add_child(line)
+	row.add_child(line)
+	_lines.add_child(row)
 	while _lines.get_child_count() > MAX_LINES:
 		var oldest := _lines.get_child(0)
 		_lines.remove_child(oldest)
@@ -125,7 +170,7 @@ func add_message(text: String) -> void:
 	# Older lines fade a little so the newest stand out.
 	var count := _lines.get_child_count()
 	for i in count:
-		(_lines.get_child(i) as Label).modulate.a = 1.0 if i >= count - 3 else 0.7
+		(_lines.get_child(i) as Control).modulate.a = 1.0 if i >= count - 3 else 0.7
 	if at_bottom:
 		_scroll_to_bottom.call_deferred()
 
@@ -163,8 +208,35 @@ func _build_options(column: VBoxContainer) -> void:
 	_opacity_slider.tooltip_text = "Background opacity"
 	_opacity_slider.value_changed.connect(func(v: float): set_options(font_size, text_color, v))
 	_options.add_child(_opacity_slider)
-	var reset := _title_button(_options, "Reset", "Default size, color and background", func(): set_options(DEFAULT_FONT_SIZE, TEXT, DEFAULT_OPACITY))
+	# One picker per kind of message, so damage, healing and the rest can be
+	# told apart at a glance in whatever colors suit.
+	for kind in KIND_NAMES:
+		_option_label(KIND_NAMES[kind])
+		var picker := ColorPickerButton.new()
+		picker.edit_alpha = false
+		picker.custom_minimum_size = Vector2(30, 22)
+		picker.focus_mode = Control.FOCUS_NONE
+		picker.tooltip_text = "Color of %s messages" % KIND_NAMES[kind].to_lower()
+		picker.color = color_for(kind)
+		picker.color_changed.connect(func(c: Color): set_kind_color(kind, c))
+		_options.add_child(picker)
+		_kind_buttons[kind] = picker
+	var reset := _title_button(_options, "Reset", "Default size, colors and background", _reset_options)
 	reset.custom_minimum_size = Vector2(44, 22)
+
+
+## Changes the color one kind of message is written in, and saves it.
+func set_kind_color(kind: String, color: Color) -> void:
+	kind_colors[kind] = Color(color, 1.0)
+	_apply_options()
+	_save()
+
+
+func _reset_options() -> void:
+	kind_colors = DEFAULT_KIND_COLORS.duplicate()
+	for kind in _kind_buttons:
+		(_kind_buttons[kind] as ColorPickerButton).color = color_for(kind)
+	set_options(DEFAULT_FONT_SIZE, TEXT, DEFAULT_OPACITY)
 
 
 func _option_label(text: String) -> void:
@@ -180,6 +252,12 @@ func toggle_options() -> void:
 	_options.visible = not _options.visible
 	if _options.visible and _collapsed:
 		toggle_collapsed()
+	if _options.visible:
+		# The options take up room: grow the window so messages are still
+		# readable behind them, and stay on screen after growing.
+		size.y = maxf(size.y, OPTIONS_HEIGHT)
+		_full_height = size.y
+		_keep_on_screen()
 
 
 ## Changes the text size, text color and background opacity, applies them to
@@ -192,11 +270,23 @@ func set_options(p_font_size: int, p_color: Color, p_opacity: float) -> void:
 	_save()
 
 
+## The color a kind of line is written in: its own, or the plain text color
+## for anything without one of its own.
+func color_for(kind: String) -> Color:
+	return kind_colors.get(kind, text_color)
+
+
 func _apply_options() -> void:
 	_style.bg_color.a = opacity
-	for line in _lines.get_children():
+	for row in _lines.get_children():
+		var line := row.get_node_or_null("Text") as Label
+		if line == null:
+			continue
 		line.add_theme_font_size_override("font_size", font_size)
-		line.add_theme_color_override("font_color", text_color)
+		line.add_theme_color_override("font_color", color_for(row.get_meta("kind", "system")))
+		var icon := row.get_node_or_null("Icon") as TextureRect
+		if icon != null:
+			icon.custom_minimum_size = Vector2(font_size + 2, font_size + 2)
 	# Show the values without re-triggering their change signals.
 	_size_box.set_value_no_signal(font_size)
 	_color_button.color = text_color
@@ -295,6 +385,8 @@ func _title_button(parent: Control, text: String, tip: String, action: Callable)
 
 func _save() -> void:
 	var cfg := ConfigFile.new()
+	for kind in kind_colors:
+		cfg.set_value("colors", kind, kind_colors[kind])
 	cfg.set_value("log", "rect", Rect2(position, Vector2(size.x, _full_height)))
 	cfg.set_value("log", "collapsed", _collapsed)
 	cfg.set_value("log", "visible", visible)
@@ -319,6 +411,10 @@ func _load() -> void:
 		text_color = color_value if color_value is Color else TEXT
 		var opacity_value = cfg.get_value("log", "opacity", DEFAULT_OPACITY)
 		opacity = clampf(float(opacity_value), 0.0, 1.0) if (opacity_value is int or opacity_value is float) else DEFAULT_OPACITY
+		for kind in kind_colors:
+			var saved_color = cfg.get_value("colors", kind, kind_colors[kind])
+			if saved_color is Color:
+				kind_colors[kind] = saved_color
 	position = rect.position
 	size = rect.size.max(MIN_SIZE)
 	_full_height = size.y

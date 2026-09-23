@@ -623,8 +623,8 @@ func _build_game_over() -> void:
 	_mvp_label.add_theme_color_override("font_color", GOLD)
 	box.add_child(_mvp_label)
 	_stats_grid = GridContainer.new()
-	_stats_grid.columns = 8
-	_stats_grid.add_theme_constant_override("h_separation", 26)
+	_stats_grid.columns = 11
+	_stats_grid.add_theme_constant_override("h_separation", 14)
 	_stats_grid.add_theme_constant_override("v_separation", 4)
 	var grid_center := CenterContainer.new()
 	grid_center.add_child(_stats_grid)
@@ -1143,8 +1143,10 @@ func set_hover(text: String) -> void:
 	_hover_panel.offset_bottom = -88 if _action_bar.visible else -12
 
 
-func log_message(text: String) -> void:
-	_log.add_message(text)
+## A line for the combat log: plain text, or an entry from the rules with a
+## kind and the icon of the unit it is about.
+func log_message(entry) -> void:
+	_log.add_message(entry)
 
 
 func toggle_log() -> void:
@@ -1153,7 +1155,8 @@ func toggle_log() -> void:
 
 ## Victory / defeat panel with per-unit stats. `rows`: [{"name", "color",
 ## "dealt", "taken", "healed", "kos"}]; `mvp`: index into rows or -1.
-func show_game_over(text: String, rows: Array = [], mvp := -1, can_rematch := true) -> void:
+func show_game_over(text: String, rows: Array = [], mvp := -1, can_rematch := true, result_color := GOLD) -> void:
+	_game_over_label.add_theme_color_override("font_color", result_color)
 	# The first line is the result; anything after it is the small print.
 	var lines := text.split("\n", false)
 	_game_over_label.text = lines[0] if lines.size() > 0 else text
@@ -1161,7 +1164,8 @@ func show_game_over(text: String, rows: Array = [], mvp := -1, can_rematch := tr
 	_game_over_sub.visible = _game_over_sub.text != ""
 	for child in _stats_grid.get_children():
 		child.queue_free()
-	for header in ["Unit", "Damage dealt", "Damage taken", "Healing", "KOs", "Abilities", "Crits", "Evaded"]:
+	for header in ["Unit", "Damage dealt", "Damage taken", "Damage avoided", "Healing", "KOs",
+			"Abilities", "Crits", "Evaded", "Buffs", "Debuffs"]:
 		var h := Label.new()
 		h.text = header
 		h.add_theme_color_override("font_color", GOLD)
@@ -1169,8 +1173,9 @@ func show_game_over(text: String, rows: Array = [], mvp := -1, can_rematch := tr
 		_stats_grid.add_child(h)
 	for i in rows.size():
 		var r: Dictionary = rows[i]
-		var values := ["%s%s" % ["★ " if i == mvp else "", r.name], str(r.dealt), str(r.taken), str(r.healed),
-			str(r.kos), str(r.get("abilities", 0)), str(r.get("crits", 0)), str(r.get("evades", 0))]
+		var values := ["%s%s" % ["★ " if i == mvp else "", r.name], str(r.dealt), str(r.taken),
+			str(r.get("avoided", 0)), str(r.healed), str(r.kos), str(r.get("abilities", 0)),
+			str(r.get("crits", 0)), str(r.get("evades", 0)), str(r.get("buffs", 0)), str(r.get("debuffs", 0))]
 		for v in values.size():
 			var l := Label.new()
 			l.text = values[v]
@@ -1178,6 +1183,7 @@ func show_game_over(text: String, rows: Array = [], mvp := -1, can_rematch := tr
 			l.add_theme_color_override("font_color", r.color if v == 0 or r.get("total", false) else TEXT)
 			_stats_grid.add_child(l)
 	_mvp_label.text = "MVP: %s" % rows[mvp].name if mvp >= 0 else ""
+	_mvp_label.add_theme_color_override("font_color", rows[mvp].color if mvp >= 0 else GOLD)
 	_rematch_button.visible = can_rematch
 	_game_over.visible = true
 	_replay_bar.visible = false

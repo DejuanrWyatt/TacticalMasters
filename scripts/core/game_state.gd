@@ -1105,17 +1105,17 @@ func apply(cmd: Dictionary) -> Dictionary:
 			u.moved = true
 			if sprint:
 				u.acted = true  # a Sprint is the unit's action too
-				result.logs.append("%s %s sprints." % [TEAM_NAMES[u.team], u.job_name()])
+				_log(result, "%s %s sprints." % [TEAM_NAMES[u.team], u.job_name()], "move", u.id)
 		"ability":
 			_use_ability(get_unit(cmd["unit"]), cmd["slot"], cmd["target"], cmd.get("follow", -1), result)
 		"end_turn":
 			_end_turn(get_unit(cmd["unit"]), false, result)
 		"tune":
 			tuning.merge(clean_tuning(cmd["values"]), true)
-			result.logs.append("Developer Tools: rule numbers updated.")
+			_log(result, "Developer Tools: rule numbers updated.")
 		"surrender":
 			winner = 1 - int(cmd["team"])
-			result.logs.append("%s surrenders." % TEAM_NAMES[int(cmd["team"])])
+			_log(result, "%s surrenders." % TEAM_NAMES[int(cmd["team"])])
 	return result
 
 
@@ -1127,7 +1127,7 @@ func _tick(result: Dictionary) -> void:
 	var limit: float = tune("battle_seconds")
 	if limit > 0.0 and tick >= roundi(limit * TICKS_PER_SECOND):
 		_finish_on_time()
-		result.logs.append("Time! %s" % ("It's a draw." if winner == DRAW else "%s wins on health." % TEAM_NAMES[winner]))
+		_log(result, "Time! %s" % ("It's a draw." if winner == DRAW else "%s wins on health." % TEAM_NAMES[winner]))
 		return
 	_tick_capture(result)
 	if winner != -1:
@@ -1137,7 +1137,7 @@ func _tick(result: Dictionary) -> void:
 			u.ko_ticks -= 1
 			if u.ko_ticks <= 0:
 				result.gone.append(u.id)
-				result.logs.append("%s %s is gone." % [TEAM_NAMES[u.team], u.job_name()])
+				_log(result, "%s %s is gone." % [TEAM_NAMES[u.team], u.job_name()], "ko", u.id)
 			continue
 		if not u.is_alive():
 			continue
@@ -1180,7 +1180,7 @@ func _tick_statuses(u: Unit, result: Dictionary) -> void:
 			if per_turn < 0.0:
 				u.hp = maxi(0, u.hp - amount)
 				result.events.append({"pos": u.pos, "text": "-%d" % amount, "color": info.color})
-				result.logs.append("%s %s takes %d from %s." % [TEAM_NAMES[u.team], u.job_name(), amount, info.name])
+				_log(result, "%s %s takes %d from %s." % [TEAM_NAMES[u.team], u.job_name(), amount, info.name], "damage", u.id)
 				if not u.is_alive():
 					_knock_out(u, "%s %s" % [TEAM_NAMES[u.team], u.job_name()], result)
 					_check_winner()
@@ -1194,7 +1194,7 @@ func _tick_statuses(u: Unit, result: Dictionary) -> void:
 		if s.turns > 0:
 			kept.append(s)
 		else:
-			result.logs.append("%s %s: %s wears off." % [TEAM_NAMES[u.team], u.job_name(), info.name])
+			_log(result, "%s %s: %s wears off." % [TEAM_NAMES[u.team], u.job_name(), info.name], "status", u.id)
 	u.statuses = kept
 
 
@@ -1208,7 +1208,7 @@ func _ground_effect(u: Unit, result: Dictionary) -> void:
 	if kind < 0:
 		u.hp = maxi(0, u.hp - amount)
 		result.events.append({"pos": u.pos, "text": "-%d" % amount, "color": Color(1.0, 0.5, 0.2)})
-		result.logs.append("%s %s is burned by the ground (-%d)." % [TEAM_NAMES[u.team], u.job_name(), amount])
+		_log(result, "%s %s is burned by the ground (-%d)." % [TEAM_NAMES[u.team], u.job_name(), amount], "damage", u.id)
 		if not u.is_alive():
 			_knock_out(u, "%s %s" % [TEAM_NAMES[u.team], u.job_name()], result)
 			_check_winner()
@@ -1217,7 +1217,7 @@ func _ground_effect(u: Unit, result: Dictionary) -> void:
 		if healed > 0:
 			u.hp += healed
 			result.events.append({"pos": u.pos, "text": "+%d" % healed, "color": Color(0.4, 1.0, 0.6)})
-			result.logs.append("%s %s drinks from the spring (+%d)." % [TEAM_NAMES[u.team], u.job_name(), healed])
+			_log(result, "%s %s drinks from the spring (+%d)." % [TEAM_NAMES[u.team], u.job_name(), healed], "heal", u.id)
 
 
 ## Auras of every living unit whose side this one is on (or against) reach it
@@ -1265,11 +1265,29 @@ func _take_from_shield(t: Unit, amount: int, result: Dictionary) -> int:
 			if soaked > 0:
 				result.events.append({"pos": t.pos, "text": "-%d shield" % soaked, "color": Jobs.STATUSES[s.id].color})
 			if int(s.amount) <= 0:
-				result.logs.append("%s %s's %s breaks." % [TEAM_NAMES[t.team], t.job_name(), Jobs.STATUSES[s.id].name])
+				_log(result, "%s %s's %s breaks." % [TEAM_NAMES[t.team], t.job_name(), Jobs.STATUSES[s.id].name], "status", t.id)
 				continue
 		kept.append(s)
 	t.statuses = kept
 	return amount
+
+
+## Which kind of log line an ability makes: what it does to whoever it hits.
+static func _ability_log_kind(ab: Dictionary) -> String:
+	match ab.effect:
+		"damage":
+			return "damage"
+		"heal", "revive":
+			return "heal"
+	return "debuff" if ab.get("target", "ally") == "enemy" else "buff"
+
+
+## A line for the combat log. `kind` is what happened -- "damage", "heal",
+## "buff", "debuff", "status", "ko", "cast", "move" or "system" -- and `unit`
+## is who it is about (-1 for nobody), so the log can color it and show that
+## unit's icon.
+func _log(result: Dictionary, text: String, kind := "system", unit := -1) -> void:
+	result.logs.append({"text": text, "kind": kind, "unit": unit})
 
 
 ## Puts (or refreshes) a status on a unit for that many of its own turns.
@@ -1300,10 +1318,10 @@ func _knock_out(t: Unit, who: String, result: Dictionary) -> void:
 	t.acted = false
 	t.statuses.clear()
 	if t.is_casting():
-		result.logs.append("%s's %s fizzles." % [who, t.casting.name])
+		_log(result, "%s's %s fizzles." % [who, t.casting.name], "status", t.id)
 		t.casting = {}
 	result.knocked_out.append(t.id)
-	result.logs.append("%s is knocked out! (%ds to revive)" % [who, roundi(tune("ko_seconds"))])
+	_log(result, "%s is knocked out! (%ds to revive)" % [who, roundi(tune("ko_seconds"))], "ko", t.id)
 
 
 func _check_winner() -> void:
@@ -1357,10 +1375,10 @@ func _tick_capture(result: Dictionary) -> void:
 			continue
 		capture_ticks[team] += 1
 		if capture_ticks[team] == roundi(needed * 0.5):
-			result.logs.append("%s is halfway to holding the middle." % TEAM_NAMES[team])
+			_log(result, "%s is halfway to holding the middle." % TEAM_NAMES[team])
 		if capture_ticks[team] >= needed:
 			winner = team
-			result.logs.append("%s has held the middle: %s wins." % [TEAM_NAMES[team], TEAM_NAMES[team]])
+			_log(result, "%s has held the middle: %s wins." % [TEAM_NAMES[team], TEAM_NAMES[team]])
 			return
 
 
@@ -1408,14 +1426,14 @@ func _become_ready(u: Unit, result: Dictionary) -> void:
 		result.became_ready.append(u.id)
 		_resolve_ability(u, u.channeling.slot, u.channeling.target, result)
 		if u.channeling.turns <= 0:
-			result.logs.append("%s %s finishes channeling." % [TEAM_NAMES[u.team], u.job_name()])
+			_log(result, "%s %s finishes channeling." % [TEAM_NAMES[u.team], u.job_name()], "cast", u.id)
 			u.channeling = {}
 		if u.is_alive():
 			_end_turn(u, false, result)
 		return
 	# Stunned: the turn it just earned is lost (and the Stun counted down).
 	if stunned:
-		result.logs.append("%s %s loses its turn: %s." % [TEAM_NAMES[u.team], u.job_name(), Jobs.STATUSES.stun.name])
+		_log(result, "%s %s loses its turn: %s." % [TEAM_NAMES[u.team], u.job_name(), Jobs.STATUSES.stun.name], "debuff", u.id)
 		result.events.append({"pos": u.pos, "text": Jobs.STATUSES.stun.tag, "color": Jobs.STATUSES.stun.color})
 		_end_turn(u, true, result)
 		return
@@ -1429,7 +1447,7 @@ func _end_turn(u: Unit, timed_out: bool, result: Dictionary) -> void:
 		u.channeling = {}
 	if timed_out:
 		u.tg = 0
-		result.logs.append("%s %s ran out of time!" % [TEAM_NAMES[u.team], u.job_name()])
+		_log(result, "%s %s ran out of time!" % [TEAM_NAMES[u.team], u.job_name()], "status", u.id)
 		result.timed_out.append(u.id)
 	elif u.moved and u.acted:
 		u.tg = 0
@@ -1456,7 +1474,7 @@ func _use_ability(u: Unit, slot: int, target: Vector2, follow: int, result: Dict
 		var on: bool = not u.toggled.get(slot, false)
 		u.toggled[slot] = on
 		u.toggled_turn[slot] = true
-		result.logs.append("%s %s switches %s %s." % [TEAM_NAMES[u.team], u.job_name(), ab.name, "on" if on else "off"])
+		_log(result, "%s %s switches %s %s." % [TEAM_NAMES[u.team], u.job_name(), ab.name, "on" if on else "off"], "buff", u.id)
 		result.events.append({"pos": u.pos, "text": "%s %s" % [ab.name, "ON" if on else "OFF"],
 			"color": Color(0.6, 0.9, 1.0) if on else Color(0.7, 0.7, 0.75)})
 		return
@@ -1472,8 +1490,8 @@ func _use_ability(u: Unit, slot: int, target: Vector2, follow: int, result: Dict
 	# unit's turn ends at once (it is busy channeling).
 	if ab.get("kind", "active") == "channeled":
 		u.channeling = {"slot": slot, "target": target, "turns": maxi(1, int(ab.get("channel", 2)))}
-		result.logs.append("%s %s starts channeling %s (%d more turn%s)." % [TEAM_NAMES[u.team], u.job_name(), ab.name,
-			u.channeling.turns, "" if u.channeling.turns == 1 else "s"])
+		_log(result, "%s %s starts channeling %s (%d more turn%s)." % [TEAM_NAMES[u.team], u.job_name(), ab.name,
+			u.channeling.turns, "" if u.channeling.turns == 1 else "s"], "cast", u.id)
 		_resolve_ability(u, slot, target, result)
 		if u.is_alive():
 			_end_turn(u, false, result)
@@ -1486,7 +1504,7 @@ func _use_ability(u: Unit, slot: int, target: Vector2, follow: int, result: Dict
 	u.casting = {"slot": slot, "name": ab.name, "target": target, "target_unit": follow,
 		"ticks": cast_ticks, "total": cast_ticks}
 	result.cast_started.append(u.id)
-	result.logs.append("%s %s begins casting %s (%.1fs)" % [TEAM_NAMES[u.team], u.job_name(), ab.name, ab.cast])
+	_log(result, "%s %s begins casting %s (%.1fs)" % [TEAM_NAMES[u.team], u.job_name(), ab.name, ab.cast], "cast", u.id)
 
 
 ## The ability takes effect.
@@ -1496,11 +1514,15 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 	# A "vector" ability carries the caster to the far end of the line.
 	if shape_of(ab) == "vector" and node_walkable(node_of(target)) and unit_near(target, UNIT_SPACING) in [null, u]:
 		u.pos = snap(target)
-		result.logs.append("%s %s dashes." % [TEAM_NAMES[u.team], u.job_name()])
+		_log(result, "%s %s dashes." % [TEAM_NAMES[u.team], u.job_name()], "move", u.id)
 	var parts: Array[String] = []
 	# "evaded" and "crits" hold the ids this ability missed and crit on, for
 	# the battle's own tally; the rules themselves don't read them back.
-	var resolved := {"unit": u.id, "slot": slot, "target": target, "hits": [], "amounts": [], "evaded": [], "crits": []}
+	# "avoided" is the damage that never landed (evaded or soaked by a Shield),
+	# and "applied" the statuses and buffs this put on units, for the tally
+	# after the battle; the rules themselves don't read them back.
+	var resolved := {"unit": u.id, "slot": slot, "target": target, "hits": [], "amounts": [], "evaded": [],
+		"crits": [], "avoided": 0, "applied": []}
 	result.resolved.append(resolved)
 	for hit in hits:
 		var t: Unit = hit.unit
@@ -1511,6 +1533,7 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 		# a replay roll exactly the same.)
 		var evaded := false
 		var critical := false
+		var amount_before_evasion := amount
 		if ab.effect == "damage":
 			evaded = rng.randi_range(1, 100) <= evade_chance(t, ab)
 			if not evaded:
@@ -1522,6 +1545,7 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 			resolved.hits.append(t.id)
 			resolved.amounts.append(0)
 			resolved.evaded.append(t.id)
+			resolved.avoided += amount_before_evasion
 			parts.append("%s evades" % who)
 			result.events.append({"pos": t.pos, "text": "MISS", "color": Color(0.85, 0.88, 1.0), "impact": true})
 			continue
@@ -1533,7 +1557,9 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 			"damage":
 				if critical:
 					result.events.append({"pos": t.pos, "text": "CRIT!", "color": Color(1.0, 0.85, 0.3), "impact": true})
+				var before_shield := amount
 				amount = _take_from_shield(t, amount, result)
+				resolved.avoided += before_shield - amount
 				resolved.amounts[-1] = amount
 				t.hp = maxi(0, t.hp - amount)
 				t.ult = mini(ULT_MAX, t.ult + roundi(amount * 100.0 / t.max_hp() * ULT_FROM_DAMAGE))
@@ -1564,6 +1590,7 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 			if Jobs.STATUSES[ab.status.id].get("absorbs", false):
 				extra["amount"] = maxi(1, roundi(ab.power + u.stat("power")))
 			_add_status(t, ab.status.id, ab.status.turns, extra)
+			resolved.applied.append({"unit": t.id, "hostile": t.team != u.team})
 			var info: Dictionary = Jobs.STATUSES[ab.status.id]
 			result.events.append({"pos": t.pos, "text": info.name, "color": info.color, "impact": true})
 		# TG changes only affect units still filling their gauge.
@@ -1577,6 +1604,6 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 			if ab.effect == "support":
 				parts.append(who)
 
-	result.logs.append("%s %s uses %s%s" % [TEAM_NAMES[u.team], u.job_name(), ab.name,
-		": " + ", ".join(parts) if not parts.is_empty() else " (no effect)"])
+	_log(result, "%s %s uses %s%s" % [TEAM_NAMES[u.team], u.job_name(), ab.name,
+		": " + ", ".join(parts) if not parts.is_empty() else " (no effect)"], _ability_log_kind(ab), u.id)
 	_check_winner()

@@ -113,7 +113,8 @@ func _ready() -> void:
 	state.setup(GameConfig.build_map(), GameConfig.battle_tuning(), GameConfig.battle_seed())
 	_start_tuning = state.tuning.duplicate()
 	for u in state.units:
-		stats[u.id] = {"dealt": 0, "taken": 0, "healed": 0, "kos": 0, "abilities": 0, "crits": 0, "evades": 0}
+		stats[u.id] = {"dealt": 0, "taken": 0, "healed": 0, "kos": 0, "abilities": 0, "crits": 0, "evades": 0,
+			"avoided": 0, "buffs": 0, "debuffs": 0}
 	if not GameConfig.replay_log.is_empty():
 		replaying = true
 		_replay_log = GameConfig.replay_log
@@ -388,7 +389,7 @@ func _apply(cmd: Dictionary) -> void:
 	for id in result.gone:
 		unit_views[id].vanish()
 	for line in result.logs:
-		hud.log_message(line)
+		hud.log_message(_log_entry(line))
 	if state.winner != -1:
 		_game_over()
 		return
@@ -950,41 +951,48 @@ func _game_over() -> void:
 	_deselect()
 	var text: String
 	var local_team: int = GameConfig.local_team if GameConfig.mode == "online" else (1 - GameConfig.ai_team if GameConfig.mode == "ai" else -1)
+	var result_color := Color(1.0, 0.82, 0.35)
 	if state.winner == GameState.DRAW:
 		text = "Draw"
 	elif local_team == -1:
-		text = "%s wins!" % GameState.TEAM_NAMES[state.winner]
+		# Nobody's own battle (watching two computers): the winning side's
+		# color says who won, so the name isn't needed.
+		text = "This team wins!"
+		result_color = (TEAM_COLORS[state.winner] as Color).lightened(0.35)
 	else:
 		text = "Victory!" if state.winner == local_team else "Defeat"
 	# When the time ran out, say how close it was.
 	if state.tune("battle_seconds") > 0.0 and state.tick >= roundi(state.tune("battle_seconds") * GameState.TICKS_PER_SECOND):
-		text += "\nTime: Blue %d%% health, Red %d%%" % [roundi(state.health_share(0) * 100), roundi(state.health_share(1) * 100)]
+		text += "\nTime ran out with %d%% and %d%% of their health left" % [
+			roundi(state.health_share(0) * 100), roundi(state.health_share(1) * 100)]
 	text += "\nBattle length: %d:%02d" % [state.tick / GameState.TICKS_PER_SECOND / 60, (state.tick / GameState.TICKS_PER_SECOND) % 60]
 	var rows := []
 	var mvp := -1
 	var best := -1.0
 	for team in 2:
-		var totals := {"dealt": 0, "taken": 0, "healed": 0, "kos": 0, "abilities": 0, "crits": 0, "evades": 0}
+		var totals := {"dealt": 0, "taken": 0, "healed": 0, "kos": 0, "abilities": 0, "crits": 0, "evades": 0,
+			"avoided": 0, "buffs": 0, "debuffs": 0}
 		for u in state.units:
 			if u.team != team:
 				continue
 			var st: Dictionary = stats[u.id]
 			for key in totals:
 				totals[key] += st[key]
-			rows.append({"name": "%s %s" % [GameState.TEAM_NAMES[u.team], u.job_name()],
+			rows.append({"name": u.job_name(),
 				"color": (TEAM_COLORS[u.team] as Color).lightened(0.35), "total": false,
 				"dealt": st.dealt, "taken": st.taken, "healed": st.healed, "kos": st.kos,
-				"abilities": st.abilities, "crits": st.crits, "evades": st.evades})
+				"abilities": st.abilities, "crits": st.crits, "evades": st.evades,
+				"avoided": st.avoided, "buffs": st.buffs, "debuffs": st.debuffs})
 			# Standing in front of the enemy counts too, not only damage.
 			var worth: float = st.dealt + st.healed + st.taken * 0.6 + st.kos * 40.0
 			if worth > best:
 				best = worth
 				mvp = rows.size() - 1
-		var totals_row := {"name": "%s total" % GameState.TEAM_NAMES[team], "total": true,
+		var totals_row := {"name": "Team total", "total": true,
 			"color": (TEAM_COLORS[team] as Color).lightened(0.15)}
 		totals_row.merge(totals)
 		rows.append(totals_row)
-	hud.show_game_over(text, rows, mvp, true)
+	hud.show_game_over(text, rows, mvp, true, result_color)
 	Audio.stop_music()
 	Audio.sfx_enabled = true
 	Audio.play("defeat" if text == "Defeat" else "victory")
@@ -1000,6 +1008,20 @@ func _record_stats(result: Dictionary) -> void:
 		stats[r.unit].crits += r.get("crits", []).size()
 		for id in r.get("evaded", []):
 			stats[id].evades += 1
+		# Damage that never landed counts for whoever it was aimed at (the ones
+		# who evaded if any did, otherwise whoever a Shield soaked it for), and
+		# statuses count for whoever put them on.
+		var avoided: int = int(r.get("avoided", 0))
+		if avoided > 0:
+			var dodgers: Array = r.get("evaded", []) if not r.get("evaded", []).is_empty() else r.hits
+			for id in dodgers:
+				@warning_ignore("integer_division")
+				stats[id].avoided += avoided / dodgers.size()
+		for put in r.get("applied", []):
+			if put.hostile:
+				stats[r.unit].debuffs += 1
+			else:
+				stats[r.unit].buffs += 1
 		for i in r.hits.size():
 			var amount: int = r.amounts[i]
 			var target_id: int = r.hits[i]
@@ -1075,6 +1097,18 @@ func _replay_step(delta: float) -> void:
 func _apply_look() -> void:
 	for view in unit_views.values():
 		view.set_circle_size(Settings.unit_circle_size)
+
+
+## Gives a log line from the rules the icon of the unit it is about, unless
+## that unit is hidden by fog of war.
+func _log_entry(line):
+	if not (line is Dictionary):
+		return line
+	var entry: Dictionary = line.duplicate()
+	var u := state.get_unit(int(entry.get("unit", -1)))
+	if u != null and _is_seen(u):
+		entry["icon"] = Jobs.icon_path(u.job)
+	return entry
 
 
 ## Rows for the all-units panel: everyone on the field, Blue then Red, with
