@@ -311,6 +311,32 @@ static func clean_overrides(overrides) -> Dictionary:
 	return out
 
 
+## What an ability does, for the stats card and its legend: a physical or
+## magical attack, a heal, something that buffs or weakens, or anything else.
+const ABILITY_CLASSES := {
+	"physical": {"name": "Physical attack", "color": Color(1.0, 0.55, 0.45)},
+	"magical": {"name": "Magic attack", "color": Color(0.75, 0.6, 1.0)},
+	"heal": {"name": "Healing", "color": Color(0.45, 0.95, 0.5)},
+	"boost": {"name": "Buff / debuff", "color": Color(0.45, 0.8, 1.0)},
+	"utility": {"name": "Utility", "color": Color(0.85, 0.85, 0.9)},
+}
+
+
+## Which of ABILITY_CLASSES an ability belongs to.
+static func ability_class(ab: Dictionary) -> String:
+	match ab.get("effect", "support"):
+		"damage":
+			return "physical" if ab.get("scale", "att") == "att" else "magical"
+		"heal", "revive":
+			return "heal"
+	# Support: anything that puts a status on, buffs, or drains a turn gauge
+	# counts as a buff or a debuff; the rest is utility (dashes, shields of
+	# their own, and so on).
+	if ab.has("buffs") or ab.has("status") or ab.has("tg"):
+		return "boost"
+	return "utility"
+
+
 static func ability(id: String) -> Dictionary:
 	return custom_abilities[id] if custom_abilities.has(id) else ABILITIES[id]
 

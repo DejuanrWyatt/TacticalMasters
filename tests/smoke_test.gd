@@ -129,6 +129,7 @@ func _test_rules() -> void:
 	_test_saved_teams()
 	_test_sprint_engage_hustle()
 	_test_log_entries()
+	await _test_ability_classes()
 	_test_planning_stage()
 	await _test_menus_fit()
 	_test_new_statuses()
@@ -873,6 +874,50 @@ func _test_menus_fit() -> void:
 			panel.hide()
 		await process_frame
 	menu.free()
+
+
+## Abilities are sorted into what they are for, which colors them on a unit's
+## stats card and is spelled out by the legend under the list.
+func _test_ability_classes() -> void:
+	_check(Jobs.ability_class(Jobs.ability("attack")) == "physical", "a sword swing is a physical attack")
+	_check(Jobs.ability_class(Jobs.ability("fire")) == "magical", "Fire is a magic attack")
+	_check(Jobs.ability_class(Jobs.ability("cure")) == "heal", "Cure is healing")
+	_check(Jobs.ability_class(Jobs.ability("raise")) == "heal", "so is Raise")
+	_check(Jobs.ability_class(Jobs.ability("guard")) == "boost", "Guard is a buff")
+	for id in Jobs.ABILITIES:
+		var name: String = Jobs.ABILITY_CLASSES[Jobs.ability_class(Jobs.ability(id))].name
+		if name == "":
+			_check(false, "%s has no kind" % id)
+	for id in Jobs.all_jobs():
+		for slot in 4:
+			var kind: String = Jobs.ability_class(Jobs.ability(Jobs.job(id).abilities[slot]))
+			if not Jobs.ABILITY_CLASSES.has(kind):
+				_check(false, "%s ability %d has an unknown kind %s" % [id, slot, kind])
+
+	# On the card: every ability shows its icon, in the color of its kind.
+	var hud = load("res://scripts/battle/hud.gd").new()
+	var state := _new_state()
+	hud.game_state = state
+	root.add_child(hud)
+	hud.build(true)
+	await process_frame
+	var u = state.units[0]
+	hud.show_inspect(u, false, "Blue Knight", Color.WHITE, 10.0)
+	await process_frame
+	var rows: Array = hud._inspect.left.abilities.get_children()
+	_check(rows.size() == 4, "the card lists all four abilities")
+	var with_icons := 0
+	for i in rows.size():
+		var icon := rows[i].get_node("Icon") as TextureRect
+		var label := rows[i].get_node("Name") as Label
+		if icon.texture != null:
+			with_icons += 1
+		var wanted: Color = Jobs.ABILITY_CLASSES[Jobs.ability_class(u.ability(i))].color
+		var shown: Color = label.get_theme_color("font_color")
+		_check(shown.is_equal_approx(wanted) or shown.is_equal_approx(wanted.darkened(0.35)),
+			"ability %d is colored for what it does" % (i + 1))
+	_check(with_icons == 4, "each ability on the card has its icon (%d of 4)" % with_icons)
+	hud.free()
 
 
 func _test_ko_and_raise() -> void:

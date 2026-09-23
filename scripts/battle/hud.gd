@@ -633,9 +633,50 @@ func _build_inspect_card(right: bool) -> Dictionary:
 	var abilities := VBoxContainer.new()
 	abilities.add_theme_constant_override("separation", 1)
 	box.add_child(abilities)
+	box.add_child(_ability_legend())
 	for part in [hp, tg, ult]:
 		part.mouse_filter = Control.MOUSE_FILTER_PASS
 	return {"card": card, "title": title, "sub": sub, "hp": hp, "tg": tg, "ult": ult, "stats": stats, "abilities": abilities}
+
+
+## What the colors on the ability list mean, in a small block under it.
+func _ability_legend() -> Control:
+	var legend := HFlowContainer.new()
+	legend.add_theme_constant_override("h_separation", 8)
+	legend.add_theme_constant_override("v_separation", 1)
+	legend.tooltip_text = "What each ability does"
+	for id in Jobs.ABILITY_CLASSES:
+		var entry: Dictionary = Jobs.ABILITY_CLASSES[id]
+		var swatch := Label.new()
+		swatch.text = "● " + entry.name
+		swatch.add_theme_font_size_override("font_size", 9)
+		swatch.add_theme_color_override("font_color", entry.color)
+		swatch.mouse_filter = Control.MOUSE_FILTER_PASS
+		legend.add_child(swatch)
+	return legend
+
+
+## One row of the ability list: its icon, then its name.
+func _ability_row(parent: VBoxContainer) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 5)
+	row.mouse_filter = Control.MOUSE_FILTER_PASS
+	var icon := TextureRect.new()
+	icon.name = "Icon"
+	icon.custom_minimum_size = Vector2(16, 16)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.mouse_filter = Control.MOUSE_FILTER_PASS
+	row.add_child(icon)
+	var name_label := Label.new()
+	name_label.name = "Name"
+	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	row.add_child(name_label)
+	parent.add_child(row)
+	return row
 
 
 ## Shows a unit's stats on the left (ally) or right (enemy) card; null hides both.
@@ -669,11 +710,7 @@ func show_inspect(u, enemy: bool, title: String, color: Color, seconds: float) -
 		u.stat("wits"), u.stat("patience"), GameState._n(move), GameState._n(sight)])
 	var rows: Array = c.abilities.get_children()
 	while rows.size() < 4:
-		var l := Label.new()
-		l.add_theme_font_size_override("font_size", 11)
-		l.mouse_filter = Control.MOUSE_FILTER_PASS
-		c.abilities.add_child(l)
-		rows.append(l)
+		rows.append(_ability_row(c.abilities))
 	for i in 4:
 		var ab: Dictionary = u.ability(i)
 		var note := ""
@@ -681,10 +718,22 @@ func show_inspect(u, enemy: bool, title: String, color: Color, seconds: float) -
 			note = "  (ULT %d%%)" % u.ult if u.ult < 100 else "  (ULT ready)"
 		elif u.cooldowns[i] > 0:
 			note = "  (wait %d)" % u.cooldowns[i]
-		_set_text(rows[i], "%s  %s%s" % ["U" if i == 3 else str(i + 1), ab.name, note])
-		_set_color(rows[i], GOLD if i == 3 and u.ult >= 100 else DIM)
+		var row: HBoxContainer = rows[i]
+		var name_label := row.get_node("Name") as Label
+		var icon := row.get_node("Icon") as TextureRect
+		var ab_id: String = u.job_data().abilities[i]
+		if icon.get_meta("ability_id", "") != ab_id:
+			icon.set_meta("ability_id", ab_id)
+			icon.texture = _icon(Jobs.ability_icon_path(ab_id))
+		_set_text(name_label, "%s  %s%s" % ["U" if i == 3 else str(i + 1), ab.name, note])
+		# Colored by what the ability is for (the legend under the list).
+		var ability_class: String = Jobs.ability_class(ab)
+		var tint: Color = Jobs.ABILITY_CLASSES[ability_class].color
+		_set_color(name_label, tint if u.cooldowns[i] == 0 and not (i == 3 and u.ult < 100) else tint.darkened(0.35))
+		icon.modulate = Color(1, 1, 1, 1.0 if u.cooldowns[i] == 0 else 0.5)
 		if game_state != null:
-			_set_tip(rows[i], "%s\n\n%s" % [ab.desc, game_state.explain_ability(u, i)])
+			_set_tip(row, "%s  ·  %s\n\n%s" % [ab.desc, Jobs.ABILITY_CLASSES[ability_class].name,
+				game_state.explain_ability(u, i)])
 	if game_state != null:
 		_set_tip(c.tg, game_state.explain_turn(u))
 		_set_tip(c.sub, game_state.explain_countdown(u) + "\n" + game_state.explain_turn(u))

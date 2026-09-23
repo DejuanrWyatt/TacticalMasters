@@ -78,7 +78,8 @@ the end.
   The seconds until ready show on the chip for 3 s after the unit's turn ends, in the last 3 s before it's ready,
   and while the mouse is over the chip.
 - **Stats cards:** click a unit that isn't taking orders (an enemy, or an ally that isn't READY), or its chip, to see
-  its stats, gauges, statuses and abilities. Allies show on the left, enemies on the right. Click it again, click the
+  its stats, gauges, statuses and abilities. Each ability shows its **icon** and is colored by what it is for --
+  physical attack, magic attack, healing, buff / debuff or utility -- with a **legend** under the list. Allies show on the left, enemies on the right. Click it again, click the
   ground or press × to close. Hover the numbers for their calculations.
 - On its turn a unit can **walk once** (up to its Move in meters, around water, cliffs and enemies) and **use one ability**,
   in either order. Skipping one keeps some TG, so the next turn comes sooner. A turn that used **no ability at all**
