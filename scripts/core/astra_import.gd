@@ -58,6 +58,9 @@ const STAT_KEYS := Jobs.STAT_KEYS
 ## A class profile must give these; the rest fall back to DEFAULT_STATS.
 const REQUIRED_STATS := ["hp", "attdef", "magdef", "wits", "move", "patience", "sight"]
 const DEFAULT_STATS := {"power": 0, "aeva": 5, "meva": 5, "crit": 5}
+## The ability parameters the game reads (everything else is Astra's own).
+const READ_KEYS := ["power", "min_range", "cast_range", "radius", "cast_time", "cooldown_turns", "cooldown",
+	"tg_change", "status_duration", "channel_turns", "cone_angle"]
 const STAT_LIMITS := Jobs.STAT_LIMITS
 const DIRS := ["res://data/classes/", "user://classes/"]
 ## Astra's sample caster stats (model.mjs defaultStats), so formulas that
@@ -66,6 +69,14 @@ const ASTRA_STATS := {"maxMana": 1000, "currentMana": 800, "maxHealth": 2000, "c
 	"attackDamage": 100, "bonusAttackDamage": 40, "spellPower": 100, "armor": 50, "magicResist": 30,
 	"moveSpeed": 350, "abilityHaste": 0}
 const BUILT_IN_LOOKS := ["squire", "knight", "archer", "monk", "black_mage", "white_mage"]
+## Patterns are reused across classes, so each one is only built once.
+static var _patterns := {}
+
+
+static func _pattern(source: String) -> RegEx:
+	if not _patterns.has(source):
+		_patterns[source] = RegEx.create_from_string(source)
+	return _patterns[source]
 ## Astra's ability types and targeting, as the game's kinds and shapes.
 const KINDS := {"Active": "active", "Passive": "passive", "Toggle": "toggle", "Channeled": "channeled",
 	"Active + Passive": "active_passive", "Aura": "aura"}
@@ -84,11 +95,12 @@ static func load_all() -> Array[String]:
 			if not file.ends_with(".json"):
 				continue
 			var result := parse(FileAccess.get_file_as_string(dir + file))
-			Jobs.register(result)
+			Jobs.register(result, true)  # one rebuild at the end, not per file
 			for id in result.jobs:
 				messages.append("Loaded class '%s' from %s" % [result.jobs[id].name, file])
 			for e in result.errors:
 				messages.append("%s: %s" % [file, e])
+	Jobs.register({}, false)  # now apply any changed stats to what was loaded
 	return messages
 
 
@@ -123,7 +135,7 @@ static func parse(text: String) -> Dictionary:
 
 
 static func _import_class(id: String, entries: Array, out: Dictionary) -> String:
-	if not RegEx.create_from_string("^[a-z][a-z0-9_]{0,30}$").search(id):
+	if not _pattern("^[a-z][a-z0-9_]{0,30}$").search(id):
 		return "the id must be lowercase letters, digits and _."
 	if Jobs.JOBS.has(id):
 		return "'%s' is a built-in job." % id
@@ -154,7 +166,7 @@ static func _import_class(id: String, entries: Array, out: Dictionary) -> String
 			else:
 				out.errors.append("Class '%s': ignoring role tag '%s' (use %s, or a pair like tank/support); its role is worked out from its stats instead."
 					% [id, tag.substr(5), ", ".join(Jobs.ROLES.keys())])
-		if tag is String and tag.begins_with("icon:") and RegEx.create_from_string("^[a-z0-9_]{1,40}$").search(tag.substr(5)):
+		if tag is String and tag.begins_with("icon:") and _pattern("^[a-z0-9_]{1,40}$").search(tag.substr(5)):
 			job["icon"] = tag.substr(5)
 	var values := _values(profile)
 	if values.has("error"):
@@ -270,19 +282,36 @@ static func _fx(a: Dictionary, ab: Dictionary) -> String:
 # --- Astra's formulas (a port of model.mjs) ---------------------------------
 
 ## Every parameter of an Astra ability evaluated at rank 1, or {"error": ...}.
+## The parameters of an ability, worked out at rank 1. Only the ones the game
+## reads, plus any an effect's formula mentions, or {"error": ...}.
 static func _values(a: Dictionary) -> Dictionary:
 	var params: Array = a.get("parameters", []) if a.get("parameters") is Array else []
 	var by_key := {}
 	for p in params:
 		if p is Dictionary and p.get("key") is String:
 			by_key[p.key] = p
+	# What the effects' formulas mention, so those parameters are worked out too.
+	var formulas := ""
+	for e in (a.get("effects", []) if a.get("effects") is Array else []):
+		if e is Dictionary:
+			formulas += "%s %s %s " % [e.get("amount", ""), e.get("duration", ""), e.get("tick", "")]
 	var out := {}
+	var cache := {}
 	for key in by_key:
-		var value = _resolve(key, by_key, {}, [])
+		# Only the parameters the game reads; a formula that mentions another
+		# parameter still resolves it (see _resolve).
+		if not _is_read(key) and not formulas.contains(key):
+			continue
+		var value = _resolve(key, by_key, cache, [])
 		if value is String:
 			return {"error": value}
 		out[key] = value
 	return out
+
+
+## Whether the game reads this parameter itself.
+static func _is_read(key: String) -> bool:
+	return READ_KEYS.has(key) or key.begins_with("buff_") or STAT_KEYS.has(key)
 
 
 static func _eval_in(a: Dictionary, expression: String, values: Dictionary):
@@ -307,7 +336,7 @@ static func _resolve(key: String, by_key: Dictionary, cache: Dictionary, active:
 	# Referenced parameters are resolved first.
 	var expression := rank_value(by_key[key], 1)
 	for other in by_key:
-		if other != key and RegEx.create_from_string("\\b%s\\b" % other).search(expression):
+		if other != key and expression.contains(other) and _pattern("\\b%s\\b" % other).search(expression):
 			var v = _resolve(other, by_key, cache, active)
 			if v is String:
 				active.erase(key)
@@ -360,7 +389,7 @@ static func generated_value(p: Dictionary, rank: int) -> String:
 ## postfix % and variables. Returns a float, or an error message String.
 static func evaluate(expression: String, variables: Dictionary):
 	var input := expression.strip_edges()
-	var re := RegEx.create_from_string("(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?|[a-zA-Z_][a-zA-Z_0-9]*|[()+\\-*/%]")
+	var re := _pattern("(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?|[a-zA-Z_][a-zA-Z_0-9]*|[()+\\-*/%]")
 	var tokens: Array[String] = []
 	for m in re.search_all(input):
 		tokens.append(m.get_string())
@@ -436,7 +465,7 @@ class _Parser:
 
 
 static func _slug(text: String) -> String:
-	var s := RegEx.create_from_string("[^a-z0-9]+").sub(text.to_lower(), "_", true)
+	var s := _pattern("[^a-z0-9]+").sub(text.to_lower(), "_", true)
 	return s.trim_prefix("_").trim_suffix("_")
 
 

@@ -12,6 +12,9 @@ extends RefCounted
 ## between orders, and how often it settles for a weaker option instead of
 ## its best one. Hard never makes mistakes.
 
+const Jobs = preload("res://scripts/core/jobs.gd")
+const GameState = preload("res://scripts/core/game_state.gd")
+
 const LEVELS := {
 	# think: seconds from a unit becoming READY to its first order
 	# step: seconds between orders
@@ -45,6 +48,11 @@ func next_command(state, u) -> Dictionary:
 				return order.merged({"type": "move", "to": best.spot})
 			return order.merged({"type": "ability", "slot": best.slot, "target": best.target, "follow": best.follow})
 	if not u.moved and not u.is_casting():
+		# Badly hurt with nothing worth doing: back off instead of walking in.
+		if float(level().mistakes) < 0.4 and u.hp < u.max_hp() * 0.3:
+			var away := _retreat_spot(state, u, reach)
+			if away != u.pos:
+				return order.merged({"type": "move", "to": away})
 		var dest := _approach_spot(state, u, reach)
 		if dest != u.pos:
 			return order.merged({"type": "move", "to": dest})
@@ -85,6 +93,23 @@ func _best_action(state, u, reach: Dictionary) -> Dictionary:
 			if fits:
 				candidates.append([t, t == u or state.can_see(u.team, t.pos, u.id)])
 		var needs_los: bool = state.needs_line_of_sight(ab)
+		# An area ability can be aimed between two targets to catch both. Only
+		# the best difficulty bothers, only for pairs it could actually cover,
+		# and only a few of them (each one costs a look at every stand).
+		var spreads: Array[Vector2] = []
+		if ab.aoe > 0.0 and level().mistakes == 0.0:
+			var span: float = ab.aoe * 2.0
+			for i in candidates.size():
+				for j in range(i + 1, candidates.size()):
+					if not (candidates[i][1] or candidates[j][1]):
+						continue
+					if candidates[i][0].pos.distance_to(candidates[j][0].pos) > span:
+						continue
+					spreads.append((candidates[i][0].pos + candidates[j][0].pos) * 0.5)
+					if spreads.size() >= 3:
+						break
+				if spreads.size() >= 3:
+					break
 		for spot in spots:
 			var aims: Array[Vector2] = []
 			if max_r == 0.0:
@@ -103,8 +128,13 @@ func _best_action(state, u, reach: Dictionary) -> Dictionary:
 						continue
 					if c[1] or (d <= sight and (needs_los or state.has_line_of_sight(spot, t_pos))):
 						aims.append(t_pos)
+				for middle in spreads:
+					var d := spot.distance_to(middle)
+					if d >= min_r and d <= max_r and state.in_bounds(middle) \
+							and (not needs_los or state.has_line_of_sight(spot, middle)):
+						aims.append(middle)
 			for target in aims:
-				var score := _score(u, slot, ab, state.preview(u, slot, spot, target))
+				var score := _score(u, slot, ab, state.preview(u, slot, spot, target), state)
 				if score <= 0.0:
 					continue
 				# Slow casts give targets time to walk away.
@@ -138,7 +168,10 @@ func _unit_at(state, target: Vector2, u, spot: Vector2, ab: Dictionary) -> int:
 	return -1
 
 
-func _score(u, slot: int, ab: Dictionary, hits: Array) -> float:
+## How good this ability would be. Damage counts what it would do *on
+## average* (evasion takes some away, critical hits add some), and enemies
+## that keep the other team going are worth hitting first.
+func _score(u, slot: int, ab: Dictionary, hits: Array, state = null) -> float:
 	var score := 0.0
 	# A toggle is worth switching on once; never worth switching back off.
 	if ab.get("kind", "active") == "toggle":
@@ -149,12 +182,17 @@ func _score(u, slot: int, ab: Dictionary, hits: Array) -> float:
 			helps = helps or b.amount > 0
 		if not helps:
 			return 0.0
+	var smart: bool = level().mistakes < 0.4  # Easy keeps the simpler reasoning
 	for hit in hits:
 		var t = hit.unit
 		var amount: int = hit.amount
+		if smart and state != null and ab.effect == "damage":
+			var evade: float = state.evade_chance(t, ab) / 100.0
+			var crit: float = state.crit_chance(u) / 100.0
+			amount = maxi(1, roundi(amount * (1.0 - evade) * (1.0 + crit * (state.tune("crit_multiplier") - 1.0))))
 		match ab.effect:
 			"damage":
-				score += amount
+				score += amount * _target_worth(u, t, smart)
 				if amount >= t.hp:
 					score += 30.0
 			"heal":
@@ -167,10 +205,65 @@ func _score(u, slot: int, ab: Dictionary, hits: Array) -> float:
 					score += 12.0
 				if ab.has("buffs"):
 					score += 8.0
-		# A fresh status (Slow, Stun, Burn, Regen) on the unit is worth something.
+		# A fresh status is worth more the longer it lasts, and most of all on a
+		# fast enemy that is about to act.
 		if ab.has("status") and t.is_alive() and not t.has_status(ab.status.id):
-			score += 20.0 if ab.status.id == "stun" else 10.0
+			var worth: float = 20.0 if ab.status.id == "stun" else 10.0
+			if smart:
+				worth *= 0.6 + 0.4 * int(ab.status.turns)
+				if t.team != u.team:
+					worth *= 1.0 + t.stat("wits") / 20.0
+					if t.ready or t.is_casting():
+						worth *= 1.5
+			score += worth
+	# A channelled ability keeps working over its turns.
+	if smart and ab.get("kind", "active") == "channeled":
+		score *= 1.0 + 0.4 * (int(ab.get("channel", 2)) - 1)
+	# The ultimate is worth saving until it catches two, or finishes someone.
+	if smart and slot == 3 and ab.effect == "damage":
+		var caught := 0
+		var finishes := false
+		for hit in hits:
+			if hit.unit.team != u.team:
+				caught += 1
+				finishes = finishes or hit.amount >= hit.unit.hp
+		if caught < 2 and not finishes:
+			score *= 0.4
 	return score
+
+
+## How much a target is worth hitting: the other side's healers and
+## controllers first, and anything nearly dead.
+func _target_worth(u, t, smart: bool) -> float:
+	if not smart or t.team == u.team:
+		return 1.0
+	var worth := 1.0
+	for role in Jobs.roles_of(t.job):
+		if role == "support":
+			worth = maxf(worth, 1.45)
+		elif role == "special":
+			worth = maxf(worth, 1.25)
+	# The more hurt it is, the more finishing it off is worth.
+	worth += 0.5 * (1.0 - float(t.hp) / t.max_hp())
+	return worth
+
+
+## The reachable spot furthest from the enemies this team can see.
+func _retreat_spot(state, u, reach: Dictionary) -> Vector2:
+	var seen: Array[Vector2] = []
+	for enemy in state.team_units(1 - u.team):
+		if state.can_see(u.team, enemy.pos):
+			seen.append(enemy.pos)
+	if seen.is_empty():
+		return u.pos
+	var best: Vector2 = u.pos
+	var best_distance := -INF
+	for n in reach:
+		var distance: float = minf(state.distance_to_nearest(seen, n), 999.0)
+		if distance > best_distance:
+			best_distance = distance
+			best = state.node_pos(n)
+	return best
 
 
 ## Spot that moves the unit toward its preferred fighting distance.
@@ -181,7 +274,14 @@ func _approach_spot(state, u, reach: Dictionary) -> Vector2:
 			goals.append(enemy.pos)
 	if goals.is_empty():
 		goals.append(state.spawn_points[1 - u.team])
-	var attack_range: float = maxf(u.ability(0).max_range, u.ability(1).max_range)
+	# How far it can actually threaten from, using whatever it can use now.
+	var attack_range := 0.0
+	for slot in 4:
+		var ab: Dictionary = u.ability(slot)
+		if ab.effect == "damage" and state.ability_blocked_reason(u, slot) == "":
+			attack_range = maxf(attack_range, ab.max_range)
+	if attack_range <= 0.0:
+		attack_range = maxf(u.ability(0).max_range, u.ability(1).max_range)
 	var desired := maxf(1.0, attack_range - 1.0)
 	var best: Vector2 = u.pos
 	var best_value := INF

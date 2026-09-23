@@ -3,6 +3,13 @@ extends SceneTree
 ## catch stutters (slow frames) while turns are being taken.
 ##   godot --script res://tests/frame_time.gd -- [seconds] [difficulty]
 
+## What a battle should cost per frame; over this, the run fails.
+const MEDIAN_BUDGET_MS := 12.0
+const P99_BUDGET_MS := 25.0
+## Share of frames allowed over 50 ms (first-time shader loads, and such).
+const SLOW_SHARE := 0.005
+
+
 func _initialize() -> void:
 	await process_frame
 	var args := OS.get_cmdline_user_args()
@@ -39,6 +46,21 @@ func _initialize() -> void:
 			print("SLOW FRAME %.0f ms at tick %d | units %s | log %s" % [ms, battle.state.tick, states, log_lines])
 	frames.sort()
 	var orders: int = battle.state.tick
+	var median: float = frames[frames.size() / 2]
+	var p99: float = frames[int(frames.size() * 0.99)]
 	print("frames=%d  median=%.1f ms  p99=%.1f ms  worst=%.1f ms  frames over 50 ms=%d  (battle tick %d)" % [
-		frames.size(), frames[frames.size() / 2], frames[int(frames.size() * 0.99)], worst, slow, orders])
-	quit()
+		frames.size(), median, p99, worst, slow, orders])
+	# A budget, so a slowdown fails the run instead of only printing.
+	var problems: Array[String] = []
+	if median > MEDIAN_BUDGET_MS:
+		problems.append("median %.1f ms is over %.0f" % [median, MEDIAN_BUDGET_MS])
+	if p99 > P99_BUDGET_MS:
+		problems.append("p99 %.1f ms is over %.0f" % [p99, P99_BUDGET_MS])
+	if slow > float(frames.size()) * SLOW_SHARE:
+		problems.append("%d frames over 50 ms is more than %.1f%% of them" % [slow, SLOW_SHARE * 100.0])
+	if problems.is_empty():
+		print("FRAME TIME OK (median %.0f / p99 %.0f / worst %.0f ms)" % [MEDIAN_BUDGET_MS, P99_BUDGET_MS, worst])
+		quit(0)
+	else:
+		printerr("FRAME TIME OVER BUDGET: %s" % ", ".join(problems))
+		quit(1)

@@ -115,6 +115,8 @@ var _dev_tools: Control
 var game_state
 ## True when Developer Tools changes apply to this battle right away.
 var dev_tools_live := false
+## What the unit card's tooltips were last built from.
+var _card_tip_sig := ""
 
 
 func build(can_pause: bool) -> void:
@@ -400,10 +402,6 @@ func show_inspect(u, enemy: bool, title: String, color: Color, seconds: float) -
 		elif u.cooldowns[i] > 0:
 			note = "  (wait %d)" % u.cooldowns[i]
 		_set_text(rows[i], "%s  %s%s" % ["U" if i == 3 else str(i + 1), ab.name, note])
-		var row_icon: String = Jobs.ability_icon_path(u.job_data().abilities[i])
-		if rows[i].get_meta("icon_path", "") != row_icon:
-			rows[i].set_meta("icon_path", row_icon)
-			(rows[i] as Label).add_theme_constant_override("line_spacing", 0)
 		_set_color(rows[i], GOLD if i == 3 and u.ult >= 100 else DIM)
 		if game_state != null:
 			_set_tip(rows[i], "%s\n\n%s" % [ab.desc, game_state.explain_ability(u, i)])
@@ -783,18 +781,24 @@ func set_turn_order(entries: Array) -> void:
 		badge.visible = status != ""
 		_set_color(badge, badge_color)
 		var icon: TextureRect = chip.get_node("Icon")
-		var icon_path: String = "res://assets/icons/hidden.svg" if e.hidden else Jobs.icon_path(e.job)
-		if icon.get_meta("path", "") != icon_path:
-			icon.set_meta("path", icon_path)
+		var icon_key: String = "?" if e.hidden else e.job
+		if icon.get_meta("job", "") != icon_key:
+			icon.set_meta("job", icon_key)
+			var icon_path: String = "res://assets/icons/hidden.svg" if e.hidden else Jobs.icon_path(e.job)
 			icon.texture = _icon(icon_path)
 			# The generic icon of an imported class takes the class color.
 			icon.modulate = Jobs.job(e.job).color.lightened(0.3) if icon_path == Jobs.GENERIC_ICON else Color.WHITE
-		var tip: String = "Hidden by the fog of war" if e.hidden else e.title
-		if e.casting != "":
-			tip += "\nCasting %s" % e.casting
-		if not e.hidden and e.get("tip", "") != "":
-			tip += "\n\n" + e.tip
-		_set_tip(chip, tip)
+		# The turn explanation costs something to build, so only when it changes.
+		var tip_sig := "%s|%s|%d|%d|%d" % [e.title, e.casting, int(e.hidden), e.get("serial", 0), _tuning_revision()]
+		if chip.get_meta("tip_sig", "") != tip_sig:
+			chip.set_meta("tip_sig", tip_sig)
+			var tip: String = "Hidden by the fog of war" if e.hidden else e.title
+			if e.casting != "":
+				tip += "\nCasting %s" % e.casting
+			var unit = game_state.get_unit(e.id) if game_state != null else null
+			if not e.hidden and unit != null:
+				tip += "\n\n%s\n%s" % [game_state.explain_turn(unit), game_state.explain_countdown(unit)]
+			_set_tip(chip, tip)
 		# Restyle only when the look changes: theme overrides are costly.
 		var look_key := "%s/%s" % [look, e.color.to_html()]
 		if chip.get_meta("look", "") != look_key:
@@ -856,7 +860,8 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 	_set_text(_stats, "POW %d  DEF %d  MDF %d  CRIT %d%%\nAEV %d%%  MEV %d%%  WIT %d  MOV %sm  PAT %d  SGT %sm" % [
 		u.stat("power"), u.stat("attdef"), u.stat("magdef"), u.stat("crit"),
 		u.stat("aeva"), u.stat("meva"), u.stat("wits"), GameState._n(move), u.stat("patience"), GameState._n(sight)])
-	if game_state != null:
+	if game_state != null and _card_tip_sig != _unit_tip_signature(u):
+		_card_tip_sig = _unit_tip_signature(u)
 		_set_tip(_subtitle, game_state.explain_countdown(u) + "\n" + game_state.explain_turn(u))
 		_set_tip(_tg_bar, game_state.explain_turn(u))
 		_set_tip(_hp_bar, "Max HP %d (class %s)%s" % [u.max_hp(), u.job_name(), "" if u.hp == u.max_hp() else "\nMissing %d" % (u.max_hp() - u.hp)])
@@ -886,10 +891,10 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 		elif ab.cast > 0.0:
 			details.append("%.1fs" % (game_state.cast_seconds(ab) if game_state != null else ab.cast))
 		_set_text(b, "%s\n%s" % [ab.name, "  ·  ".join(details)])
-		var icon_path: String = Jobs.ability_icon_path(u.job_data().abilities[i])
-		if b.get_meta("icon_path", "") != icon_path:
-			b.set_meta("icon_path", icon_path)
-			b.icon = _icon(icon_path)
+		var ab_id: String = u.job_data().abilities[i]
+		if b.get_meta("ability_id", "") != ab_id:
+			b.set_meta("ability_id", ab_id)
+			b.icon = _icon(Jobs.ability_icon_path(ab_id))
 		# A ready ultimate stands out in gold.
 		_set_color(b, GOLD if i == 3 and u.ult >= 100 else TEXT)
 		var range_text := "self" if ab.max_range == 0 else "range %.1f-%.1f m" % [ab.min_range, ab.max_range]
@@ -899,12 +904,22 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 			(", radius %.1f m" % ab.aoe) if ab.aoe > 0 and shape == "circle" else "", cast_text]
 		tip = tip.replace(" · ", "  ·  ")
 		tip += "\n" + range_text
-		if game_state != null:
-			tip += "\n\n" + game_state.explain_ability(u, i)
-		_set_tip(b, tip)
+		if game_state != null and b.get_meta("tip_sig", "") != _unit_tip_signature(u):
+			b.set_meta("tip_sig", _unit_tip_signature(u))
+			_set_tip(b, tip + "\n\n" + game_state.explain_ability(u, i))
 		b.disabled = not controllable or u.acted or blocked[i] != ""
 		b.set_pressed_no_signal(selected_slot == i)
 	_end_button.disabled = not controllable
+
+
+## What the calculation tooltips depend on: while this is the same, they say
+## the same thing, so they don't need building again.
+func _unit_tip_signature(u) -> String:
+	return "%d|%d|%d|%d|%s|%s|%d" % [u.id, u.serial, u.hp, u.ult, u.buffs, u.toggled, _tuning_revision()]
+
+
+func _tuning_revision() -> int:
+	return game_state.tuning.hash() if game_state != null else 0
 
 
 ## Active buffs as tooltip lines.

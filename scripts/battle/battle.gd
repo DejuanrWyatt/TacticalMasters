@@ -970,8 +970,9 @@ func _update_live_ui() -> void:
 			"casting": u.casting.name if u.is_casting() and seen else "",
 			"cast_seconds": state.cast_seconds_left(u),
 			"seconds": state.seconds_left(u),
+			"serial": u.serial,
 			"since_turn": (state.tick - _turn_used_at[u.id]) / float(GameState.TICKS_PER_SECOND) if _turn_used_at.has(u.id) else INF,
-			"tip": "" if not _is_seen(u) else "%s\n%s" % [state.explain_turn(u), state.explain_countdown(u)],
+			"tip": "",  # filled in below, only when it would change
 			"selected": u.id == selected_id,
 			"hidden": not seen,
 		})

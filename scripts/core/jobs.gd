@@ -228,6 +228,11 @@ static var custom_abilities := {}
 ## job with these applied; the merged copies are built when they change, so
 ## the computer's thinking thread only ever reads them.
 static var stat_overrides := {}
+## Icon paths worked out already (they need a file check, so only once each).
+static var _icon_paths := {}
+## Roles worked out already: asked for often (the computer weighs targets by
+## them), and unchanging for a class.
+static var _roles := {}
 static var _with_overrides := {}
 
 ## The stats a class has, and the values the Unit Guide allows for each.
@@ -302,6 +307,14 @@ static func ability(id: String) -> Dictionary:
 ## says so itself (JOBS, or an imported class's Astra tag "role:<x>"); one
 ## that doesn't gets a role from its stats and abilities.
 static func roles_of(id: String) -> Array:
+	if _roles.has(id):
+		return _roles[id]
+	var found := _work_out_roles(id)
+	_roles[id] = found
+	return found
+
+
+static func _work_out_roles(id: String) -> Array:
 	var job := base_job(id)
 	var listed = job.get("role", "")
 	var out := []
@@ -362,6 +375,14 @@ static func role_name(id: String) -> String:
 
 ## The icon of one ability.
 static func ability_icon_path(ab_id: String) -> String:
+	if _icon_paths.has(ab_id):
+		return _icon_paths[ab_id]
+	var found := _find_ability_icon(ab_id)
+	_icon_paths[ab_id] = found
+	return found
+
+
+static func _find_ability_icon(ab_id: String) -> String:
 	var path := ABILITY_ICON_DIR + ab_id + ".svg"
 	if ResourceLoader.exists(path):
 		return path
@@ -380,6 +401,15 @@ static func ability_icon_path(ab_id: String) -> String:
 ## The class icon (assets/icons/<id>.svg; an imported class can name one with
 ## the Astra tag "icon:<name>"); classes without one get the generic icon.
 static func icon_path(id: String) -> String:
+	var key := "class:" + id
+	if _icon_paths.has(key):
+		return _icon_paths[key]
+	var found := _find_class_icon(id)
+	_icon_paths[key] = found
+	return found
+
+
+static func _find_class_icon(id: String) -> String:
 	var path := "res://assets/icons/%s.svg" % id
 	if ResourceLoader.exists(path):
 		return path
@@ -455,10 +485,13 @@ static func _ability_is_sane(ab: Dictionary) -> bool:
 
 
 ## Adds classes: {"jobs": {id: job}, "abilities": {id: ability}}.
-static func register(classes: Dictionary) -> void:
+static func register(classes: Dictionary, defer_rebuild := false) -> void:
 	custom_abilities.merge(classes.get("abilities", {}), true)
 	custom_jobs.merge(classes.get("jobs", {}), true)
-	_rebuild_overrides()
+	_icon_paths.clear()
+	_roles.clear()
+	if not defer_rebuild:
+		_rebuild_overrides()
 
 
 ## The definitions of the imported classes used in these rosters, for
