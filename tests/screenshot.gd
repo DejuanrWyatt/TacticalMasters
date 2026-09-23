@@ -78,6 +78,9 @@ func _initialize() -> void:
 	root.get_node("GameConfig").mode = "ai"
 	if args.has("map"):
 		root.get_node("GameConfig").map_id = args[args.find("map") + 1]
+	if args.has("planning"):
+		# Only for this run: a planning stage to place units in.
+		root.get_node("GameConfig").tuning["planning_seconds"] = 60.0
 	if args.has("capture"):
 		# Only for this run: writing it through set_tuning would save it.
 		root.get_node("GameConfig").tuning["capture_seconds"] = 30.0
@@ -133,7 +136,8 @@ func _initialize() -> void:
 			await process_frame
 	if args.has("squares"):
 		# Turn order as fixed squares instead of the sliding bars.
-		root.get_node("Settings").set_value("turn_icons", true)
+		# Only for this run: set_value would save it to the player settings.
+		root.get_node("Settings").turn_icons = true
 		for i in 5:
 			await process_frame
 	if args.has("field"):
@@ -141,6 +145,12 @@ func _initialize() -> void:
 		battle.hud.toggle_field()
 		for i in 10:
 			await process_frame
+	if args.has("planning"):
+		# Pick a unit so its spawn area shows.
+		battle._select_unit(0)
+		for i in 10:
+			await process_frame
+		print("planning spots drawn=", battle.board._move_area.multimesh.instance_count)
 	if args.has("inspect"):
 		# Open a unit's stats card: "inspect <unit id>" (0-3 Blue, 4-7 Red).
 		battle.inspected_id = args[args.find("inspect") + 1].to_int()

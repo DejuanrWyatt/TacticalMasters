@@ -104,6 +104,8 @@ var _last_checksum_tick := 0
 var inspected_id := -1
 ## What the threat preview was last drawn for (see _update_threat).
 var _threat_signature := ""
+## Whether the planning banner was up last frame (to clear it once).
+var _was_planning := false
 
 
 func _ready() -> void:
@@ -154,6 +156,7 @@ func _ready() -> void:
 	hud.end_turn_pressed.connect(_on_end_turn_pressed)
 	hud.menu_pressed.connect(_back_to_menu)
 	hud.surrender_pressed.connect(_surrender)
+	hud.ready_pressed.connect(_ready_to_fight)
 	hud.pause_pressed.connect(_toggle_pause)
 	hud.chip_pressed.connect(_on_chip_pressed)
 	hud.overlay_changed.connect(_on_overlay_changed)
@@ -318,7 +321,58 @@ func _process(delta: float) -> void:
 				_send_checksum_if_due()
 			elif not _host_checksums.is_empty():
 				_check_checksums()
+	_update_planning()
 	_update_live_ui()
+
+
+## Which team this device places units for while planning (-1: nobody, as
+## when watching two computers play).
+func _planning_team() -> int:
+	if replaying:
+		return -1
+	match GameConfig.mode:
+		"ai":
+			return 1 - GameConfig.ai_team
+		"cpu":
+			return -1
+		"online":
+			return GameConfig.local_team
+	return 0
+
+
+## Done placing: the battle starts once both sides say so, or when the
+## planning time runs out.
+func _ready_to_fight() -> void:
+	var team := _planning_team()
+	if state.is_planning() and team != -1:
+		_submit({"type": "ready", "team": team})
+
+
+## The planning banner, and the spawn area of whoever is being placed.
+func _update_planning() -> void:
+	if not state.is_planning():
+		if _was_planning:
+			_was_planning = false
+			board.show_move_area([])
+			hud.set_planning("", false)
+			_refresh()
+		return
+	_was_planning = true
+	var team := _planning_team()
+	var seconds := ceili(state.planning_ticks / float(GameState.TICKS_PER_SECOND))
+	var text := "Planning: %ds" % seconds
+	if team == -1:
+		text += "   ·   both sides are placing their units"
+	elif state.planning_done[team]:
+		text += "   ·   waiting for the other side"
+	else:
+		text += "   ·   click one of your units, then click a spot in your area"
+	hud.set_planning(text, team != -1 and not state.planning_done[team])
+	var sel := _selected()
+	if sel != null and sel.team == team:
+		board.show_move_area(state.placeable_nodes(sel))
+	else:
+		board.show_move_area([])
 
 
 ## Sends an order for the selected unit.
@@ -363,6 +417,8 @@ func _apply(cmd: Dictionary) -> void:
 	for id in result.turn_ended:
 		_turn_used_at[id] = state.tick
 
+	if cmd.type == "place":
+		unit_views[actor.id].place(board.ground(actor.pos))
 	if cmd.type == "move":
 		var points: Array[Vector3] = []
 		for p in walk_path:
@@ -397,7 +453,8 @@ func _apply(cmd: Dictionary) -> void:
 		return
 
 	var sel := _selected()
-	if sel != null and (not sel.is_alive() or not sel.ready):
+	# While planning, nobody is ready and the pick is for placing, so it stays.
+	if sel != null and (not sel.is_alive() or (not sel.ready and not state.is_planning())):
 		_deselect()
 	elif sel != null and actor == sel and _commandable(sel):
 		# The selected unit just acted: finish its turn or offer the next step.
@@ -696,6 +753,16 @@ func _on_click() -> void:
 	if hover_point == NO_POINT:
 		return
 	var sel := _selected()
+	# While planning, a click puts the selected unit down instead of ordering it.
+	if state.is_planning():
+		if hover_unit_id != -1 and state.get_unit(hover_unit_id).team == _planning_team():
+			_select_unit(hover_unit_id)
+			return
+		if sel != null and sel.team == _planning_team():
+			var spot := state.node_pos(state.node_of(hover_point))
+			if state.can_place(sel, spot):
+				_submit({"type": "place", "unit": sel.id, "serial": sel.serial, "to": spot})
+		return
 	if _can_input():
 		if mode == Mode.MOVE:
 			var node := state.node_of(hover_point)
@@ -774,7 +841,8 @@ func _select_unit(id: int) -> void:
 	ability_slot = -1
 	var u := _selected()
 	# The camera doesn't move by itself; press Center or click the chip again.
-	if not u.moved:
+	# While planning there is no move to make: the click places the unit.
+	if not u.moved and not state.is_planning():
 		_enter_move_mode()
 	_refresh()
 
@@ -1224,6 +1292,8 @@ func _update_live_ui() -> void:
 		hud.show_no_unit("Battle over")
 	elif paused:
 		hud.show_no_unit("Paused")
+	elif state.is_planning():
+		hud.show_no_unit("Placing units: pick one of yours")
 	else:
 		hud.show_no_unit("Waiting for one of your units to be READY...")
 

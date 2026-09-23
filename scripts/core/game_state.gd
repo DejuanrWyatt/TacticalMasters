@@ -59,6 +59,8 @@ extends RefCounted
 ##   {"type": "tune", "values": {tuning key: number}}   Developer Tools
 ##   {"type": "surrender", "team": 0 or 1}
 ##   {"type": "move", ..., "sprint": true}          a longer walk, no ability
+##   {"type": "place", "unit": id, "serial": n, "to": Vector2}   while planning
+##   {"type": "ready", "team": 0 or 1}                done placing
 ## "serial" must match the unit's current serial, so an order for an earlier
 ## turn of that unit is rejected. There is no randomness, so applying the
 ## same commands always produces the same game. Online play relies on this.
@@ -72,6 +74,8 @@ const TEAM_NAMES := ["Blue", "Red"]
 const DRAW := 2
 ## How far the capture point in the middle of the map reaches, in meters.
 const CAPTURE_RADIUS := 4.0
+## How far from its spawn point a side may place its units while planning.
+const PLANNING_RADIUS := 6.0
 
 # Space
 const TILE_SIZE := 2.0
@@ -156,6 +160,7 @@ const TUNING := {
 	"crit_multiplier": [CRIT_BONUS, 1.0, 3.0, 0.05, "Critical hit multiplier", "What a critical hit multiplies damage by."],
 	"evade_multiplier": [1.0, 0.0, 3.0, 0.05, "Evasion multiplier", "Multiplier on every unit's A-Eva and M-Eva."],
 	"crit_chance_multiplier": [1.0, 0.0, 3.0, 0.05, "Crit chance multiplier", "Multiplier on every unit's Crit chance."],
+	"planning_seconds": [0.0, 0.0, 180.0, 15.0, "Planning time (s)", "0 = off. Before the fighting starts, each side may place its units anywhere in its own spawn area for this long."],
 	"capture_seconds": [0.0, 0.0, 180.0, 5.0, "Hold the middle to win (s)", "0 = off. A side that stands alone in the middle of the map for this long wins."],
 	"sprint_multiplier": [1.25, 1.0, 2.0, 0.05, "Sprint distance (x Move)", "How far a Sprint goes, as a multiple of Move. A Sprint uses the unit's action as well as its move."],
 	"engage_radius": [1.8, 0.0, 6.0, 0.2, "Engagement radius (m)", "How close an enemy has to be to engage a unit. Walking in is free; breaking away costs extra movement."],
@@ -184,6 +189,11 @@ var tick := 0
 var winner := -1
 ## Ticks each side has held the middle of the map, when that rule is on.
 var capture_ticks := [0, 0]
+## Ticks left of the planning stage (0 once the fighting has started). While
+## it runs, no gauge fills: each side is placing its units.
+var planning_ticks := 0
+## Sides that have said they are done placing (both -> the battle starts).
+var planning_done := [false, false]
 ## Evasion and critical hits are rolled with this, so a battle plays out the
 ## same for both players online and in a replay: it is seeded at setup, only
 ## rolled while applying a command, and copied by snapshot().
@@ -211,6 +221,8 @@ func snapshot():
 	s.tick = tick
 	s.winner = winner
 	s.capture_ticks = capture_ticks.duplicate()
+	s.planning_ticks = planning_ticks
+	s.planning_done = planning_done.duplicate()
 	s.tuning = tuning.duplicate()
 	s.seed_value = seed_value
 	s.rng.seed = rng.seed
@@ -272,6 +284,8 @@ func setup(map: Dictionary, p_tuning := {}, p_seed := 0) -> void:
 		u.facing = (size_meters() * 0.5 - u.pos).normalized()
 		units.append(u)
 	spawn_points.assign(map["spawn_points"])
+	planning_ticks = roundi(tune("planning_seconds") * TICKS_PER_SECOND)
+	planning_done = [false, false]
 
 
 # --- Ground ----------------------------------------------------------------
@@ -377,7 +391,7 @@ func ready_units(team := -1) -> Array[Unit]:
 ## A number that sums up the whole battle: both players should always have
 ## the same one at the same tick (used online to catch the games drifting).
 func checksum() -> int:
-	var parts := [tick, winner, capture_ticks]
+	var parts := [tick, winner, capture_ticks, planning_ticks]
 	for u in units:
 		parts.append("%d:%s:%d:%d:%d:%d:%s:%s" % [u.id, u.pos, u.hp, u.tg, u.serial, u.ult,
 			u.statuses, u.buffs])
@@ -1014,10 +1028,25 @@ func validate(cmd: Dictionary) -> String:
 	if type == "surrender":
 		var team = cmd.get("team")
 		return "" if team is int and (team == 0 or team == 1) else "Bad team."
+	if type == "ready":
+		var ready_team = cmd.get("team")
+		if not (ready_team is int and (ready_team == 0 or ready_team == 1)):
+			return "Bad team."
+		return "" if is_planning() else "The battle has already started."
 	var id = cmd.get("unit")
 	var u: Unit = get_unit(id) if id is int else null
 	if u == null or not u.is_alive():
 		return "No such unit."
+	# Placing happens before the battle, while nobody is ready yet.
+	if type == "place":
+		if not is_planning():
+			return "Units can only be placed before the battle starts."
+		var spot = cmd.get("to")
+		if not (spot is Vector2) or not can_place(u, spot):
+			return "That isn't in your spawn area."
+		return ""
+	if is_planning():
+		return "The sides are still placing their units."
 	if not u.ready:
 		return "%s isn't ready." % u.job_name()
 	if u.is_stunned():
@@ -1113,6 +1142,15 @@ func apply(cmd: Dictionary) -> Dictionary:
 		"tune":
 			tuning.merge(clean_tuning(cmd["values"]), true)
 			_log(result, "Developer Tools: rule numbers updated.")
+		"place":
+			var u := get_unit(cmd["unit"])
+			u.pos = cmd["to"]
+			u.facing = (size_meters() * 0.5 - u.pos).normalized()
+		"ready":
+			planning_done[int(cmd["team"])] = true
+			_log(result, "%s is ready." % TEAM_NAMES[int(cmd["team"])])
+			if planning_done[0] and planning_done[1]:
+				_start_fighting(result)
 		"surrender":
 			winner = 1 - int(cmd["team"])
 			_log(result, "%s surrenders." % TEAM_NAMES[int(cmd["team"])])
@@ -1121,6 +1159,12 @@ func apply(cmd: Dictionary) -> Dictionary:
 
 func _tick(result: Dictionary) -> void:
 	if winner != -1:
+		return
+	# While the sides are still placing their units, nothing else happens.
+	if planning_ticks > 0:
+		planning_ticks -= 1
+		if planning_ticks == 0:
+			_start_fighting(result)
 		return
 	tick += 1
 	# A battle can have a time limit, so it can't run for ever.
@@ -1340,6 +1384,53 @@ func health_share(team: int) -> float:
 			total += u.max_hp()
 			alive += maxi(0, u.hp)
 	return alive / total if total > 0.0 else 0.0
+
+
+## Whether the battle is still being set up rather than fought.
+func is_planning() -> bool:
+	return planning_ticks > 0
+
+
+## How far from its spawn point a side may place a unit.
+func spawn_radius() -> float:
+	return PLANNING_RADIUS
+
+
+## Whether a unit may be placed here during planning: its own side's spawn
+## area, on ground it could stand on, with nobody else already there.
+func can_place(u: Unit, p: Vector2) -> bool:
+	if not is_planning() or p != snap(p) or not in_bounds(p):
+		return false
+	if p.distance_to(spawn_points[u.team]) > PLANNING_RADIUS:
+		return false
+	if not node_walkable(node_of(p)):
+		return false
+	for other in units:
+		if other != u and other.is_alive() and other.pos.distance_to(p) < UNIT_SPACING:
+			return false
+	return true
+
+
+## Nodes a unit may be placed on while planning.
+func placeable_nodes(u: Unit) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if not is_planning():
+		return out
+	var center := spawn_points[u.team]
+	var reach := ceili(PLANNING_RADIUS / NAV_STEP)
+	var middle := node_of(center)
+	for dy in range(-reach, reach + 1):
+		for dx in range(-reach, reach + 1):
+			var n := middle + Vector2i(dx, dy)
+			if n.x % 2 == 0 and n.y % 2 == 0 and can_place(u, node_pos(n)):
+				out.append(n)
+	return out
+
+
+## Ends the planning stage, however it ended.
+func _start_fighting(result: Dictionary) -> void:
+	planning_ticks = 0
+	_log(result, "The planning stage is over: fight!")
 
 
 ## The middle of the map, which the capture rule is fought over.

@@ -28,6 +28,7 @@ var _slots: Array = [[], []]
 var _saved_pickers := {}
 var _team_names := {}
 var _seed_field: LineEdit
+var _planning: OptionButton
 var _difficulty: OptionButton
 ## "cpu" mode: Blue's difficulty (_difficulty is Red's).
 var _difficulty_blue: OptionButton
@@ -39,6 +40,8 @@ var _time_limit: OptionButton
 const WIN_RULES := [["Last team standing", 0.0], ["Hold the middle: 30s", 30.0], ["Hold the middle: 60s", 60.0]]
 ## An optional time limit; when it runs out the healthier side wins.
 const TIME_LIMITS := [["No time limit", 0.0], ["3 minutes", 180.0], ["5 minutes", 300.0], ["10 minutes", 600.0]]
+## Time before the fighting starts, for placing units in the spawn area.
+const PLANNING_TIMES := [["No planning", 0.0], ["30 seconds", 30.0], ["60 seconds", 60.0], ["90 seconds", 90.0]]
 var _rng := RandomNumberGenerator.new()
 
 
@@ -140,6 +143,7 @@ func _ready() -> void:
 	teams_box.add_child(rules)
 	_win_rule = _rule_picker(rules, "Victory", WIN_RULES, GameConfig.battle_tuning().get("capture_seconds", 0.0))
 	_time_limit = _rule_picker(rules, "Time", TIME_LIMITS, GameConfig.battle_tuning().get("battle_seconds", 0.0))
+	_planning = _rule_picker(rules, "Planning", PLANNING_TIMES, GameConfig.battle_tuning().get("planning_seconds", 0.0))
 	# A seed of 0 means a fresh battle every time; any other number plays out
 	# the same way again, which is how a battle can be repeated exactly.
 	var seed_label := Label.new()
@@ -400,6 +404,8 @@ func _on_start() -> void:
 		GameConfig.set_tuning("capture_seconds", float(WIN_RULES[_win_rule.selected][1]))
 	if _time_limit != null:
 		GameConfig.set_tuning("battle_seconds", float(TIME_LIMITS[_time_limit.selected][1]))
+	if _planning != null:
+		GameConfig.set_tuning("planning_seconds", float(PLANNING_TIMES[_planning.selected][1]))
 	if _seed_field != null:
 		GameConfig.battle_seed_setting = maxi(0, _seed_field.text.strip_edges().to_int())
 	confirmed.emit()

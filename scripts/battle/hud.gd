@@ -18,6 +18,7 @@ signal ability_pressed(slot: int)
 signal end_turn_pressed
 signal menu_pressed
 signal surrender_pressed
+signal ready_pressed
 signal pause_pressed
 signal chip_pressed(unit_id: int)
 ## An overlay (menu, Options or Unit Guide) opened or closed.
@@ -129,6 +130,9 @@ var _game_menu: Control
 var _surrender_button: Button
 var _field_button: Button
 var _objective: Label
+var _planning: PanelContainer
+var _planning_label: Label
+var _ready_button: Button
 ## The fixed turn squares (Settings.turn_icons), by unit id.
 var _squares_box: HBoxContainer
 var _square_rows: Array[HBoxContainer] = []
@@ -155,6 +159,7 @@ func build(can_pause: bool) -> void:
 
 	_build_turn_order()
 	_build_turn_squares()
+	_build_planning()
 	_build_objective()
 	_build_field()
 	_build_corner_buttons(can_pause)
@@ -337,6 +342,35 @@ func _update_squares(entries: Array) -> void:
 			_set_color(square.get_node("Badge") as Label, CAST if casting else DIM)
 		square.modulate.a = 0.45 if e.hidden else 1.0
 		_set_tip(square, e.tip)
+
+
+## The planning banner: how long is left to place units, and the button that
+## says this side is done.
+func _build_planning() -> void:
+	_planning = PanelContainer.new()
+	_planning.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_planning.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_planning.offset_top = 96
+	_planning.visible = false
+	_planning.add_theme_stylebox_override("panel", _box(PANEL_BG, GOLD, 1, 10, Vector2(14, 8)))
+	_root.add_child(_planning)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	_planning.add_child(row)
+	_planning_label = Label.new()
+	_planning_label.add_theme_color_override("font_color", GOLD)
+	_planning_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(_planning_label)
+	_ready_button = _small_button(row, "Ready", ready_pressed.emit)
+	_ready_button.custom_minimum_size = Vector2(90, 30)
+	_ready_button.tooltip_text = "Start the battle without waiting for the rest of the planning time"
+
+
+## Shows the planning banner (an empty text hides it).
+func set_planning(text: String, can_ready: bool) -> void:
+	_planning.visible = text != ""
+	_set_text(_planning_label, text)
+	_ready_button.visible = can_ready
 
 
 func _build_objective() -> void:

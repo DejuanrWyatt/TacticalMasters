@@ -129,6 +129,7 @@ func _test_rules() -> void:
 	_test_saved_teams()
 	_test_sprint_engage_hustle()
 	_test_log_entries()
+	_test_planning_stage()
 	_test_new_statuses()
 	_test_ko_and_raise()
 	_test_line_of_sight()
@@ -765,6 +766,47 @@ func _test_log_entries() -> void:
 	_check(healed_line.get("unit", -1) == mage.id, "the line is about the unit that cast it")
 
 
+## The planning stage: before the fighting, each side places its units in its
+## own spawn area, and nothing else happens until it is over.
+func _test_planning_stage() -> void:
+	var state := GameState.new()
+	state.setup(MapData.highlands(), {"planning_seconds": 10.0})
+	_check(state.is_planning(), "a battle with planning time starts in the planning stage")
+	var u = state.units[0]
+	var enemy = state.units[4]
+	var gauge_before: int = u.tg
+	state.apply({"type": "advance", "ticks": 20})
+	_check(state.tick == 0 and u.tg == gauge_before, "no gauge fills and no time passes while planning")
+
+	var spot := state.snap(state.spawn_points[0] + Vector2(1.0, 1.0))
+	_check(state.validate({"type": "place", "unit": u.id, "serial": u.serial, "to": spot}) == "", "a unit can be placed in its own spawn area")
+	state.apply({"type": "place", "unit": u.id, "serial": u.serial, "to": spot})
+	_check(u.pos == spot, "placing moves it there")
+	var far := state.snap(state.spawn_points[1])
+	_check(state.validate({"type": "place", "unit": u.id, "serial": u.serial, "to": far}) != "", "it can't be placed in the other side's area")
+	_check(state.validate({"type": "place", "unit": enemy.id, "serial": enemy.serial, "to": spot}) != "", "and not on top of somebody else")
+	_check(not state.placeable_nodes(u).is_empty(), "there are spots to place it on")
+	_check(state.validate({"type": "move", "unit": u.id, "serial": u.serial, "to": spot}) != "", "nobody walks while planning")
+
+	# Both sides ready: the fighting starts before the time is up.
+	state.apply({"type": "ready", "team": 0})
+	_check(state.is_planning(), "one side being ready isn't enough")
+	state.apply({"type": "ready", "team": 1})
+	_check(not state.is_planning(), "both sides ready starts the battle")
+	state.apply({"type": "advance", "ticks": 5})
+	_check(state.tick == 5, "time runs once the planning is over")
+	_check(state.validate({"type": "place", "unit": u.id, "serial": u.serial, "to": spot}) != "", "and units can't be placed any more")
+
+	# Or the time simply runs out.
+	var waited := GameState.new()
+	waited.setup(MapData.highlands(), {"planning_seconds": 1.0})
+	waited.apply({"type": "advance", "ticks": 10})
+	_check(not waited.is_planning(), "the planning stage ends when its time runs out")
+
+	var straight := _new_state()
+	_check(not straight.is_planning(), "without planning time a battle starts fighting")
+
+
 func _test_ko_and_raise() -> void:
 	var s := _new_state()
 	var knight = s.units[0]
@@ -1271,9 +1313,22 @@ func _test_turn_order_groups() -> void:
 			"color": Color(0.5, 0.7, 1.0), "ready": false, "casting": "", "cast_seconds": 0.0,
 			"seconds": seconds, "since_turn": INF, "tip": "", "selected": false, "hidden": false}
 	var entries := [entry.call(0, 0, 6.0), entry.call(1, 0, 6.2), entry.call(2, 0, 25.0), entry.call(3, 1, 6.1)]
+	var settings := root.get_node("Settings")
+	var icons_before: bool = settings.turn_icons
+
+	# The other display first: one fixed square per unit, whoever is ready.
+	settings.turn_icons = true
+	hud.set_turn_order(entries)
+	await process_frame
+	_check(hud._squares.size() == entries.size(), "the fixed turn squares are one per unit")
+	_check(not hud._timeline.visible, "the sliding bars are put away while the squares are shown")
+
+	settings.turn_icons = false
 	for i in 60:  # let the chips glide into place
 		hud.set_turn_order(entries)
 		await process_frame
+	_check(hud._timeline.visible, "the bars come back when the squares are turned off")
+	settings.turn_icons = icons_before
 	var a: Button = hud._chip_for[0]
 	var b: Button = hud._chip_for[1]
 	var far: Button = hud._chip_for[2]
