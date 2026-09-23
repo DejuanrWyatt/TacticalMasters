@@ -33,6 +33,8 @@ battle vs the computer. Its log is in `%APPDATA%\Godot\app_userdata\Tactical Mas
 | Pause (not online) | P |
 | Chat (online) | T, type, Enter to send (Esc closes) |
 | Combat log | L or the Log button shows / hides it. Drag its title bar to move it, its corner to resize it; – collapses it. The cog opens its options: text size, text color and background opacity. It keeps the whole battle's messages (scroll up for older ones) and remembers its place. |
+| Everyone on the field | The **Field** button lists both teams: icon, health, statuses and whether each unit is ready. Click a row to pick that unit. |
+| What an enemy could do | Click it (or its chip): its stats card opens, and the ground it could walk to plus the reach of its longest attack are drawn in red. |
 | Unit Guide (stats, abilities, damage) | U, or the **Units** button. Also on the main menu. Pauses the game when not online. |
 | Camera | WASD / arrows pan · R / F raise / lower · Q / E or right-drag rotate and tilt · wheel zoom · middle-drag pan · C center on the selected unit. The camera never moves by itself: press C, or click a unit's chip in the turn order (a second click on your selected unit's chip centers on it). |
 | Menu (in battle) | **Menu** button: Resume, Options, Unit Guide, How to Play, Quit to Main Menu (pauses when not online) |
@@ -46,9 +48,12 @@ click an action, then press a key. If another action already uses that key, the 
 
 ## After the battle
 
-The victory screen shows each unit's **damage dealt and taken, healing and KOs**, and the **MVP**. **Rematch** replays the
-same map and teams; **Watch Replay** plays the whole battle back (every order is recorded, and the rules are
-deterministic, so the replay is exact), with ×1 / ×2 / ×4 speed.
+The victory screen shows each unit's **damage dealt and taken, healing, KOs, abilities used, critical hits and
+evasions**, per-team totals, how long the battle ran, and the **MVP** (which counts damage taken, not only damage
+dealt: the unit that stood in front counts too). **Rematch** replays the same map and teams; **Watch Replay** plays
+the whole battle back (every order is recorded, and the rules are deterministic, so the replay is exact), with
+×1 / ×2 / ×4 speed, a **scrub bar** to jump to any point (it is replayed from the start to get there, so it is still
+exact), **Step** for one order at a time and **Results** to skip to the end.
 
 ## How it plays
 
@@ -144,9 +149,18 @@ and in the Unit Guide.
 
 ## Battle Setup: maps and teams
 
-Every game starts with **Battle Setup**: pick the **map**, each side's **4 classes** (any of the 107, repeats allowed; **Random**
-and **Default** buttons), and the computer's **difficulty**. A host picks for both sides, and the joining player gets the
-same settings.
+Every game starts with **Battle Setup**: pick the **map**, each side's **4 classes**, and the computer's **difficulty**.
+A host picks for both sides, and the joining player gets the same settings.
+
+- **Class picker:** clicking a slot opens a picker over all 107 classes that can be **searched**, **filtered by role**
+  and **sorted** (the same rules as the Unit Guide), showing each class's icon, roles and key stats, and the four
+  abilities of whichever class is highlighted.
+- **Random** builds a team worth fielding — a tank, two damage dealers and a support — rather than four classes out
+  of the hat; **Default** puts back the starting four.
+- **Saved teams:** name a team and **Save** it, then load it from the dropdown on either side later, or **Delete**
+  it. They are kept in `user://teams.cfg`.
+- **Victory** and **Time** choose how the battle can end (see *How it plays*), and **Seed** repeats a battle exactly:
+  the same seed with the same teams plays out the same way. 0 means a new battle every time.
 
 | Map | What it's like |
 |---|---|

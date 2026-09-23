@@ -7,6 +7,8 @@ signal confirmed
 signal closed
 
 const Jobs = preload("res://scripts/core/jobs.gd")
+const ClassList = preload("res://scripts/ui/class_list.gd")
+const ClassPicker = preload("res://scripts/ui/class_picker.gd")
 const MapData = preload("res://scripts/core/map_data.gd")
 const BoardView = preload("res://scripts/battle/board_view.gd")
 const UiTheme = preload("res://scripts/ui/ui_theme.gd")
@@ -23,6 +25,9 @@ var _map_buttons := {}
 var _preview: GridContainer
 var _map_desc: Label
 var _slots: Array = [[], []]
+var _saved_pickers := {}
+var _team_names := {}
+var _seed_field: LineEdit
 var _difficulty: OptionButton
 ## "cpu" mode: Blue's difficulty (_difficulty is Red's).
 var _difficulty_blue: OptionButton
@@ -79,7 +84,7 @@ func _ready() -> void:
 
 	# Map picker.
 	var map_panel := PanelContainer.new()
-	map_panel.custom_minimum_size.x = 470
+	map_panel.custom_minimum_size.x = 420
 	body.add_child(map_panel)
 	var map_box := VBoxContainer.new()
 	map_box.add_theme_constant_override("separation", 10)
@@ -135,6 +140,17 @@ func _ready() -> void:
 	teams_box.add_child(rules)
 	_win_rule = _rule_picker(rules, "Victory", WIN_RULES, GameConfig.battle_tuning().get("capture_seconds", 0.0))
 	_time_limit = _rule_picker(rules, "Time", TIME_LIMITS, GameConfig.battle_tuning().get("battle_seconds", 0.0))
+	# A seed of 0 means a fresh battle every time; any other number plays out
+	# the same way again, which is how a battle can be repeated exactly.
+	var seed_label := Label.new()
+	seed_label.text = "Seed"
+	rules.add_child(seed_label)
+	_seed_field = LineEdit.new()
+	_seed_field.custom_minimum_size = Vector2(110, 38)
+	_seed_field.placeholder_text = "0 = random"
+	_seed_field.tooltip_text = "The same seed and the same teams play out exactly the same battle. 0 picks a new one each time."
+	_seed_field.text = str(GameConfig.battle_seed_setting) if GameConfig.battle_seed_setting != 0 else ""
+	rules.add_child(_seed_field)
 
 	var tip := Label.new()
 	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -205,18 +221,44 @@ func _team_column(team: int) -> VBoxContainer:
 	heading.add_theme_color_override("font_color", TEAM_COLORS[team])
 	box.add_child(heading)
 	for i in 4:
-		var picker := OptionButton.new()
-		picker.focus_mode = Control.FOCUS_NONE
-		picker.custom_minimum_size.y = 38
-		picker.add_theme_constant_override("icon_max_width", 22)
-		picker.get_popup().add_theme_constant_override("icon_max_width", 22)
-		for id in _job_ids:
-			picker.add_icon_item(load(Jobs.icon_path(id)), Jobs.job(id).name)
-		box.add_child(picker)
-		_slots[team].append(picker)
+		# One button per slot: it shows what is in the slot and opens the
+		# picker, which can search and filter over a hundred classes.
+		var slot := Button.new()
+		slot.focus_mode = Control.FOCUS_NONE
+		slot.custom_minimum_size.y = 38
+		slot.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		slot.add_theme_constant_override("icon_max_width", 22)
+		slot.pressed.connect(_open_class_picker.bind(team, i))
+		box.add_child(slot)
+		_slots[team].append(slot)
 	var buttons := HBoxContainer.new()
 	buttons.add_theme_constant_override("separation", 6)
 	box.add_child(buttons)
+	# Saved teams, on two rows so a column stays narrow: load or delete one,
+	# and save what is in the slots now under a name.
+	var load_row := HBoxContainer.new()
+	load_row.add_theme_constant_override("separation", 6)
+	box.add_child(load_row)
+	var saved := OptionButton.new()
+	saved.focus_mode = Control.FOCUS_NONE
+	saved.custom_minimum_size = Vector2(0, 32)
+	saved.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	saved.tooltip_text = "Load one of your saved teams"
+	load_row.add_child(saved)
+	_saved_pickers[team] = saved
+	saved.item_selected.connect(_load_team.bind(team))
+	load_row.add_child(_button("Delete", _delete_team.bind(team), Vector2(70, 32)))
+	var save_row := HBoxContainer.new()
+	save_row.add_theme_constant_override("separation", 6)
+	box.add_child(save_row)
+	var name_field := LineEdit.new()
+	name_field.placeholder_text = "Name this team"
+	name_field.custom_minimum_size.y = 32
+	name_field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	save_row.add_child(name_field)
+	_team_names[team] = name_field
+	save_row.add_child(_button("Save", _save_team.bind(team), Vector2(70, 32)))
+	_refresh_saved(team)
 	var random := _button("Random", _randomize.bind(team))
 	random.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	buttons.add_child(random)
@@ -229,19 +271,78 @@ func _team_column(team: int) -> VBoxContainer:
 func _apply_roster(team: int, roster: Array) -> void:
 	for i in 4:
 		var job: String = roster[i] if i < roster.size() else Jobs.DEFAULT_ROSTER[i]
-		(_slots[team][i] as OptionButton).select(maxi(0, _job_ids.find(job)))
+		_set_slot(team, i, job if Jobs.all_jobs().has(job) else Jobs.DEFAULT_ROSTER[i])
 
 
+## Puts a class in one slot and shows it on the slot's button.
+func _set_slot(team: int, index: int, job_id: String) -> void:
+	var button: Button = _slots[team][index]
+	button.set_meta("job", job_id)
+	button.text = Jobs.job(job_id).name
+	button.icon = load(Jobs.icon_path(job_id))
+	button.tooltip_text = "%s: %s\nClick to choose another class" % [Jobs.job(job_id).name, Jobs.role_name(job_id)]
+
+
+## A team worth fielding rather than four classes out of the hat: a tank, two
+## damage dealers and someone to keep them standing.
 func _randomize(team: int) -> void:
-	for picker in _slots[team]:
-		(picker as OptionButton).select(_rng.randi_range(0, _job_ids.size() - 1))
+	var roster := ClassList.sensible_team(_rng)
+	for i in 4:
+		_set_slot(team, i, roster[i])
 
 
 func _roster(team: int) -> Array:
 	var out := []
-	for picker in _slots[team]:
-		out.append(_job_ids[(picker as OptionButton).selected])
+	for button in _slots[team]:
+		out.append((button as Button).get_meta("job", Jobs.DEFAULT_ROSTER[0]))
 	return out
+
+
+## The saved-team dropdown for one side, kept in the order they were saved.
+func _refresh_saved(team: int) -> void:
+	var picker: OptionButton = _saved_pickers[team]
+	picker.clear()
+	picker.add_item("Saved teams...")
+	for key in GameConfig.teams:
+		picker.add_item(key)
+	picker.select(0)
+
+
+func _save_team(team: int) -> void:
+	var field: LineEdit = _team_names[team]
+	var team_name: String = field.text.strip_edges()
+	if team_name == "":
+		field.placeholder_text = "Name it first"
+		return
+	GameConfig.save_team(team_name, _roster(team))
+	field.text = ""
+	for side in 2:
+		_refresh_saved(side)
+
+
+func _load_team(index: int, team: int) -> void:
+	var picker: OptionButton = _saved_pickers[team]
+	if index <= 0:
+		return
+	var roster = GameConfig.teams.get(picker.get_item_text(index), [])
+	if roster is Array and roster.size() == 4:
+		_apply_roster(team, roster)
+
+
+func _delete_team(team: int) -> void:
+	var picker: OptionButton = _saved_pickers[team]
+	if picker.selected <= 0:
+		return
+	GameConfig.delete_team(picker.get_item_text(picker.selected))
+	for side in 2:
+		_refresh_saved(side)
+
+
+## Opens the class picker for one slot; what it hands back goes in the slot.
+func _open_class_picker(team: int, index: int) -> void:
+	var picker := ClassPicker.new()
+	picker.picked.connect(func(id: String): _set_slot(team, index, id))
+	add_child(picker)
 
 
 func _select_map(map_id: String) -> void:
@@ -299,6 +400,8 @@ func _on_start() -> void:
 		GameConfig.set_tuning("capture_seconds", float(WIN_RULES[_win_rule.selected][1]))
 	if _time_limit != null:
 		GameConfig.set_tuning("battle_seconds", float(TIME_LIMITS[_time_limit.selected][1]))
+	if _seed_field != null:
+		GameConfig.battle_seed_setting = maxi(0, _seed_field.text.strip_edges().to_int())
 	confirmed.emit()
 
 

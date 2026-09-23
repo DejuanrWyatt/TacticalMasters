@@ -6,6 +6,8 @@ const MapData = preload("res://scripts/core/map_data.gd")
 const GameState = preload("res://scripts/core/game_state.gd")
 const AstraImport = preload("res://scripts/core/astra_import.gd")
 const TUNING_PATH := "user://tuning.cfg"
+## Teams the player saved in Battle Setup, by the name they gave them.
+const TEAMS_PATH := "user://teams.cfg"
 const STATS_PATH := "user://class_stats.cfg"
 
 ## "ai" (vs computer), "cpu" (computer vs computer, to watch), "hotseat"
@@ -50,6 +52,7 @@ var class_messages: Array[String] = []
 
 func _ready() -> void:
 	_load_tuning()
+	_load_teams()
 	class_messages = AstraImport.load_all()
 	for m in class_messages:
 		print(m)
@@ -57,12 +60,16 @@ func _ready() -> void:
 
 
 ## The random seed the next battle uses.
+## A seed set in Battle Setup (0 = a new battle every time).
+var battle_seed_setting := 0
+
+
 func battle_seed() -> int:
 	if not replay_log.is_empty():
 		return replay_seed
 	if mode == "online":
 		return online_seed
-	return randi()
+	return battle_seed_setting if battle_seed_setting != 0 else randi()
 
 
 ## Changed class stats the next battle uses (and makes active).
@@ -136,6 +143,47 @@ func set_tuning(key: String, value: float) -> void:
 func reset_tuning() -> void:
 	tuning.clear()
 	save_tuning()
+
+
+## Saved teams: {name: [4 class ids]}, newest last.
+var teams := {}
+
+
+## Saves (or replaces) a team under a name, and writes it to disk.
+func save_team(team_name: String, roster: Array) -> void:
+	var clean := team_name.strip_edges()
+	if clean == "" or roster.size() != 4:
+		return
+	teams[clean] = roster.duplicate()
+	_save_teams()
+
+
+func delete_team(team_name: String) -> void:
+	if teams.erase(team_name):
+		_save_teams()
+
+
+func _save_teams() -> void:
+	var cfg := ConfigFile.new()
+	for key in teams:
+		cfg.set_value("teams", key, teams[key])
+	cfg.save(TEAMS_PATH)
+
+
+func _load_teams() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(TEAMS_PATH) != OK:
+		return
+	for key in cfg.get_section_keys("teams") if cfg.has_section("teams") else []:
+		var roster = cfg.get_value("teams", key, [])
+		# Only what still looks like a team of four known classes.
+		if roster is Array and roster.size() == 4:
+			var ok := true
+			for id in roster:
+				if not (id is String and Jobs.all_jobs().has(id)):
+					ok = false
+			if ok:
+				teams[key] = roster
 
 
 func save_tuning() -> void:

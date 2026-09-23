@@ -45,6 +45,11 @@ func _initialize() -> void:
 			var grid: GridContainer = menu.guide._stats_holder.get_child(0)
 			var row: int = menu.guide._job_ids.find("knight")
 			menu.guide._edit_stat("knight", "wits", grid.get_child((row + 1) * grid.columns + 6))
+		if args.has("picker"):
+			# Battle Setup with the class picker open on Blue's first slot.
+			menu._open_setup("ai")
+			await process_frame
+			menu.setup._open_class_picker(0, 0)
 		if args.has("howto"):
 			menu._open_how_to()
 			menu.how_to._show_page(args[args.find("howto") + 1].to_int() if args.size() > args.find("howto") + 1 else 0)

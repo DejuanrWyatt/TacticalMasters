@@ -1280,10 +1280,16 @@ func _test_scenes() -> void:
 			"res://scripts/battle/unit_view.gd", "res://scripts/battle/fx.gd", "res://scripts/battle/camera_rig.gd",
 			"res://scripts/ui/unit_guide.gd", "res://scripts/ui/options_menu.gd", "res://scripts/main_menu.gd",
 			"res://scripts/ui/battle_setup.gd", "res://scripts/ui/ui_theme.gd", "res://scripts/ui/how_to_play.gd",
+			"res://scripts/ui/class_picker.gd", "res://scripts/ui/class_list.gd", "res://scripts/ui/log_window.gd",
 			"res://scripts/autoload/settings.gd", "res://scripts/autoload/audio.gd",
 			"res://scripts/autoload/net.gd", "res://scripts/autoload/keybinds.gd"]:
 		var script: Script = load(path)
-		_check(script != null and script.can_instantiate(), "%s compiles" % path)
+		# can_instantiate() still says yes for a script whose own parse failed,
+		# so the check actually makes one.
+		var made: Variant = script.new() if script != null and script.can_instantiate() else null
+		_check(made != null, "%s compiles" % path)
+		if made is Node:
+			(made as Node).free()
 	if failures > 0:
 		return
 	for mode in ["ai", "hotseat"]:
