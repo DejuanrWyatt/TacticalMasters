@@ -49,6 +49,8 @@ var fx: Fx
 var unit_views := {}
 var selected_id := -1
 var mode := Mode.NONE
+## In MOVE mode: whether this is a sprint (further, but uses the action).
+var sprinting := false
 var ability_slot := -1
 ## Move mode: navigation nodes the selected unit can walk to -> meters.
 var reachable := {}
@@ -145,6 +147,7 @@ func _ready() -> void:
 	hud.tuning_changed.connect(_on_tuning_changed)
 	hud.inspect_closed.connect(func(): inspected_id = -1)
 	hud.move_pressed.connect(_toggle_move)
+	hud.sprint_pressed.connect(_toggle_sprint)
 	hud.ability_pressed.connect(_select_ability)
 	hud.end_turn_pressed.connect(_on_end_turn_pressed)
 	hud.menu_pressed.connect(_back_to_menu)
@@ -403,7 +406,7 @@ func _apply(cmd: Dictionary) -> void:
 		if not sel.moved:
 			_enter_move_mode()
 	elif sel != null and mode == Mode.MOVE and (cmd.type == "move" or cmd.type == "tune"):
-		reachable = state.reachable_nodes(sel)  # someone else moved; paths may change
+		reachable = state.reachable_nodes(sel, sprinting)  # someone else moved; paths may change
 	if selected_id == -1:
 		_auto_select()
 	if (cmd.type != "advance" or not result.became_ready.is_empty() or not result.turn_ended.is_empty()
@@ -638,6 +641,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				return
 		if event.is_action_pressed("tm_move"):
 			_toggle_move()
+		elif event.is_action_pressed("tm_sprint"):
+			_toggle_sprint()
 		elif event.is_action_pressed("tm_next_unit"):
 			_cycle_ready()
 		elif event.is_action_pressed("tm_end_turn"):
@@ -691,7 +696,7 @@ func _on_click() -> void:
 		if mode == Mode.MOVE:
 			var node := state.node_of(hover_point)
 			if reachable.has(node) and state.node_pos(node) != sel.pos:
-				_order({"type": "move", "to": state.node_pos(node)})
+				_order({"type": "move", "to": state.node_pos(node), "sprint": sprinting})
 				return
 		elif mode == Mode.ABILITY:
 			var aim := _aim()
@@ -798,13 +803,14 @@ func _cycle_ready() -> void:
 	_select_unit(ready[i].id)
 
 
-func _enter_move_mode() -> void:
+func _enter_move_mode(sprint := false) -> void:
 	var u := _selected()
-	if u == null or u.moved:
+	if u == null or u.moved or (sprint and u.acted):
 		return
 	mode = Mode.MOVE
+	sprinting = sprint
 	ability_slot = -1
-	reachable = state.reachable_nodes(u)
+	reachable = state.reachable_nodes(u, sprint)
 	_hover_node = Vector2i(-99999, -99999)
 	_refresh()
 
@@ -812,10 +818,25 @@ func _enter_move_mode() -> void:
 func _toggle_move() -> void:
 	if not _can_input():
 		return
-	if mode == Mode.MOVE:
+	if mode == Mode.MOVE and not sprinting:
 		_cancel()
 	else:
 		_enter_move_mode()
+
+
+## Sprint: walks further than a normal move, but it is the unit's action for
+## the turn, so no ability afterwards.
+func _toggle_sprint() -> void:
+	if not _can_input():
+		return
+	if mode == Mode.MOVE and sprinting:
+		_cancel()
+		return
+	var u := _selected()
+	if u != null and u.acted:
+		hud.log_message("Already used an ability this turn: no sprinting.")
+		return
+	_enter_move_mode(true)
 
 
 func _select_ability(slot: int) -> void:
@@ -839,6 +860,7 @@ func _select_ability(slot: int) -> void:
 
 func _cancel() -> void:
 	mode = Mode.NONE
+	sprinting = false
 	ability_slot = -1
 	_refresh()
 
@@ -1142,7 +1164,7 @@ func _update_live_ui() -> void:
 			blocked.append(state.ability_blocked_reason(sel, i))
 		hud.show_unit(sel, "%s %s" % [GameState.TEAM_NAMES[sel.team], sel.job_name()],
 			TEAM_COLORS[sel.team], state.seconds_left(sel), _can_input(),
-			mode == Mode.MOVE, ability_slot, blocked)
+			mode == Mode.MOVE, ability_slot, blocked, sprinting)
 	elif state.winner != -1:
 		hud.show_no_unit("Battle over")
 	elif paused:

@@ -58,6 +58,7 @@ extends RefCounted
 ##   {"type": "end_turn", "unit": id, "serial": s}
 ##   {"type": "tune", "values": {tuning key: number}}   Developer Tools
 ##   {"type": "surrender", "team": 0 or 1}
+##   {"type": "move", ..., "sprint": true}          a longer walk, no ability
 ## "serial" must match the unit's current serial, so an order for an earlier
 ## turn of that unit is rejected. There is no randomness, so applying the
 ## same commands always produces the same game. Online play relies on this.
@@ -156,6 +157,10 @@ const TUNING := {
 	"evade_multiplier": [1.0, 0.0, 3.0, 0.05, "Evasion multiplier", "Multiplier on every unit's A-Eva and M-Eva."],
 	"crit_chance_multiplier": [1.0, 0.0, 3.0, 0.05, "Crit chance multiplier", "Multiplier on every unit's Crit chance."],
 	"capture_seconds": [0.0, 0.0, 180.0, 5.0, "Hold the middle to win (s)", "0 = off. A side that stands alone in the middle of the map for this long wins."],
+	"sprint_multiplier": [1.25, 1.0, 2.0, 0.05, "Sprint distance (x Move)", "How far a Sprint goes, as a multiple of Move. A Sprint uses the unit's action as well as its move."],
+	"engage_radius": [1.8, 0.0, 6.0, 0.2, "Engagement radius (m)", "How close an enemy has to be to engage a unit. Walking in is free; breaking away costs extra movement."],
+	"engage_cost": [1.0, 0.0, 6.0, 0.5, "Breaking away costs (m)", "Movement spent to step out of an enemy's engagement radius."],
+	"hustle_bonus": [25.0, 0.0, 100.0, 5.0, "Held-back turn bonus (%)", "How much faster the Turn Gauge fills for a unit that ended its turn without using an ability."],
 	"hazard_percent": [8.0, 0.0, 40.0, 1.0, "Hazard ground (% max HP)", "Health lost on burning ground, or gained on a spring, when a unit's turn comes round."],
 	"battle_seconds": [0.0, 0.0, 600.0, 15.0, "Battle time limit (s)", "0 = no limit. When it runs out, the side with more of its health left wins; level shares draw."],
 }
@@ -422,8 +427,8 @@ func node_walkable(n: Vector2i) -> bool:
 
 ## Nodes the unit can end its move on, mapped to the meters walked.
 ## Allies can be passed through but not stood on; enemies block.
-func reachable_nodes(unit: Unit) -> Dictionary:
-	var costs: Dictionary = _dijkstra([node_of(unit.pos)], move_of(unit), unit.team).cost
+func reachable_nodes(unit: Unit, sprint := false) -> Dictionary:
+	var costs: Dictionary = _dijkstra([node_of(unit.pos)], move_of(unit, sprint), unit.team).cost
 	for n in costs.keys():
 		var p := node_pos(n)
 		for other in units:
@@ -434,8 +439,8 @@ func reachable_nodes(unit: Unit) -> Dictionary:
 
 
 ## Walking path from the unit to a node (both ends included), or [] if none.
-func path_to(unit: Unit, to: Vector2i) -> Array[Vector2]:
-	var result := _dijkstra([node_of(unit.pos)], move_of(unit), unit.team)
+func path_to(unit: Unit, to: Vector2i, sprint := false) -> Array[Vector2]:
+	var result := _dijkstra([node_of(unit.pos)], move_of(unit, sprint), unit.team)
 	var path: Array[Vector2] = []
 	if not result.cost.has(to):
 		return path
@@ -508,10 +513,18 @@ func _run_dijkstra(starts: Array[Vector2i], max_cost: float, team: int) -> void:
 	var count := nav_x * nav_y
 	var blocked := PackedByteArray()
 	blocked.resize(count)
+	# Nodes an enemy has engaged: stepping out of one costs extra movement.
+	var engaged := PackedByteArray()
+	engaged.resize(count)
+	var engage_radius: float = tune("engage_radius")
+	var engage_cost: float = tune("engage_cost")
+	var engaging := team >= 0 and engage_radius > 0.0 and engage_cost > 0.0
 	if team >= 0:
 		for u in units:
 			if u.is_alive() and u.team != team:
 				_mark_blocked(u.pos, UNIT_SPACING, blocked)
+				if engaging:
+					_mark_blocked(u.pos, engage_radius, engaged)
 	_cost.resize(count)
 	_cost.fill(INF)
 	_parent.resize(count)
@@ -558,6 +571,9 @@ func _run_dijkstra(starts: Array[Vector2i], max_cost: float, team: int) -> void:
 					continue
 				step = diagonal
 			var nc := c + step
+			# Breaking away from an enemy costs, walking in doesn't.
+			if engaging and engaged[i] == 1 and engaged[m] == 0:
+				nc += engage_cost
 			if nc > max_cost + 0.001 or nc >= _cost[m]:
 				continue
 			_cost[m] = nc
@@ -660,8 +676,9 @@ func clock_ticks(u: Unit) -> int:
 
 
 ## Meters the unit can walk per turn (Move x move multiplier).
-func move_of(u: Unit) -> float:
-	return u.stat("move") * tune("move_multiplier")
+func move_of(u: Unit, sprint := false) -> float:
+	var meters: float = u.stat("move") * tune("move_multiplier")
+	return meters * tune("sprint_multiplier") if sprint else meters
 
 
 ## Vision radius in meters (Sight x sight multiplier).
@@ -681,7 +698,13 @@ func ticks_to_ready(u: Unit) -> int:
 
 ## Turn Gauge gained per tick, after Slow / Stun.
 func _tg_gain(u: Unit) -> int:
-	return roundi(_base_tg_gain(u) * u.tg_factor())
+	return roundi(_base_tg_gain(u) * u.tg_factor() * hustle_factor(u))
+
+
+## A unit that held its ability back last turn fills its gauge faster, until
+## that turn comes round.
+func hustle_factor(u: Unit) -> float:
+	return 1.0 + tune("hustle_bonus") * 0.01 if u.is_hustling() else 1.0
 
 
 ## Turn Gauge per tick before statuses: Wits x TG_PER_WITS x Wits multiplier.
@@ -1010,8 +1033,12 @@ func validate(cmd: Dictionary) -> String:
 				return "Already moved this turn."
 			if u.is_casting():
 				return "Can't move while casting."
+			# A Sprint goes further, but it is the unit's action for the turn.
+			var sprint: bool = cmd.get("sprint", false) == true
+			if sprint and u.acted:
+				return "Can't sprint after using an ability."
 			var to = cmd.get("to")
-			if not (to is Vector2) or to == u.pos or to != snap(to) or not reachable_nodes(u).has(node_of(to)):
+			if not (to is Vector2) or to == u.pos or to != snap(to) or not reachable_nodes(u, sprint).has(node_of(to)):
 				return "Can't move there."
 			return ""
 		"ability":
@@ -1068,13 +1095,17 @@ func apply(cmd: Dictionary) -> Dictionary:
 		"move":
 			var u := get_unit(cmd["unit"])
 			var to: Vector2 = cmd["to"]
+			var sprint: bool = cmd.get("sprint", false) == true
 			# Face the direction of the last step of the walk.
-			var path := path_to(u, node_of(to))
+			var path := path_to(u, node_of(to), sprint)
 			var step := (path[-1] - path[-2]) if path.size() >= 2 else (to - u.pos)
 			if step.length() > 0.001:
 				u.facing = step.normalized()
 			u.pos = to
 			u.moved = true
+			if sprint:
+				u.acted = true  # a Sprint is the unit's action too
+				result.logs.append("%s %s sprints." % [TEAM_NAMES[u.team], u.job_name()])
 		"ability":
 			_use_ability(get_unit(cmd["unit"]), cmd["slot"], cmd["target"], cmd.get("follow", -1), result)
 		"end_turn":
@@ -1359,6 +1390,7 @@ func _become_ready(u: Unit, result: Dictionary) -> void:
 	u.clock = clock_ticks(u)
 	u.moved = false
 	u.acted = false
+	u.hustling = false
 	u.toggled_turn.clear()
 	u.ult = mini(ULT_MAX, u.ult + roundi(tune("ult_per_turn")))
 	for i in u.cooldowns.size():
@@ -1405,6 +1437,8 @@ func _end_turn(u: Unit, timed_out: bool, result: Dictionary) -> void:
 		u.tg = TG_KEEP_ONE
 	else:
 		u.tg = TG_KEEP_NONE
+	# Held its ability back: its gauge fills faster until its next turn.
+	u.hustling = not u.acted and not timed_out
 	u.ready = false
 	u.clock = 0
 	u.moved = false

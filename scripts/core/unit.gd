@@ -31,6 +31,9 @@ var casting := {}
 var buffs: Array[Dictionary] = []
 ## Timed status effects: [{"id": String (see Jobs.STATUSES), "ticks": ticks left}]
 var statuses: Array[Dictionary] = []
+## Set when a turn ended without an ability: the gauge fills faster until the
+## next turn (cleared when it comes round).
+var hustling := false
 ## Toggle abilities that are switched on (slot -> true).
 var toggled := {}
 ## Toggle slots already switched this turn (one switch per turn each).
@@ -111,6 +114,7 @@ func copy():
 	c.cooldowns = cooldowns.duplicate()
 	c.moved = moved
 	c.acted = acted
+	c.hustling = hustling
 	c.casting = casting.duplicate()
 	c.buffs = buffs.duplicate(true)
 	c.statuses = statuses.duplicate(true)
@@ -148,6 +152,12 @@ func tg_factor() -> float:
 	for s in statuses:
 		f *= Jobs.STATUSES[s.id].get("tg_factor", 1.0)
 	return f
+
+
+## Whether this unit finished its last turn without using an ability, which
+## fills its gauge faster until its next one (GameState.hustle_factor).
+func is_hustling() -> bool:
+	return hustling
 
 
 ## Whether a status stops this unit from taking orders (stun).

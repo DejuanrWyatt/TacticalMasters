@@ -13,6 +13,7 @@ extends CanvasLayer
 ## buttons follow the player's key bindings.
 
 signal move_pressed
+signal sprint_pressed
 signal ability_pressed(slot: int)
 signal end_turn_pressed
 signal menu_pressed
@@ -97,6 +98,7 @@ var _ult_bar: ProgressBar
 var _stats: Label
 var _action_bar: PanelContainer
 var _move_button: Button
+var _sprint_button: Button
 var _ability_buttons: Array[Button] = []
 var _end_button: Button
 var _hover_panel: PanelContainer
@@ -556,6 +558,8 @@ func _build_action_bar() -> void:
 	row.add_theme_constant_override("separation", 5)
 	_action_bar.add_child(row)
 	_move_button = _action_button(row, move_pressed.emit)
+	_sprint_button = _action_button(row, sprint_pressed.emit)
+	_sprint_button.tooltip_text = "Walk further than a normal move, but it counts as the unit's action: no ability afterwards."
 	for i in 4:
 		var b := _action_button(row, ability_pressed.emit.bind(i))
 		b.add_theme_constant_override("icon_max_width", 22)
@@ -987,7 +991,7 @@ func _place_group_frames(groups: Array) -> void:
 
 ## Shows the selected unit. `blocked[i]` is "" when ability i is usable.
 func show_unit(u, title: String, color: Color, seconds: float, controllable: bool,
-		move_selected: bool, selected_slot: int, blocked: Array) -> void:
+		move_selected: bool, selected_slot: int, blocked: Array, sprint_selected := false) -> void:
 	_card.visible = true
 	_action_bar.visible = true
 	for part in [_hp_bar, _tg_bar, _ult_bar, _subtitle, _stats]:
@@ -1025,7 +1029,11 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 
 	_set_text(_move_button, "Move\n%s" % Keybinds.key_name("move"))
 	_move_button.disabled = not controllable or u.moved or u.is_casting()
-	_move_button.set_pressed_no_signal(move_selected)
+	_move_button.set_pressed_no_signal(move_selected and not sprint_selected)
+	_set_text(_sprint_button, "Sprint\n%s · %s" % [Keybinds.key_name("sprint"),
+		"%.1f m" % (game_state.move_of(u, true) if game_state != null else 0.0)])
+	_sprint_button.disabled = not controllable or u.moved or u.acted or u.is_casting()
+	_sprint_button.set_pressed_no_signal(sprint_selected)
 	for i in 4:
 		var ab: Dictionary = u.ability(i)
 		var b := _ability_buttons[i]
@@ -1185,6 +1193,7 @@ func _update_key_labels() -> void:
 	_log_button.text = "Log %s" % Keybinds.key_name("log")
 	_end_button.text = "End Turn\n%s" % Keybinds.key_name("end_turn")
 	_move_button.text = "Move\n%s" % Keybinds.key_name("move")
+	_sprint_button.text = "Sprint\n%s" % Keybinds.key_name("sprint")
 	set_paused(_pause_button.text.begins_with("Resume"))
 
 

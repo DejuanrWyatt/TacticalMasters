@@ -127,6 +127,7 @@ func _test_rules() -> void:
 	_test_victory_conditions()
 	_test_ground_and_capture()
 	_test_saved_teams()
+	_test_sprint_engage_hustle()
 	_test_new_statuses()
 	_test_ko_and_raise()
 	_test_line_of_sight()
@@ -664,6 +665,72 @@ func _test_saved_teams() -> void:
 	_check(not config.teams.has("Test team"), "a team can be deleted")
 	config.teams = kept
 	config._save_teams()
+
+
+## Sprinting walks further but spends the turn's action; an enemy's
+## engagement radius is free to walk into and costs movement to leave; and a
+## turn that used no ability fills the gauge faster.
+func _test_sprint_engage_hustle() -> void:
+	var state := _new_state()
+	var u = state.units[0]
+	# Far from the enemies, so nothing is engaged.
+	for e in state.units:
+		if e.team != u.team:
+			e.pos = Vector2(40, 40)
+	_force_ready(state, u)
+	var walk: float = state.move_of(u)
+	var run: float = state.move_of(u, true)
+	_check(run > walk, "a sprint goes further than a walk (%.1f m vs %.1f m)" % [run, walk])
+	_check(state.reachable_nodes(u, true).size() > state.reachable_nodes(u).size(), "a sprint reaches more ground")
+
+	# A spot only a sprint can get to: legal as a sprint, refused as a walk.
+	var far := Vector2.ZERO
+	for n in state.reachable_nodes(u, true):
+		if not state.reachable_nodes(u).has(n):
+			far = state.node_pos(n)
+			break
+	_check(far != Vector2.ZERO, "there is ground only a sprint can reach")
+	_check(state.validate({"type": "move", "unit": u.id, "serial": u.serial, "to": far}) != "", "a walk can't reach it")
+	_check(state.validate({"type": "move", "unit": u.id, "serial": u.serial, "to": far, "sprint": true}) == "", "a sprint can")
+	state.apply({"type": "move", "unit": u.id, "serial": u.serial, "to": far, "sprint": true})
+	_check(u.moved and u.acted, "a sprint uses the move and the action")
+	_check(state.validate({"type": "ability", "unit": u.id, "serial": u.serial, "slot": 0, "target": u.pos}) != "", "no ability after a sprint")
+
+	# Engagement: standing next to an enemy costs movement to break away.
+	var field := _new_state()
+	var runner = field.units[0]
+	var enemy = field.units[4]
+	for other in field.units:
+		if other != runner and other != enemy:
+			other.pos = Vector2(40, 40)
+	runner.pos = field.snap(Vector2(10.25, 10.25))
+	enemy.pos = field.snap(runner.pos + Vector2(1.0, 0))
+	_force_ready(field, runner)
+	var away := field.node_of(runner.pos + Vector2(-field.move_of(runner) + 0.75, 0))
+	var free_reach: int = field.reachable_nodes(runner).size()
+	field.tuning["engage_cost"] = 0.0
+	var loose_reach: int = field.reachable_nodes(runner).size()
+	_check(loose_reach > free_reach, "breaking away costs movement (%d spots engaged, %d free)" % [free_reach, loose_reach])
+	field.tuning["engage_cost"] = GameState.TUNING.engage_cost[0]
+	_check(field.reachable_nodes(runner).has(field.node_of(enemy.pos + Vector2(0, 0.75))), "walking around an enemy stays free")
+
+	# Held back its ability: the gauge fills faster until its next turn.
+	var quick := _new_state()
+	var waiter = quick.units[0]
+	_force_ready(quick, waiter)
+	quick.apply({"type": "end_turn", "unit": waiter.id, "serial": waiter.serial})
+	_check(waiter.hustling, "a turn without an ability leaves the unit hustling")
+	_check(quick.hustle_factor(waiter) > 1.0, "hustling fills the gauge faster")
+	var acted := _new_state()
+	var user = acted.units[0]
+	var victim = acted.units[4]
+	_stage(acted, user, victim, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
+	acted.apply({"type": "ability", "unit": user.id, "serial": user.serial, "slot": 0, "target": victim.pos})
+	acted.apply({"type": "end_turn", "unit": user.id, "serial": user.serial})
+	_check(not user.hustling, "a turn that used an ability doesn't")
+	# It wears off when the turn comes round.
+	_force_ready(quick, waiter)
+	_check(not waiter.hustling, "the bonus ends when the next turn arrives")
 
 
 func _test_ko_and_raise() -> void:

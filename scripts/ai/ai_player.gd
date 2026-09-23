@@ -48,14 +48,18 @@ func next_command(state, u) -> Dictionary:
 				return order.merged({"type": "move", "to": best.spot})
 			return order.merged({"type": "ability", "slot": best.slot, "target": best.target, "follow": best.follow})
 	if not u.moved and not u.is_casting():
+		# Nothing worth doing with the action, so the walk may as well be a
+		# sprint: it goes further and only costs the action already going spare.
+		var sprint: bool = not u.acted and float(level().mistakes) < 0.4
+		var far: Dictionary = state.reachable_nodes(u, true) if sprint else reach
 		# Badly hurt with nothing worth doing: back off instead of walking in.
 		if float(level().mistakes) < 0.4 and u.hp < u.max_hp() * 0.3:
-			var away := _retreat_spot(state, u, reach)
+			var away := _retreat_spot(state, u, far)
 			if away != u.pos:
-				return order.merged({"type": "move", "to": away})
-		var dest := _approach_spot(state, u, reach)
+				return order.merged({"type": "move", "to": away, "sprint": sprint})
+		var dest := _approach_spot(state, u, far)
 		if dest != u.pos:
-			return order.merged({"type": "move", "to": dest})
+			return order.merged({"type": "move", "to": dest, "sprint": sprint})
 	return order.merged({"type": "end_turn"})
 
 

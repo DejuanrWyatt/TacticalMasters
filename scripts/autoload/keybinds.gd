@@ -15,6 +15,7 @@ const SAVE_PATH := "user://keybinds.cfg"
 ## [id, label, default keys]
 const ACTIONS := [
 	["move", "Move", [KEY_SPACE]],
+	["sprint", "Sprint (further, no ability)", [KEY_SHIFT]],
 	["ability_1", "Ability 1", [KEY_1]],
 	["ability_2", "Ability 2", [KEY_2]],
 	["ability_3", "Ability 3", [KEY_3]],
