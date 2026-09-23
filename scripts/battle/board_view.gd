@@ -11,6 +11,12 @@ const GameState = preload("res://scripts/core/game_state.gd")
 
 const HEIGHT_STEP := GameState.LEVEL_HEIGHT
 const BASE_DEPTH := 0.6
+## A rock standing on a tile: tall enough to hide a unit behind it.
+const ROCK_HEIGHT := 2.6
+const ROCK_COLOR := Color(0.31, 0.29, 0.28)
+## Tops of ground that burns, and of a healing spring.
+const EMBER_COLOR := Color(0.42, 0.15, 0.11)
+const SPRING_COLOR := Color(0.18, 0.5, 0.48)
 const WATER_TOP := -0.25
 const GROUND_COLORS := [
 	Color(0.2, 0.38, 0.62),   # 0: water
@@ -76,6 +82,10 @@ func build(p_state, seed_text := "") -> void:
 	_path_ok = _material(Color(0.5, 1.0, 0.6), true, true)
 	_path_bad = _material(Color(1.0, 0.4, 0.35), true, true)
 	_path_dots = _multimesh(dot, _path_ok)
+	# The middle of the map is marked out when it can be held to win.
+	if state.tune("capture_seconds") > 0.0:
+		var point := _ring_mesh(Color(1.0, 0.9, 0.4, 0.7))
+		_place_ring(point, state.capture_point(), state.CAPTURE_RADIUS)
 	_range_ring = _ring_mesh(Color(1.0, 0.6, 0.2, 0.9))
 	_min_ring = _ring_mesh(Color(1.0, 0.3, 0.2, 0.6))
 	var disc := CylinderMesh.new()
@@ -91,6 +101,11 @@ func build(p_state, seed_text := "") -> void:
 
 func _build_tile(t: Vector2i) -> void:
 	var level: int = state.tile_level(t)
+	var center := Vector2((t.x + 0.5) * state.TILE_SIZE, (t.y + 0.5) * state.TILE_SIZE)
+	var rock: bool = state.is_cover(center)
+	var hazard: int = state.hazard_at(center)
+	if rock:
+		level = 1  # the rock stands on ordinary ground; it is drawn on top
 	var top := _level_top(level)
 	var depth := top + BASE_DEPTH + 0.3
 	var size: float = state.TILE_SIZE
@@ -106,6 +121,10 @@ func _build_tile(t: Vector2i) -> void:
 	var top_face := MeshInstance3D.new()
 	top_face.mesh = _plane(Vector2(size, size))
 	var color: Color = GROUND_COLORS[lv]
+	if hazard < 0:
+		color = EMBER_COLOR
+	elif hazard > 0:
+		color = SPRING_COLOR
 	if (t.x + t.y) % 2 == 1:
 		color = color.darkened(0.04)
 	top_face.material_override = _water_material() if level == 0 else _ground_material(color, 0.9)
@@ -128,6 +147,15 @@ func _build_tile(t: Vector2i) -> void:
 	fog.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	fog.visible = false
 	add_child(fog)
+
+	if rock:
+		var stone := MeshInstance3D.new()
+		var stone_box := BoxMesh.new()
+		stone_box.size = Vector3(size * 0.82, ROCK_HEIGHT, size * 0.82)
+		stone.mesh = stone_box
+		stone.material_override = _ground_material(ROCK_COLOR, 0.75)
+		stone.position = Vector3(mesh.position.x, top + ROCK_HEIGHT / 2.0, mesh.position.z)
+		add_child(stone)
 	_fog[t] = fog
 
 

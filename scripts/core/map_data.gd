@@ -1,11 +1,22 @@
 extends RefCounted
 ## Built-in maps. Each character is a 2 m x 2 m block of ground: digits are
-## its height level (1-5) and "~" is water, which can't be walked on. Maps
-## are point-symmetric: the bottom half is the top half rotated 180 degrees,
-## so neither side gets better ground. Units can climb at most 2 levels at a
-## time, so a level-5 block next to level-1 ground is a wall.
+## its height level (1-5), and the rest are the special blocks in TERRAIN --
+## water and rocks that can't be crossed, and ground that burns or heals.
+## Maps are point-symmetric: the bottom half is the top half rotated 180
+## degrees, so neither side gets better ground. Units can climb at most 2
+## levels at a time, so a level-5 block next to level-1 ground is a wall.
 
 const Jobs = preload("res://scripts/core/jobs.gd")
+
+## The blocks that aren't a plain height. "level" 0 can't be walked on;
+## "cover" also blocks sight; "hazard" is health lost (-1) or gained (+1) by
+## a unit that starts its turn there.
+const TERRAIN := {
+	"~": {"level": 0, "name": "Water", "desc": "Too deep to wade through."},
+	"#": {"level": 0, "cover": true, "name": "Rock", "desc": "Hides what is behind it: blocks sight as well as movement."},
+	"x": {"level": 1, "hazard": -1, "name": "Embers", "desc": "Burns a unit that starts its turn standing on it."},
+	"+": {"level": 1, "hazard": 1, "name": "Spring", "desc": "Heals a unit that starts its turn standing on it."},
+}
 
 const TILE_SIZE := 2.0
 const DEFAULT_MAP := "highlands"
@@ -55,6 +66,19 @@ const MAPS := {
 		],
 		"spawns": WEST_SPAWNS,
 	},
+	"ashfields": {
+		"name": "Ashfields",
+		"desc": "Embers burn whoever lingers on them, springs heal, and rocks hide what is behind them.",
+		"top": [
+			"111111111111",
+			"11#111111x11",
+			"111112x11111",
+			"1x1111##1111",
+			"11#11+111211",
+			"112111x11#11",
+		],
+		"spawns": WEST_SPAWNS,
+	},
 	"plains": {
 		"name": "Open Plains",
 		"desc": "Flat, open ground with a few low hills. Nowhere to hide from archers.",
@@ -69,6 +93,20 @@ const MAPS := {
 		"spawns": WEST_SPAWNS,
 	},
 }
+
+
+## The height level of one ground character (0 = can't be walked on).
+static func char_level(ch: String) -> int:
+	return int(TERRAIN[ch].level) if TERRAIN.has(ch) else ch.to_int()
+
+
+## -1 burns, +1 heals, 0 for ordinary ground.
+static func char_hazard(ch: String) -> int:
+	return int(TERRAIN[ch].get("hazard", 0)) if TERRAIN.has(ch) else 0
+
+
+static func char_is_cover(ch: String) -> bool:
+	return TERRAIN.has(ch) and TERRAIN[ch].get("cover", false)
 
 
 static func map_ids() -> Array:

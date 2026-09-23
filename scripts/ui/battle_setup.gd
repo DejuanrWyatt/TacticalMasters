@@ -26,6 +26,14 @@ var _slots: Array = [[], []]
 var _difficulty: OptionButton
 ## "cpu" mode: Blue's difficulty (_difficulty is Red's).
 var _difficulty_blue: OptionButton
+var _win_rule: OptionButton
+var _time_limit: OptionButton
+
+## How a battle can be won, beyond knocking the other side out: the seconds a
+## side must hold the middle of the map (0 = only the last team standing).
+const WIN_RULES := [["Last team standing", 0.0], ["Hold the middle: 30s", 30.0], ["Hold the middle: 60s", 60.0]]
+## An optional time limit; when it runs out the healthier side wins.
+const TIME_LIMITS := [["No time limit", 0.0], ["3 minutes", 180.0], ["5 minutes", 300.0], ["10 minutes", 600.0]]
 var _rng := RandomNumberGenerator.new()
 
 
@@ -120,6 +128,14 @@ func _ready() -> void:
 		if setup_mode == "cpu":
 			_difficulty_blue = _difficulty_picker(row, "Blue computer", GameConfig.ai_difficulty_blue)
 		_difficulty = _difficulty_picker(row, "Red computer" if setup_mode == "cpu" else "Computer difficulty", GameConfig.ai_difficulty)
+	# How the battle can be won.
+	teams_box.add_child(HSeparator.new())
+	var rules := HBoxContainer.new()
+	rules.add_theme_constant_override("separation", 10)
+	teams_box.add_child(rules)
+	_win_rule = _rule_picker(rules, "Victory", WIN_RULES, GameConfig.battle_tuning().get("capture_seconds", 0.0))
+	_time_limit = _rule_picker(rules, "Time", TIME_LIMITS, GameConfig.battle_tuning().get("battle_seconds", 0.0))
+
 	var tip := Label.new()
 	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tip.add_theme_color_override("font_color", UiTheme.DIM)
@@ -129,6 +145,21 @@ func _ready() -> void:
 	_select_map(GameConfig.map_id)
 	for team in 2:
 		_apply_roster(team, GameConfig.rosters[team])
+
+
+## A picker over one of the rule lists above, starting on the saved value.
+func _rule_picker(row: HBoxContainer, text: String, entries: Array, current: float) -> OptionButton:
+	var label := Label.new()
+	label.text = text
+	row.add_child(label)
+	var picker := OptionButton.new()
+	picker.custom_minimum_size = Vector2(210, 38)
+	for i in entries.size():
+		picker.add_item(entries[i][0])
+		if is_equal_approx(float(entries[i][1]), current):
+			picker.select(i)
+	row.add_child(picker)
+	return picker
 
 
 func _difficulty_picker(row: HBoxContainer, text: String, current: String) -> OptionButton:
@@ -238,12 +269,20 @@ func _draw_preview(map_id: String) -> void:
 	for y in rows.size():
 		for x in (rows[y] as String).length():
 			var ch: String = rows[y][x]
-			var level := 0 if ch == "~" else ch.to_int()
+			var level := MapData.char_level(ch)
 			var cell := ColorRect.new()
 			cell.custom_minimum_size = Vector2(PREVIEW_TILE, PREVIEW_TILE)
 			var color: Color = BoardView.GROUND_COLORS[mini(level, BoardView.GROUND_COLORS.size() - 1)]
 			# Brighter = higher.
 			color = color.lightened(0.08 * maxi(0, level - 1))
+			# Embers, springs and rocks keep their own colors.
+			var hazard := MapData.char_hazard(ch)
+			if hazard < 0:
+				color = BoardView.EMBER_COLOR
+			elif hazard > 0:
+				color = BoardView.SPRING_COLOR
+			elif MapData.char_is_cover(ch):
+				color = BoardView.ROCK_COLOR
 			if spawn_tiles.has(Vector2i(x, y)):
 				color = color.lerp(TEAM_COLORS[spawn_tiles[Vector2i(x, y)]], 0.7)
 			cell.color = color
@@ -256,6 +295,10 @@ func _on_start() -> void:
 		GameConfig.ai_difficulty = DIFFICULTIES[_difficulty.selected]
 	if _difficulty_blue != null:
 		GameConfig.ai_difficulty_blue = DIFFICULTIES[_difficulty_blue.selected]
+	if _win_rule != null:
+		GameConfig.set_tuning("capture_seconds", float(WIN_RULES[_win_rule.selected][1]))
+	if _time_limit != null:
+		GameConfig.set_tuning("battle_seconds", float(TIME_LIMITS[_time_limit.selected][1]))
 	confirmed.emit()
 
 

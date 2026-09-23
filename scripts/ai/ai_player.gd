@@ -140,6 +140,7 @@ func _best_action(state, u, reach: Dictionary) -> Dictionary:
 				# Slow casts give targets time to walk away.
 				score *= cast_factor
 				score += state.level_at(spot) * 0.5 - spot.distance_to(u.pos) * 0.05
+				score += _ground_value(state, u, spot)
 				options.append({"score": score, "spot": spot, "slot": slot, "target": target})
 	if options.is_empty():
 		return {}
@@ -150,6 +151,19 @@ func _best_action(state, u, reach: Dictionary) -> Dictionary:
 		pick = options[rng.randi_range(0, mini(lv.top, options.size()) - 1)]
 	pick.follow = _unit_at(state, pick.target, u, pick.spot, u.ability(pick.slot))
 	return pick
+
+
+## What standing here is worth on its own: burning ground is worth avoiding,
+## and a spring is worth more the more hurt the unit is. Measured in the same
+## units as the rest of the scoring, so it can be added to it.
+func _ground_value(state, u, spot: Vector2) -> float:
+	var kind: int = state.hazard_at(spot)
+	if kind == 0:
+		return 0.0
+	var amount: float = u.max_hp() * state.tune("hazard_percent") * 0.01
+	if kind < 0:
+		return -amount * 1.5
+	return amount * (2.0 if u.hp < u.max_hp() * 0.6 else 0.2)
 
 
 ## Id of the unit standing on `target` (the AI always aims at units), or -1.
@@ -259,10 +273,11 @@ func _retreat_spot(state, u, reach: Dictionary) -> Vector2:
 	var best: Vector2 = u.pos
 	var best_distance := -INF
 	for n in reach:
-		var distance: float = minf(state.distance_to_nearest(seen, n), 999.0)
+		var spot: Vector2 = state.node_pos(n)
+		var distance: float = minf(state.distance_to_nearest(seen, n), 999.0) + _ground_value(state, u, spot) * 0.1
 		if distance > best_distance:
 			best_distance = distance
-			best = state.node_pos(n)
+			best = spot
 	return best
 
 
@@ -287,8 +302,9 @@ func _approach_spot(state, u, reach: Dictionary) -> Vector2:
 	var best_value := INF
 	for n in reach:
 		var dist: float = state.distance_to_nearest(goals, n)
-		var value: float = absf(minf(dist, 999.0) - desired) - state.node_level(n) * 0.1
+		var spot: Vector2 = state.node_pos(n)
+		var value: float = absf(minf(dist, 999.0) - desired) - state.node_level(n) * 0.1 - _ground_value(state, u, spot) * 0.1
 		if value < best_value:
 			best_value = value
-			best = state.node_pos(n)
+			best = spot
 	return best

@@ -125,6 +125,7 @@ func _test_rules() -> void:
 	_test_target_shapes()
 	_test_roles_and_icons()
 	_test_victory_conditions()
+	_test_ground_and_capture()
 	_test_new_statuses()
 	_test_ko_and_raise()
 	_test_line_of_sight()
@@ -563,6 +564,70 @@ func _test_new_statuses() -> void:
 	taunter.pos = Vector2(20.25, 20.25)  # out of reach: it may hit anyone again
 	_check(taunt.validate({"type": "ability", "unit": angry.id, "serial": angry.serial, "slot": 0,
 		"target": other.pos, "follow": other.id}) == "", "out of reach, a taunt no longer holds")
+
+
+## The new ground: embers burn and springs heal whoever starts a turn on
+## them, rocks hide what is behind them, and holding the middle can win.
+func _test_ground_and_capture() -> void:
+	var state := GameState.new()
+	state.setup(MapData.build("ashfields"), {"evade_multiplier": 0.0, "crit_chance_multiplier": 0.0})
+	var ember := Vector2.ZERO
+	var spring := Vector2.ZERO
+	var rock := Vector2.ZERO
+	for y in state.tiles_y:
+		for x in state.tiles_x:
+			var p := Vector2(x + 0.5, y + 0.5) * GameState.TILE_SIZE
+			if state.hazard_at(p) < 0:
+				ember = p
+			elif state.hazard_at(p) > 0:
+				spring = p
+			elif state.is_cover(p):
+				rock = p
+	_check(ember != Vector2.ZERO and spring != Vector2.ZERO and rock != Vector2.ZERO, "Ashfields has embers, a spring and rocks")
+	_check(not state.node_walkable(state.node_of(rock)), "a rock can't be walked on")
+	_check(not state.has_line_of_sight(rock - Vector2(3, 0), rock + Vector2(3, 0)), "a rock blocks sight through it")
+
+	# Embers burn on the unit's own turn, not while it walks past.
+	var burned = state.units[0]
+	burned.pos = ember
+	var before: int = burned.hp
+	state.apply({"type": "advance", "ticks": 1})
+	_check(burned.hp == before, "standing on embers costs nothing between turns")
+	_force_ready(state, burned)
+	_check(burned.hp < before, "embers burn when the unit's turn comes round (%d -> %d)" % [before, burned.hp])
+
+	# A spring heals, up to full health.
+	var healed = state.units[1]
+	healed.pos = spring
+	healed.hp = 10
+	_force_ready(state, healed)
+	_check(healed.hp > 10, "a spring heals when the unit's turn comes round")
+	healed.hp = healed.max_hp()
+	_force_ready(state, healed)
+	_check(healed.hp == healed.max_hp(), "a spring can't heal past full health")
+
+	# Holding the middle alone long enough wins.
+	var hold := GameState.new()
+	hold.setup(MapData.highlands(), {"capture_seconds": 3.0})
+	var middle := hold.capture_point()
+	for u in hold.units:
+		u.pos = middle if u.team == 0 else middle + Vector2(30, 30)
+	for i in 40:
+		if hold.winner != -1:
+			break
+		hold.apply({"type": "advance", "ticks": 1})
+	_check(hold.winner == 0, "holding the middle alone wins the battle")
+
+	var fight := GameState.new()
+	fight.setup(MapData.highlands(), {"capture_seconds": 3.0})
+	for u in fight.units:
+		u.pos = fight.capture_point() + Vector2(0.5 * u.team, 0)
+	fight.apply({"type": "advance", "ticks": 40})
+	_check(fight.capture_ticks[0] == 0 and fight.capture_ticks[1] == 0, "a contested middle counts for neither side")
+
+	var off := _new_state()
+	off.apply({"type": "advance", "ticks": 40})
+	_check(off.capture_share(0) == 0.0, "with the rule off the middle is just ground")
 
 
 func _test_ko_and_raise() -> void:

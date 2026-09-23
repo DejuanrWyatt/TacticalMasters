@@ -2,7 +2,8 @@ extends SceneTree
 ## Balance check: each class plays in a mixed team ([class, Knight, Archer,
 ## White Mage]) against a fixed team ([Black Mage, Knight, Archer, White
 ## Mage]), computer vs computer (medium), sides alternating. Prints each
-## class's win rate and its average damage dealt.
+## class's win rate and its average damage dealt. Each pair of games (one per
+## side) uses its own seed, so more games means a wider sample.
 ##   godot --headless --script res://tests/balance.gd -- [games per class] [class ids...]
 
 const GameState = preload("res://scripts/core/game_state.gd")
@@ -31,7 +32,9 @@ func _initialize() -> void:
 			var mine := [id, "knight", "archer", "white_mage"]
 			var rosters := [mine, REFERENCE] if side == 0 else [REFERENCE, mine]
 			var state := GameState.new()
-			state.setup(MapData.build(MapData.DEFAULT_MAP, rosters[0], rosters[1]))
+			# Each game gets its own seed, or every battle would play out the
+			# same way and a class would score 0% or 100% on one lucky roll.
+			state.setup(MapData.build(MapData.DEFAULT_MAP, rosters[0], rosters[1]), {}, 1 + (g / 2))
 			var class_unit_id: int = state.units[0 if side == 0 else 4].id
 			while state.winner == -1 and state.tick < 40000:
 				var ready := state.orderable_units()

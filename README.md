@@ -90,9 +90,17 @@ deterministic, so the replay is exact), with ×1 / ×2 / ×4 speed.
 - **Line of sight:** ranged abilities (reach beyond 1.8 m) need a clear line over the terrain; the targeting hint says
   "No line of sight" when a hill is in the way.
 - **Status effects** (tags over the unit's head) last a number of the affected unit's **own turns**: they act and count
-  down when its turn comes. **Burn** (from Fire, −10% max HP a turn), **Regen** (from Chakra and
-  Sanctuary, +10% a turn), **Slow** (from Blizzard, Turn Gauge fills at half speed), **Stun** (from Shield Bash, loses
-  act and the Turn Gauge is frozen).
+  down when its turn comes. **Burn** (−10% max HP a turn), **Regen** (+10% a turn), **Slow** (Turn Gauge fills at
+  half speed), **Stun** (the turn it just earned is lost), **Shield** (soaks damage before HP and breaks when it is
+  used up), **Root** (can't walk, can still act), **Silence** (can't use abilities, can still walk) and **Taunt**
+  (its damaging abilities must include whoever taunted it, while that one is in reach).
+- **The ground itself:** **embers** burn a unit that starts its turn on them and **springs** heal one, both by 8% of
+  its max HP (Developer Tools), and **rocks** can't be walked through and hide whatever is behind them. The
+  **Ashfields** map is built around them.
+- **Winning:** by default the last team standing wins. Battle Setup can add a **time limit** (when it runs out the
+  side with the greater share of its health left wins, and level shares are a **draw**) and **holding the middle**
+  (stand alone inside the gold ring for 30 or 60 s). The line under the turn bars shows both. The in-game menu also
+  has **Surrender**, which asks once and hands the battle to the other side.
 - **Knock-outs:** a unit at 0 HP is **knocked out** for 12 s (it lies on the field with a `KO` countdown). The White
   Mage's **Raise** (replaces Staff Strike) revives it with 30% HP; otherwise it's gone. KO'd units don't count as alive.
 
@@ -145,6 +153,7 @@ same settings.
 | **Highlands** | Rolling hills with a high ridge on each flank. Take the high ground. |
 | **River Crossing** | A river splits the field; two narrow bridges are the only way across. |
 | **Fortress** | A raised central plateau reachable only by ramps; stone pillars block line of sight. |
+| **Ashfields** | Embers burn whoever lingers on them, springs heal, and rocks hide what is behind them. |
 | **Open Plains** | Flat and open with a few low hills. |
 
 Maps are 24 × 24 m and point-symmetric (fair for both sides). They're defined as height rows in `scripts/core/map_data.gd`

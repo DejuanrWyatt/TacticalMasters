@@ -64,10 +64,13 @@ extends RefCounted
 
 const Unit = preload("res://scripts/core/unit.gd")
 const Jobs = preload("res://scripts/core/jobs.gd")
+const MapData = preload("res://scripts/core/map_data.gd")
 
 const TEAM_NAMES := ["Blue", "Red"]
 ## `winner` when neither side won (the time limit ran out level).
 const DRAW := 2
+## How far the capture point in the middle of the map reaches, in meters.
+const CAPTURE_RADIUS := 4.0
 
 # Space
 const TILE_SIZE := 2.0
@@ -152,6 +155,8 @@ const TUNING := {
 	"crit_multiplier": [CRIT_BONUS, 1.0, 3.0, 0.05, "Critical hit multiplier", "What a critical hit multiplies damage by."],
 	"evade_multiplier": [1.0, 0.0, 3.0, 0.05, "Evasion multiplier", "Multiplier on every unit's A-Eva and M-Eva."],
 	"crit_chance_multiplier": [1.0, 0.0, 3.0, 0.05, "Crit chance multiplier", "Multiplier on every unit's Crit chance."],
+	"capture_seconds": [0.0, 0.0, 180.0, 5.0, "Hold the middle to win (s)", "0 = off. A side that stands alone in the middle of the map for this long wins."],
+	"hazard_percent": [8.0, 0.0, 40.0, 1.0, "Hazard ground (% max HP)", "Health lost on burning ground, or gained on a spring, when a unit's turn comes round."],
 	"battle_seconds": [0.0, 0.0, 600.0, 15.0, "Battle time limit (s)", "0 = no limit. When it runs out, the side with more of its health left wins; level shares draw."],
 }
 
@@ -161,6 +166,10 @@ var nav_x := 0
 var nav_y := 0
 ## Height level per tile; 0 is water.
 var heights: Array[int] = []
+## Per tile: -1 burns, +1 heals, 0 ordinary ground (see MapData.TERRAIN).
+var hazards: Array[int] = []
+## Per tile: 1 where a rock blocks sight, 0 elsewhere.
+var covers: Array[int] = []
 ## Height level per navigation node (y * nav_x + x), precomputed for pathfinding.
 var _nav_levels := PackedInt32Array()
 var units: Array[Unit] = []
@@ -168,6 +177,8 @@ var spawn_points: Array[Vector2] = []
 var tick := 0
 ## -1 while the battle runs, 0 or 1 for the winning team, DRAW for a draw.
 var winner := -1
+## Ticks each side has held the middle of the map, when that rule is on.
+var capture_ticks := [0, 0]
 ## Evasion and critical hits are rolled with this, so a battle plays out the
 ## same for both players online and in a replay: it is seeded at setup, only
 ## rolled while applying a command, and copied by snapshot().
@@ -188,10 +199,13 @@ func snapshot():
 	s.nav_x = nav_x
 	s.nav_y = nav_y
 	s.heights = heights
+	s.hazards = hazards
+	s.covers = covers
 	s._nav_levels = _nav_levels
 	s.spawn_points = spawn_points
 	s.tick = tick
 	s.winner = winner
+	s.capture_ticks = capture_ticks.duplicate()
 	s.tuning = tuning.duplicate()
 	s.seed_value = seed_value
 	s.rng.seed = rng.seed
@@ -235,9 +249,13 @@ func setup(map: Dictionary, p_tuning := {}, p_seed := 0) -> void:
 	nav_x = tiles_x * NODES_PER_TILE
 	nav_y = tiles_y * NODES_PER_TILE
 	heights.clear()
+	hazards.clear()
+	covers.clear()
 	for row in rows:
 		for ch in row:
-			heights.append(0 if ch == "~" else ch.to_int())
+			heights.append(MapData.char_level(ch))
+			hazards.append(MapData.char_hazard(ch))
+			covers.append(1 if MapData.char_is_cover(ch) else 0)
 	_nav_levels.resize(nav_x * nav_y)
 	for y in nav_y:
 		for x in nav_x:
@@ -282,6 +300,22 @@ func is_water(p: Vector2) -> bool:
 	return level_at(p) == 0
 
 
+## -1 where the ground burns, +1 where it heals, 0 everywhere else.
+func hazard_at(p: Vector2) -> int:
+	if not in_bounds(p):
+		return 0
+	var t := tile_of(p)
+	return hazards[t.y * tiles_x + t.x]
+
+
+## Whether a rock stands here, hiding what is behind it.
+func is_cover(p: Vector2) -> bool:
+	if not in_bounds(p):
+		return false
+	var t := tile_of(p)
+	return covers[t.y * tiles_x + t.x] == 1
+
+
 ## Height of the ground surface in meters (water counts as 0).
 func ground_height(p: Vector2) -> float:
 	return level_at(p) * LEVEL_HEIGHT
@@ -297,7 +331,10 @@ func has_line_of_sight(a: Vector2, b: Vector2) -> bool:
 	var steps := int(d / LOS_STEP)
 	for i in range(1, steps):
 		var t := float(i) / steps
-		if ground_height(a.lerp(b, t)) > lerpf(from_h, to_h, t):
+		var p := a.lerp(b, t)
+		if is_cover(p):
+			return false
+		if ground_height(p) > lerpf(from_h, to_h, t):
 			return false
 	return true
 
@@ -335,7 +372,7 @@ func ready_units(team := -1) -> Array[Unit]:
 ## A number that sums up the whole battle: both players should always have
 ## the same one at the same tick (used online to catch the games drifting).
 func checksum() -> int:
-	var parts := [tick, winner]
+	var parts := [tick, winner, capture_ticks]
 	for u in units:
 		parts.append("%d:%s:%d:%d:%d:%d:%s:%s" % [u.id, u.pos, u.hp, u.tg, u.serial, u.ult,
 			u.statuses, u.buffs])
@@ -1061,6 +1098,9 @@ func _tick(result: Dictionary) -> void:
 		_finish_on_time()
 		result.logs.append("Time! %s" % ("It's a draw." if winner == DRAW else "%s wins on health." % TEAM_NAMES[winner]))
 		return
+	_tick_capture(result)
+	if winner != -1:
+		return
 	for u in units:
 		if u.is_ko():
 			u.ko_ticks -= 1
@@ -1125,6 +1165,28 @@ func _tick_statuses(u: Unit, result: Dictionary) -> void:
 		else:
 			result.logs.append("%s %s: %s wears off." % [TEAM_NAMES[u.team], u.job_name(), info.name])
 	u.statuses = kept
+
+
+## Burning ground hurts, a spring heals: it happens when the unit's turn comes
+## round, like a status, so standing still on embers is what costs it.
+func _ground_effect(u: Unit, result: Dictionary) -> void:
+	var kind := hazard_at(u.pos)
+	if kind == 0:
+		return
+	var amount := maxi(1, roundi(u.max_hp() * tune("hazard_percent") * 0.01))
+	if kind < 0:
+		u.hp = maxi(0, u.hp - amount)
+		result.events.append({"pos": u.pos, "text": "-%d" % amount, "color": Color(1.0, 0.5, 0.2)})
+		result.logs.append("%s %s is burned by the ground (-%d)." % [TEAM_NAMES[u.team], u.job_name(), amount])
+		if not u.is_alive():
+			_knock_out(u, "%s %s" % [TEAM_NAMES[u.team], u.job_name()], result)
+			_check_winner()
+	else:
+		var healed := mini(amount, u.max_hp() - u.hp)
+		if healed > 0:
+			u.hp += healed
+			result.events.append({"pos": u.pos, "text": "+%d" % healed, "color": Color(0.4, 1.0, 0.6)})
+			result.logs.append("%s %s drinks from the spring (+%d)." % [TEAM_NAMES[u.team], u.job_name(), healed])
 
 
 ## Auras of every living unit whose side this one is on (or against) reach it
@@ -1231,6 +1293,46 @@ func health_share(team: int) -> float:
 	return alive / total if total > 0.0 else 0.0
 
 
+## The middle of the map, which the capture rule is fought over.
+func capture_point() -> Vector2:
+	return size_meters() * 0.5
+
+
+## How much of the hold a side has done, from 0 to 1 (0 when the rule is off).
+func capture_share(team: int) -> float:
+	var limit: float = tune("capture_seconds")
+	if limit <= 0.0:
+		return 0.0
+	return clampf(float(capture_ticks[team]) / (limit * TICKS_PER_SECOND), 0.0, 1.0)
+
+
+## Standing alone in the middle long enough wins the battle. While both sides
+## have someone there it is contested and neither gains, but nothing is lost
+## either: a side that is pushed off keeps what it held.
+func _tick_capture(result: Dictionary) -> void:
+	var limit: float = tune("capture_seconds")
+	if limit <= 0.0:
+		return
+	var middle := capture_point()
+	var standing := [0, 0]
+	for u in units:
+		if u.is_alive() and u.pos.distance_to(middle) <= CAPTURE_RADIUS:
+			standing[u.team] += 1
+	if standing[0] > 0 and standing[1] > 0:
+		return
+	var needed := roundi(limit * TICKS_PER_SECOND)
+	for team in 2:
+		if standing[team] == 0:
+			continue
+		capture_ticks[team] += 1
+		if capture_ticks[team] == roundi(needed * 0.5):
+			result.logs.append("%s is halfway to holding the middle." % TEAM_NAMES[team])
+		if capture_ticks[team] >= needed:
+			winner = team
+			result.logs.append("%s has held the middle: %s wins." % [TEAM_NAMES[team], TEAM_NAMES[team]])
+			return
+
+
 ## The time limit ran out: the healthier side wins, level shares draw.
 func _finish_on_time() -> void:
 	var blue := health_share(0)
@@ -1246,6 +1348,9 @@ func _become_ready(u: Unit, result: Dictionary) -> void:
 	# out before it acts).
 	var stunned := u.is_stunned()
 	_tick_statuses(u, result)
+	if not u.is_alive():
+		return
+	_ground_effect(u, result)
 	if not u.is_alive():
 		return
 	u.ready = true

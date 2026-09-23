@@ -111,6 +111,7 @@ var _guide: Control
 var _options: Control
 var _game_menu: Control
 var _surrender_button: Button
+var _objective: Label
 var _how_to: Control
 var _dev_tools: Control
 ## The battle's rules, for the calculation tooltips (set by Battle).
@@ -129,6 +130,7 @@ func build(can_pause: bool) -> void:
 	add_child(_root)
 
 	_build_turn_order()
+	_build_objective()
 	_build_corner_buttons(can_pause)
 	_build_log()
 	_build_chat()
@@ -209,6 +211,28 @@ func _layout_bars() -> void:
 func _bar_x(seconds: float) -> float:
 	var frac := sqrt(clampf(seconds / TIMELINE_SECONDS, 0.0, 1.0))
 	return TRACK_START + frac * (_bars_width - TRACK_START - CHIP_SIZE.x * 0.5)
+
+
+## A line under the turn bars: the time left, and who is holding the middle.
+func _build_objective() -> void:
+	_objective = Label.new()
+	_objective.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_objective.offset_top = 8 + 2 * ROW_HEIGHT + 2
+	_objective.offset_bottom = _objective.offset_top + 22
+	_objective.offset_right = -TIMELINE_RIGHT_MARGIN
+	_objective.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_objective.add_theme_font_size_override("font_size", 13)
+	_objective.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_objective.visible = false
+	_root.add_child(_objective)
+
+
+## Shows (or, with an empty text, hides) the objective line.
+func set_objective(text: String) -> void:
+	if _objective.text == text:
+		return
+	_objective.text = text
+	_objective.visible = text != ""
 
 
 func _build_corner_buttons(can_pause: bool) -> void:

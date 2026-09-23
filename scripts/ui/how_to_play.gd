@@ -138,13 +138,23 @@ func _build_pages() -> Array:
 			+ "  [color=#ff8033]BRN Burn[/color]: loses 10% of max HP on each of its turns (Fire)\n"
 			+ "  [color=#73ff8c]RGN Regen[/color]: recovers 10% of max HP on each of its turns (Chakra, Sanctuary)\n"
 			+ "  [color=#80bfff]SLW Slow[/color]: Turn Gauge fills at half speed (Blizzard)\n"
-			+ "  [color=#ffe64d]STN Stun[/color]: loses its next turns; its gauge still fills (Shield Bash)\n\n"
+			+ "  [color=#ffe64d]STN Stun[/color]: the turn it just earned is lost; its gauge still fills (Shield Bash)\n"
+			+ "  [color=#b3e0ff]SHD Shield[/color]: soaks damage before HP, and breaks when it is used up\n"
+			+ "  [color=#a8895c]ROT Root[/color]: can't walk, can still act\n"
+			+ "  [color=#c78cff]SIL Silence[/color]: can't use abilities, can still walk\n"
+			+ "  [color=#ff8f6b]TNT Taunt[/color]: must attack whoever taunted it, while that one is in reach\n\n"
 			+ "A status lasts a number of the unit's own [b]turns[/b]: it acts and counts down when that unit's turn comes.\n\n"
+			+ "[b]The ground:[/b] embers burn and springs heal a unit that starts its turn on them; rocks can't be "
+			+ "walked through and hide what is behind them.\n\n"
 			+ "[b]Fog of war:[/b] you only see what your units can see."],
 		["Knock-outs and winning",
 			"A unit at 0 HP is [b]knocked out[/b]: it lies on the field with a [b]KO[/b] countdown (%d s). " % roundi(tuning.get("ko_seconds", GameState.KO_SECONDS))
 			+ "The White Mage's [b]Raise[/b] can revive it with 30% HP before the countdown ends; after that it's gone.\n\n"
-			+ "A team with no units standing loses. The victory screen shows each unit's damage, healing and KOs, "
+			+ "A team with no units standing loses. Battle Setup can add two more ways to finish: a [b]time limit[/b], "
+			+ "where the side with more of its health left wins and level shares are a [b]draw[/b], and [b]holding the "
+			+ "middle[/b], where standing alone inside the gold ring long enough wins. The line under the turn bars "
+			+ "shows whichever is on. The game menu also has [b]Surrender[/b].\n\n"
+			+ "The victory screen shows each unit's damage, healing and KOs, "
 			+ "and lets you [b]rematch[/b] or [b]watch a replay[/b] of the battle."],
 		["Controls",
 			"%s  select or move / target\n" % "[b]Left-click[/b]"

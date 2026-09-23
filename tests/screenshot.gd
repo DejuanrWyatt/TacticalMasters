@@ -11,6 +11,8 @@ extends SceneTree
 ## Add "timemage" to put the imported Time Mage first on Blue, and "tips" to
 ## print the selected unit's calculation tooltips; "inspect <unit id>" opens
 ## that unit's stats card; "logopts" opens the combat log's options.
+## "map <map_id>" fights on that map, and "capture" turns on holding the
+## middle to win (marked on the ground, counted on the objective line).
 
 func _initialize() -> void:
 	await process_frame
@@ -63,6 +65,11 @@ func _initialize() -> void:
 			sim.apply(cmd)
 		root.get_node("GameConfig").replay_log = log
 	root.get_node("GameConfig").mode = "ai"
+	if args.has("map"):
+		root.get_node("GameConfig").map_id = args[args.find("map") + 1]
+	if args.has("capture"):
+		# Only for this run: writing it through set_tuning would save it.
+		root.get_node("GameConfig").tuning["capture_seconds"] = 30.0
 	if args.has("timemage"):
 		root.get_node("GameConfig").rosters[0] = ["time_mage", "knight", "archer", "white_mage"]
 	var battle: Node = load("res://scenes/battle.tscn").instantiate()

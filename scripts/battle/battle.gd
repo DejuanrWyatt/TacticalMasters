@@ -969,6 +969,19 @@ func _replay_step(delta: float) -> void:
 # --- Presentation ----------------------------------------------------------
 
 ## Everything that changes every frame: countdowns, bars, turn order.
+## What this battle is being won by, when it is more than the last team
+## standing: the time left, and how far each side is to holding the middle.
+func _objective_text() -> String:
+	var parts := PackedStringArray()
+	var limit: float = state.tune("battle_seconds")
+	if limit > 0.0:
+		var left := maxf(0.0, limit - state.tick / float(GameState.TICKS_PER_SECOND))
+		parts.append("Time left %d:%02d" % [int(left) / 60, int(left) % 60])
+	if state.tune("capture_seconds") > 0.0:
+		parts.append("Middle held: Blue %d%%, Red %d%%" % [roundi(state.capture_share(0) * 100), roundi(state.capture_share(1) * 100)])
+	return "   |   ".join(parts)
+
+
 func _update_live_ui() -> void:
 	_update_inspect()
 	var entries := []
@@ -993,6 +1006,7 @@ func _update_live_ui() -> void:
 		})
 		unit_views[u.id].set_status(u, state.seconds_left(u))
 	hud.set_turn_order(entries)
+	hud.set_objective(_objective_text())
 	# Knocked-out units aren't in the turn order but show a revive countdown.
 	for u in state.units:
 		if u.is_ko():
