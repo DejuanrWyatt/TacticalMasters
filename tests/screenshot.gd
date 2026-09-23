@@ -11,6 +11,8 @@ extends SceneTree
 ## Add "timemage" to put the imported Time Mage first on Blue, and "tips" to
 ## print the selected unit's calculation tooltips; "inspect <unit id>" opens
 ## that unit's stats card; "logopts" opens the combat log's options.
+## "field" opens the all-units panel; "midreplay" opens a replay halfway
+## through, with its bar.
 ## "map <map_id>" fights on that map, and "capture" turns on holding the
 ## middle to win (marked on the ground, counted on the objective line).
 
@@ -52,8 +54,9 @@ func _initialize() -> void:
 		print("saved ", out)
 		quit()
 		return
-	if args.has("victory"):
-		# Simulate a computer-vs-computer battle, then replay it fast to the victory screen.
+	if args.has("victory") or args.has("midreplay"):
+		# Simulate a computer-vs-computer battle, then replay it: "victory"
+		# races to the end, "midreplay" opens it halfway and plays on.
 		var sim = preload("res://scripts/core/game_state.gd").new()
 		sim.setup(preload("res://scripts/core/map_data.gd").highlands())
 		var bot = preload("res://scripts/ai/ai_player.gd").new("hard")
@@ -64,6 +67,9 @@ func _initialize() -> void:
 			log.append(cmd)
 			sim.apply(cmd)
 		root.get_node("GameConfig").replay_log = log
+		if args.has("midreplay"):
+			# Start the replay halfway, as dragging the replay bar does.
+			root.get_node("GameConfig").replay_skip = log.size() / 2
 	root.get_node("GameConfig").mode = "ai"
 	if args.has("map"):
 		root.get_node("GameConfig").map_id = args[args.find("map") + 1]
@@ -118,6 +124,11 @@ func _initialize() -> void:
 	if args.has("logopts"):
 		# The combat log's options row (the cog).
 		battle.hud._log.toggle_options()
+		for i in 10:
+			await process_frame
+	if args.has("field"):
+		# The all-units panel down the left edge.
+		battle.hud.toggle_field()
 		for i in 10:
 			await process_frame
 	if args.has("inspect"):

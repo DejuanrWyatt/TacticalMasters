@@ -66,6 +66,10 @@ var _tick_time := 0.0
 var _ai_wait := [1.0, 1.0]
 ## Casting unit id -> ground circle showing where its spell will land.
 var _cast_markers := {}
+## The beam from each casting unit to where its spell will land.
+var _cast_links := {}
+## A faint ring under each unit that carries an aura, showing how far it reaches.
+var _aura_rings := {}
 ## Computer's units: unit id -> time (msec) it may act, after its reaction delay.
 var _ai_ready_at := {}
 ## The computer thinks on a worker thread so the game never stutters.
@@ -96,6 +100,8 @@ var _host_checksums := {}
 var _last_checksum_tick := 0
 ## Unit whose stats card is open (clicked, not taking orders), or -1.
 var inspected_id := -1
+## What the threat preview was last drawn for (see _update_threat).
+var _threat_signature := ""
 
 
 func _ready() -> void:
@@ -105,11 +111,18 @@ func _ready() -> void:
 	state.setup(GameConfig.build_map(), GameConfig.battle_tuning(), GameConfig.battle_seed())
 	_start_tuning = state.tuning.duplicate()
 	for u in state.units:
-		stats[u.id] = {"dealt": 0, "taken": 0, "healed": 0, "kos": 0}
+		stats[u.id] = {"dealt": 0, "taken": 0, "healed": 0, "kos": 0, "abilities": 0, "crits": 0, "evades": 0}
 	if not GameConfig.replay_log.is_empty():
 		replaying = true
 		_replay_log = GameConfig.replay_log
 		GameConfig.replay_log = []
+		# Asked to start partway through: play those orders out before the
+		# board is built, so everything is already where it should be.
+		if GameConfig.replay_skip > 0:
+			while _replay_i < GameConfig.replay_skip and _replay_i < _replay_log.size() and state.winner == -1:
+				_record_stats(state.apply(_replay_log[_replay_i]))
+				_replay_i += 1
+			GameConfig.replay_skip = 0
 	match GameConfig.mode:
 		"ai":
 			viewer_team = 1 - GameConfig.ai_team
@@ -142,6 +155,9 @@ func _ready() -> void:
 	hud.rematch_pressed.connect(_rematch)
 	hud.replay_pressed.connect(_watch_replay)
 	hud.replay_speed_changed.connect(_set_replay_speed)
+	hud.replay_seek.connect(_replay_seek)
+	hud.replay_step_pressed.connect(_replay_one)
+	hud.replay_results_pressed.connect(func(): _replay_seek(1.0))
 	if replaying:
 		hud.show_replay_bar(true)
 		hud.log_message("Watching the replay.")
@@ -186,6 +202,9 @@ func _ready() -> void:
 	if GameConfig.mode == "online" and not replaying:
 		_process_inbox()
 		_process_requests()
+	# Jumped to (or past) the end of the log: show the results again.
+	if replaying and state.winner != -1:
+		_game_over.call_deferred()
 
 
 func _build_world() -> void:
@@ -401,11 +420,34 @@ func _update_inspect() -> void:
 	if u == null:
 		inspected_id = -1
 		hud.show_inspect(null, false, "", Color.WHITE, 0.0)
+		_update_threat(null)
 		return
 	var sel := _selected()
 	var ally_team := sel.team if sel != null else (viewer_team if viewer_team != -1 else 0)
 	hud.show_inspect(u, u.team != ally_team, "%s %s" % [GameState.TEAM_NAMES[u.team], u.job_name()],
 		TEAM_COLORS[u.team], state.seconds_left(u))
+	_update_threat(u if u.team != ally_team else null)
+
+
+## Shows what a clicked enemy could do next: the ground it can walk to, and
+## the reach of its longest attack from where it stands. Only worked out again
+## when that unit moves or takes a turn, not every frame.
+func _update_threat(enemy) -> void:
+	if enemy == null or not enemy.is_alive():
+		if _threat_signature != "":
+			_threat_signature = ""
+			board.show_threat([], Vector2.ZERO, 0.0)
+		return
+	var signature := "%d:%s:%d:%s" % [enemy.id, enemy.pos, enemy.serial, enemy.moved]
+	if signature == _threat_signature:
+		return
+	_threat_signature = signature
+	var reach := 0.0
+	for slot in 4:
+		var ab: Dictionary = enemy.ability(slot)
+		if ab.effect == "damage":
+			reach = maxf(reach, ab.max_range)
+	board.show_threat(state.reachable_nodes(enemy).keys(), enemy.pos, reach)
 
 
 ## Draws what the ability would cover: a circle, a line from the unit, or a
@@ -850,6 +892,24 @@ func _play_turn_sounds(result: Dictionary) -> void:
 			break
 
 
+## Jumps the replay to a point in the log. The battle is rebuilt and replayed
+## from the start to get there: the rules are deterministic, so it lands on
+## exactly the state the battle had at that point.
+func _replay_seek(fraction: float) -> void:
+	if not replaying:
+		return
+	GameConfig.replay_log = _replay_log
+	GameConfig.replay_skip = clampi(roundi(fraction * _replay_log.size()), 0, _replay_log.size())
+	get_tree().reload_current_scene()
+
+
+## Plays the replay's next order, for stepping through a battle by hand.
+func _replay_one() -> void:
+	if replaying and _replay_i < _replay_log.size() and state.winner == -1:
+		_apply(_replay_log[_replay_i])
+		_replay_i += 1
+
+
 func _set_replay_speed(speed: float) -> void:
 	_replay_speed = speed
 	# Fast-forwarded replays would be a wall of noise.
@@ -876,17 +936,31 @@ func _game_over() -> void:
 	# When the time ran out, say how close it was.
 	if state.tune("battle_seconds") > 0.0 and state.tick >= roundi(state.tune("battle_seconds") * GameState.TICKS_PER_SECOND):
 		text += "\nTime: Blue %d%% health, Red %d%%" % [roundi(state.health_share(0) * 100), roundi(state.health_share(1) * 100)]
+	text += "\nBattle length: %d:%02d" % [state.tick / GameState.TICKS_PER_SECOND / 60, (state.tick / GameState.TICKS_PER_SECOND) % 60]
 	var rows := []
 	var mvp := -1
-	var best := -1
-	for u in state.units:
-		var st: Dictionary = stats[u.id]
-		rows.append({"name": "%s %s" % [GameState.TEAM_NAMES[u.team], u.job_name()],
-			"color": (TEAM_COLORS[u.team] as Color).lightened(0.35),
-			"dealt": st.dealt, "taken": st.taken, "healed": st.healed, "kos": st.kos})
-		if st.dealt + st.healed > best:
-			best = st.dealt + st.healed
-			mvp = rows.size() - 1
+	var best := -1.0
+	for team in 2:
+		var totals := {"dealt": 0, "taken": 0, "healed": 0, "kos": 0, "abilities": 0, "crits": 0, "evades": 0}
+		for u in state.units:
+			if u.team != team:
+				continue
+			var st: Dictionary = stats[u.id]
+			for key in totals:
+				totals[key] += st[key]
+			rows.append({"name": "%s %s" % [GameState.TEAM_NAMES[u.team], u.job_name()],
+				"color": (TEAM_COLORS[u.team] as Color).lightened(0.35), "total": false,
+				"dealt": st.dealt, "taken": st.taken, "healed": st.healed, "kos": st.kos,
+				"abilities": st.abilities, "crits": st.crits, "evades": st.evades})
+			# Standing in front of the enemy counts too, not only damage.
+			var worth: float = st.dealt + st.healed + st.taken * 0.6 + st.kos * 40.0
+			if worth > best:
+				best = worth
+				mvp = rows.size() - 1
+		var totals_row := {"name": "%s total" % GameState.TEAM_NAMES[team], "total": true,
+			"color": (TEAM_COLORS[team] as Color).lightened(0.15)}
+		totals_row.merge(totals)
+		rows.append(totals_row)
 	hud.show_game_over(text, rows, mvp, true)
 	Audio.stop_music()
 	Audio.sfx_enabled = true
@@ -894,10 +968,15 @@ func _game_over() -> void:
 	_refresh()
 
 
-## Adds damage, healing and knock-outs from a command's result to the stats.
+## Adds damage, healing, knock-outs, critical hits and evasions from a
+## command's result to the stats the victory screen shows.
 func _record_stats(result: Dictionary) -> void:
 	for r in result.resolved:
 		var ab := state.get_unit(r.unit).ability(r.slot)
+		stats[r.unit].abilities += 1
+		stats[r.unit].crits += r.get("crits", []).size()
+		for id in r.get("evaded", []):
+			stats[id].evades += 1
 		for i in r.hits.size():
 			var amount: int = r.amounts[i]
 			var target_id: int = r.hits[i]
@@ -968,7 +1047,45 @@ func _replay_step(delta: float) -> void:
 
 # --- Presentation ----------------------------------------------------------
 
-## Everything that changes every frame: countdowns, bars, turn order.
+## Rows for the all-units panel: everyone on the field, Blue then Red, with
+## what is known about each (a hidden enemy shows as ???).
+func _field_entries() -> Array:
+	if not hud.is_field_open():
+		return []
+	var out := []
+	for u in state.units:
+		var seen := _is_seen(u)
+		var text := ""
+		if u.is_ko():
+			text = "KO"
+		elif not seen:
+			text = "?"
+		elif u.is_casting():
+			text = "%.1fs" % state.cast_seconds_left(u)
+		elif u.ready:
+			text = "READY"
+		else:
+			text = "%ds" % ceili(state.seconds_left(u))
+		var tags := PackedStringArray()
+		for s in u.statuses:
+			tags.append(Jobs.STATUSES[s.id].tag)
+		out.append({
+			"id": u.id,
+			"team": u.team,
+			"job": u.job,
+			"name": u.job_name() if seen else "???",
+			"hp": u.hp if seen else 0,
+			"max_hp": u.max_hp(),
+			"state": text,
+			"ready": u.ready and seen,
+			"hidden": not seen,
+			"color": (TEAM_COLORS[u.team] as Color).lightened(0.35),
+			"tip": "%s %s%s" % [GameState.TEAM_NAMES[u.team], u.job_name(),
+				"\n" + " ".join(tags) if not tags.is_empty() else ""] if seen else "Not in sight",
+		})
+	return out
+
+
 ## What this battle is being won by, when it is more than the last team
 ## standing: the time left, and how far each side is to holding the middle.
 func _objective_text() -> String:
@@ -982,6 +1099,7 @@ func _objective_text() -> String:
 	return "   |   ".join(parts)
 
 
+## Everything that changes every frame: countdowns, bars, turn order.
 func _update_live_ui() -> void:
 	_update_inspect()
 	var entries := []
@@ -1007,11 +1125,15 @@ func _update_live_ui() -> void:
 		unit_views[u.id].set_status(u, state.seconds_left(u))
 	hud.set_turn_order(entries)
 	hud.set_objective(_objective_text())
+	if replaying and not _replay_log.is_empty():
+		hud.set_replay_progress(float(_replay_i) / _replay_log.size())
+	hud.set_field(_field_entries())
 	# Knocked-out units aren't in the turn order but show a revive countdown.
 	for u in state.units:
 		if u.is_ko():
 			unit_views[u.id].set_status(u, 0.0)
 	_update_cast_markers()
+	_update_aura_rings()
 
 	var sel := _selected()
 	if sel != null:
@@ -1138,12 +1260,46 @@ func _describe_hover() -> String:
 
 ## Keeps one purple circle under each pending spell's landing spot. Single
 ## target spells follow their target.
+## Rings under the units whose abilities reach everyone standing near them.
+## Only the ones you can see, and only while they are standing.
+func _update_aura_rings() -> void:
+	for u in state.units:
+		var radius := 0.0
+		if u.is_alive() and _is_seen(u):
+			for slot in 4:
+				var ab: Dictionary = u.ability(slot)
+				if ab.get("kind", "active") == "aura":
+					radius = maxf(radius, maxf(ab.aoe, 1.0))
+		if radius <= 0.0:
+			if _aura_rings.has(u.id):
+				_aura_rings[u.id].queue_free()
+				_aura_rings.erase(u.id)
+			continue
+		if not _aura_rings.has(u.id):
+			var ring := MeshInstance3D.new()
+			ring.mesh = TorusMesh.new()
+			var m := StandardMaterial3D.new()
+			m.albedo_color = (TEAM_COLORS[u.team] as Color).lightened(0.3)
+			m.albedo_color.a = 0.3
+			m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			ring.mesh.inner_radius = maxf(0.01, radius - 0.04)
+			ring.mesh.outer_radius = radius + 0.04
+			ring.material_override = m
+			add_child(ring)
+			_aura_rings[u.id] = ring
+		(_aura_rings[u.id] as MeshInstance3D).position = board.ground(u.pos) + Vector3(0, 0.06, 0)
+
+
 func _update_cast_markers() -> void:
 	for id in _cast_markers.keys():
 		var u := state.get_unit(id)
 		if not u.is_alive() or not u.is_casting():
 			_cast_markers[id].queue_free()
 			_cast_markers.erase(id)
+			if _cast_links.has(id):
+				_cast_links[id].queue_free()
+				_cast_links.erase(id)
 	for u in state.units:
 		if not u.is_alive() or not u.is_casting():
 			continue
@@ -1167,8 +1323,28 @@ func _update_cast_markers() -> void:
 			marker.material_override = m
 			add_child(marker)
 			_cast_markers[u.id] = marker
+		if not _cast_links.has(u.id):
+			# A thin beam from the caster to where the spell will land, so it
+			# is clear who is casting at what.
+			var beam := BoxMesh.new()
+			beam.size = Vector3(0.05, 0.02, 1.0)
+			var link := MeshInstance3D.new()
+			link.mesh = beam
+			link.material_override = _cast_markers[u.id].material_override
+			add_child(link)
+			_cast_links[u.id] = link
 		var marker: MeshInstance3D = _cast_markers[u.id]
 		marker.position = board.ground(target) + Vector3(0, 0.1, 0)
+		var from := board.ground(u.pos) + Vector3(0, 1.1, 0)
+		var to := board.ground(target) + Vector3(0, 0.2, 0)
+		var link_mesh: MeshInstance3D = _cast_links[u.id]
+		# A beam straight down (a spell on its own feet) has no direction to
+		# point along, so it isn't drawn.
+		link_mesh.visible = _point_seen(u.pos) and Vector2(to.x - from.x, to.z - from.z).length() > 0.3
+		if link_mesh.visible:
+			link_mesh.position = (from + to) * 0.5
+			link_mesh.look_at_from_position(link_mesh.position, to, Vector3.UP)
+			link_mesh.scale = Vector3(1, 1, from.distance_to(to))
 		# Pulse faster as the spell gets close to going off.
 		var left := state.seconds_left(u)
 		marker.visible = _point_seen(target) or u.team == viewer_team

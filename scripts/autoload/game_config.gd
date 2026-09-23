@@ -25,6 +25,9 @@ var map_id := MapData.DEFAULT_MAP
 var rosters: Array = [Jobs.DEFAULT_ROSTER.duplicate(), Jobs.DEFAULT_ROSTER.duplicate()]
 ## When not empty, the next battle is a replay of these recorded commands.
 var replay_log: Array = []
+## Commands of that log to play through before the replay is shown: how the
+## replay bar jumps to a point in the battle.
+var replay_skip := 0
 ## Rule numbers at the start of the battle being replayed.
 var replay_tuning := {}
 ## Developer Tools rule numbers (only the changed ones), saved between runs.

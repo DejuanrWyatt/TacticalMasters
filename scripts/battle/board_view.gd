@@ -28,6 +28,8 @@ const GROUND_COLORS := [
 ]
 const FOG_COLOR := Color(0.05, 0.07, 0.12, 0.6)
 const MOVE_AREA_COLOR := Color(0.35, 0.65, 1.0, 0.3)
+## Where a clicked enemy could walk, and how far it could reach from there.
+const THREAT_AREA_COLOR := Color(1.0, 0.35, 0.3, 0.2)
 
 ## Colors of the cliff sides per level (the tops use GROUND_COLORS).
 const SIDE_COLORS := [
@@ -44,6 +46,8 @@ var _fog := {}
 var _noise: NoiseTexture2D
 var _materials := {}
 var _move_area: MultiMeshInstance3D
+var _threat_area: MultiMeshInstance3D
+var _threat_ring: MeshInstance3D
 var _path_dots: MultiMeshInstance3D
 var _path_ok: StandardMaterial3D
 var _path_bad: StandardMaterial3D
@@ -76,6 +80,7 @@ func build(p_state, seed_text := "") -> void:
 	_decorate(seed_text)
 
 	_move_area = _multimesh(_plane(Vector2(0.5, 0.5)), _material(MOVE_AREA_COLOR, true, false))
+	_threat_area = _multimesh(_plane(Vector2(0.5, 0.5)), _material(THREAT_AREA_COLOR, true, false))
 	var dot := SphereMesh.new()
 	dot.radius = 0.07
 	dot.height = 0.14
@@ -86,6 +91,7 @@ func build(p_state, seed_text := "") -> void:
 	if state.tune("capture_seconds") > 0.0:
 		var point := _ring_mesh(Color(1.0, 0.9, 0.4, 0.7))
 		_place_ring(point, state.capture_point(), state.CAPTURE_RADIUS)
+	_threat_ring = _ring_mesh(Color(1.0, 0.4, 0.35, 0.7))
 	_range_ring = _ring_mesh(Color(1.0, 0.6, 0.2, 0.9))
 	_min_ring = _ring_mesh(Color(1.0, 0.3, 0.2, 0.6))
 	var disc := CylinderMesh.new()
@@ -335,6 +341,17 @@ func show_move_area(nodes: Array) -> void:
 	for i in nodes.size():
 		var p: Vector2 = state.node_pos(nodes[i])
 		mm.set_instance_transform(i, Transform3D(Basis(), ground(p) + Vector3(0, 0.03, 0)))
+
+
+## What a clicked enemy threatens: the ground it could walk to, and a ring
+## for how far it could reach from where it stands. No nodes hides it.
+func show_threat(nodes: Array, center: Vector2, radius: float) -> void:
+	var mm := _threat_area.multimesh
+	mm.instance_count = nodes.size()
+	for i in nodes.size():
+		var p: Vector2 = state.node_pos(nodes[i])
+		mm.set_instance_transform(i, Transform3D(Basis(), ground(p) + Vector3(0, 0.035, 0)))
+	_place_ring(_threat_ring, center, radius if not nodes.is_empty() else 0.0)
 
 
 ## Dots along a walking path; red when the destination is out of reach.

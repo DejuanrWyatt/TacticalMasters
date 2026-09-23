@@ -1464,7 +1464,9 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 		u.pos = snap(target)
 		result.logs.append("%s %s dashes." % [TEAM_NAMES[u.team], u.job_name()])
 	var parts: Array[String] = []
-	var resolved := {"unit": u.id, "slot": slot, "target": target, "hits": [], "amounts": []}
+	# "evaded" and "crits" hold the ids this ability missed and crit on, for
+	# the battle's own tally; the rules themselves don't read them back.
+	var resolved := {"unit": u.id, "slot": slot, "target": target, "hits": [], "amounts": [], "evaded": [], "crits": []}
 	result.resolved.append(resolved)
 	for hit in hits:
 		var t: Unit = hit.unit
@@ -1485,11 +1487,14 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 			amount = 0
 			resolved.hits.append(t.id)
 			resolved.amounts.append(0)
+			resolved.evaded.append(t.id)
 			parts.append("%s evades" % who)
 			result.events.append({"pos": t.pos, "text": "MISS", "color": Color(0.85, 0.88, 1.0), "impact": true})
 			continue
 		resolved.hits.append(t.id)
 		resolved.amounts.append(amount)
+		if critical:
+			resolved.crits.append(t.id)
 		match ab.effect:
 			"damage":
 				if critical:

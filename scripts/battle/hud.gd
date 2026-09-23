@@ -24,6 +24,10 @@ signal overlay_changed(open: bool)
 signal rematch_pressed
 signal replay_pressed
 signal replay_speed_changed(speed: float)
+## A point in the replay to jump to, from 0 (the start) to 1 (the end).
+signal replay_seek(fraction: float)
+signal replay_step_pressed
+signal replay_results_pressed
 signal chat_submitted(text: String)
 signal chat_toggled(open: bool)
 signal tuning_changed(values: Dictionary)
@@ -101,17 +105,23 @@ var _log: LogWindow
 var _log_button: Button
 var _game_over: Control
 var _game_over_label: Label
+var _game_over_sub: Label
 var _stats_grid: GridContainer
 var _mvp_label: Label
 var _rematch_button: Button
 var _replay_button: Button
 var _replay_bar: PanelContainer
+var _replay_slider: HSlider
 var _chat: LineEdit
 var _guide: Control
 var _options: Control
 var _game_menu: Control
 var _surrender_button: Button
+var _field_button: Button
 var _objective: Label
+var _field: PanelContainer
+var _field_box: VBoxContainer
+var _field_rows := {}
 var _how_to: Control
 var _dev_tools: Control
 ## The battle's rules, for the calculation tooltips (set by Battle).
@@ -131,6 +141,7 @@ func build(can_pause: bool) -> void:
 
 	_build_turn_order()
 	_build_objective()
+	_build_field()
 	_build_corner_buttons(can_pause)
 	_build_log()
 	_build_chat()
@@ -235,6 +246,99 @@ func set_objective(text: String) -> void:
 	_objective.visible = text != ""
 
 
+## Both teams down the left edge: icon, name, health, statuses and whether
+## the unit is ready. Clicking a row picks that unit, like its chip.
+func _build_field() -> void:
+	_field = PanelContainer.new()
+	_field.set_anchors_preset(Control.PRESET_CENTER_LEFT)
+	_field.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_field.offset_left = 10
+	_field.add_theme_stylebox_override("panel", _box(Color(0.03, 0.05, 0.08, 0.86), Color(1, 1, 1, 0.12), 1, 8, Vector2(8, 8)))
+	_field.visible = false
+	_root.add_child(_field)
+	_field_box = VBoxContainer.new()
+	_field_box.add_theme_constant_override("separation", 2)
+	_field.add_child(_field_box)
+
+
+func toggle_field() -> void:
+	_field.visible = not _field.visible
+
+
+func is_field_open() -> bool:
+	return _field != null and _field.visible
+
+
+## One row, built the first time its unit shows up.
+func _field_row(unit_id: int) -> Button:
+	var row := Button.new()
+	row.focus_mode = Control.FOCUS_NONE
+	row.flat = true
+	row.custom_minimum_size = Vector2(228, 28)
+	row.set_meta("unit_id", unit_id)
+	row.pressed.connect(func(): chip_pressed.emit(unit_id))
+	var box := HBoxContainer.new()
+	box.name = "Row"
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	box.offset_left = 4
+	box.offset_right = -4
+	box.add_theme_constant_override("separation", 6)
+	row.add_child(box)
+	var icon := TextureRect.new()
+	icon.name = "Icon"
+	icon.custom_minimum_size = Vector2(22, 22)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(icon)
+	var name_label := Label.new()
+	name_label.name = "Name"
+	name_label.custom_minimum_size.x = 76
+	name_label.add_theme_font_size_override("font_size", 12)
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(name_label)
+	var bar := _gauge(box, Color(0.35, 0.82, 0.4))
+	bar.name = "HP"
+	bar.custom_minimum_size = Vector2(56, 12)
+	bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var state_label := Label.new()
+	state_label.name = "State"
+	state_label.custom_minimum_size.x = 44
+	state_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	state_label.add_theme_font_size_override("font_size", 11)
+	state_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(state_label)
+	_field_box.add_child(row)
+	_field_rows[unit_id] = row
+	return row
+
+
+## Fills the panel. Each entry: id, team, job, name, hp, max_hp, state, tags,
+## color, selected, hidden.
+func set_field(entries: Array) -> void:
+	if not is_field_open():
+		return
+	for entry in entries:
+		var row: Button = _field_rows.get(entry.id, null)
+		if row == null:
+			row = _field_row(entry.id)
+		var icon := row.get_node("Row/Icon") as TextureRect
+		var wanted := _icon(Jobs.icon_path(entry.job)) if not entry.hidden else null
+		if icon.texture != wanted:
+			icon.texture = wanted
+		_set_text(row.get_node("Row/Name") as Label, entry.name)
+		_set_color(row.get_node("Row/Name") as Label, entry.color)
+		_set_gauge(row.get_node("Row/HP") as ProgressBar, entry.hp, entry.max_hp,
+			"%d" % entry.hp if not entry.hidden else "?", URGENT if entry.hp < entry.max_hp * 0.35 else Color(0.35, 0.82, 0.4))
+		_set_text(row.get_node("Row/State") as Label, entry.state)
+		_set_color(row.get_node("Row/State") as Label, GOLD if entry.get("ready", false) else DIM)
+		_set_tip(row, entry.get("tip", ""))
+		row.modulate.a = 0.5 if entry.hidden else 1.0
+
+
 func _build_corner_buttons(can_pause: bool) -> void:
 	var corner := HBoxContainer.new()
 	corner.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
@@ -245,6 +349,8 @@ func _build_corner_buttons(can_pause: bool) -> void:
 	_root.add_child(corner)
 	_log_button = _small_button(corner, "Log", toggle_log)
 	_log_button.tooltip_text = "Show or hide the combat log (drag its title to move it, its corner to resize it)"
+	_field_button = _small_button(corner, "Field", toggle_field)
+	_field_button.tooltip_text = "Show or hide the list of every unit on the field"
 	_guide_button = _small_button(corner, "Units", toggle_guide)
 	_pause_button = _small_button(corner, "Pause", pause_pressed.emit)
 	_pause_button.visible = can_pause
@@ -494,12 +600,19 @@ func _build_game_over() -> void:
 	_game_over_label.add_theme_font_size_override("font_size", 36)
 	_game_over_label.add_theme_color_override("font_color", GOLD)
 	box.add_child(_game_over_label)
+	# Whatever else there is to say about the ending: how close it was on
+	# health, how long the battle ran.
+	_game_over_sub = Label.new()
+	_game_over_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_game_over_sub.add_theme_font_size_override("font_size", 15)
+	_game_over_sub.add_theme_color_override("font_color", DIM)
+	box.add_child(_game_over_sub)
 	_mvp_label = Label.new()
 	_mvp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_mvp_label.add_theme_color_override("font_color", GOLD)
 	box.add_child(_mvp_label)
 	_stats_grid = GridContainer.new()
-	_stats_grid.columns = 5
+	_stats_grid.columns = 8
 	_stats_grid.add_theme_constant_override("h_separation", 26)
 	_stats_grid.add_theme_constant_override("v_separation", 4)
 	var grid_center := CenterContainer.new()
@@ -518,7 +631,7 @@ func _build_game_over() -> void:
 	_replay_bar = PanelContainer.new()
 	_replay_bar.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 	_replay_bar.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_replay_bar.offset_top = 56
+	_replay_bar.offset_top = 96  # under both team bars and the objective line
 	_replay_bar.visible = false
 	_root.add_child(_replay_bar)
 	var replay_row := HBoxContainer.new()
@@ -536,6 +649,19 @@ func _build_game_over() -> void:
 		b.custom_minimum_size.x = 48
 		if speed == 1.0:
 			b.set_pressed_no_signal(true)
+	# Drag the bar to jump to any point in the battle; it is replayed from the
+	# start to get there, so what you see is exactly what happened.
+	_replay_slider = HSlider.new()
+	_replay_slider.custom_minimum_size = Vector2(220, 24)
+	_replay_slider.min_value = 0.0
+	_replay_slider.max_value = 1.0
+	_replay_slider.step = 0.001
+	_replay_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_replay_slider.tooltip_text = "Jump to a point in the battle"
+	_replay_slider.drag_ended.connect(_on_replay_drag_ended)
+	replay_row.add_child(_replay_slider)
+	_small_button(replay_row, "Step", replay_step_pressed.emit).tooltip_text = "Play the next order"
+	_small_button(replay_row, "Results", replay_results_pressed.emit).tooltip_text = "Skip to the end and show the results"
 	_small_button(replay_row, "Exit", menu_pressed.emit)
 
 
@@ -1003,10 +1129,14 @@ func toggle_log() -> void:
 ## Victory / defeat panel with per-unit stats. `rows`: [{"name", "color",
 ## "dealt", "taken", "healed", "kos"}]; `mvp`: index into rows or -1.
 func show_game_over(text: String, rows: Array = [], mvp := -1, can_rematch := true) -> void:
-	_game_over_label.text = text
+	# The first line is the result; anything after it is the small print.
+	var lines := text.split("\n", false)
+	_game_over_label.text = lines[0] if lines.size() > 0 else text
+	_game_over_sub.text = "\n".join(Array(lines).slice(1))
+	_game_over_sub.visible = _game_over_sub.text != ""
 	for child in _stats_grid.get_children():
 		child.queue_free()
-	for header in ["Unit", "Damage dealt", "Damage taken", "Healing", "KOs"]:
+	for header in ["Unit", "Damage dealt", "Damage taken", "Healing", "KOs", "Abilities", "Crits", "Evaded"]:
 		var h := Label.new()
 		h.text = header
 		h.add_theme_color_override("font_color", GOLD)
@@ -1014,12 +1144,13 @@ func show_game_over(text: String, rows: Array = [], mvp := -1, can_rematch := tr
 		_stats_grid.add_child(h)
 	for i in rows.size():
 		var r: Dictionary = rows[i]
-		var values := ["%s%s" % ["★ " if i == mvp else "", r.name], str(r.dealt), str(r.taken), str(r.healed), str(r.kos)]
+		var values := ["%s%s" % ["★ " if i == mvp else "", r.name], str(r.dealt), str(r.taken), str(r.healed),
+			str(r.kos), str(r.get("abilities", 0)), str(r.get("crits", 0)), str(r.get("evades", 0))]
 		for v in values.size():
 			var l := Label.new()
 			l.text = values[v]
 			l.add_theme_font_size_override("font_size", 13)
-			l.add_theme_color_override("font_color", r.color if v == 0 else TEXT)
+			l.add_theme_color_override("font_color", r.color if v == 0 or r.get("total", false) else TEXT)
 			_stats_grid.add_child(l)
 	_mvp_label.text = "MVP: %s" % rows[mvp].name if mvp >= 0 else ""
 	_rematch_button.visible = can_rematch
@@ -1031,8 +1162,21 @@ func hide_game_over() -> void:
 	_game_over.visible = false
 
 
+## Let go of the bar: jump there, but only if it actually moved.
+func _on_replay_drag_ended(changed: bool) -> void:
+	if changed:
+		replay_seek.emit(_replay_slider.value)
+
+
 func show_replay_bar(shown: bool) -> void:
 	_replay_bar.visible = shown
+
+
+## How far through the log the replay is, from 0 to 1 (ignored while the bar
+## is being dragged, so it doesn't fight the mouse).
+func set_replay_progress(fraction: float) -> void:
+	if _replay_slider != null and not _replay_slider.has_focus():
+		_replay_slider.set_value_no_signal(clampf(fraction, 0.0, 1.0))
 
 
 ## Button captions from the current key bindings.

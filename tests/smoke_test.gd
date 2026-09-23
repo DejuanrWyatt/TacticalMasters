@@ -870,10 +870,15 @@ func _test_ai_battle() -> void:
 	# Easy (random mistakes) against hard: orders must still be legal.
 	var easy := AIPlayer.new("easy")
 	var hard := AIPlayer.new("hard")
-	state = _new_state()
 	var wins := [0, 0]
-	for game in 5:
-		state = _new_state()
+	# Each game gets its own seed, for the battle and for the easy AI's own
+	# mistakes, so the run is varied but always the same from run to run:
+	# a failure here is a real change in play, not a bad roll.
+	for game in 8:
+		state = GameState.new()
+		state.setup(MapData.highlands(), {}, game + 1)
+		easy.rng.seed = game + 1
+		hard.rng.seed = game + 1
 		while state.winner == -1 and state.tick < 30000:
 			var ready := state.orderable_units()
 			if ready.is_empty():
@@ -887,7 +892,7 @@ func _test_ai_battle() -> void:
 			state.apply(cmd)
 		if state.winner >= 0:
 			wins[state.winner] += 1
-	print("Easy (Blue) vs Hard (Red) over 5 games: easy %d, hard %d" % wins)
+	print("Easy (Blue) vs Hard (Red) over 8 games: easy %d, hard %d" % wins)
 	_check(wins[1] >= wins[0], "hard beats easy at least as often as it loses")
 
 
