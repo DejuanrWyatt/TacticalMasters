@@ -54,6 +54,14 @@ var _status: Label3D
 var _bars: Node3D
 var _fills: Array[MeshInstance3D] = []
 var _fill_materials: Array[StandardMaterial3D] = []
+## The turn dial at a unit's feet.
+const DIAL_SEGMENTS := 36
+const DIAL_RADIUS := 0.52
+const DIAL_WEDGE := 0.075
+const DIAL_URGENT_COLOR := Color(1.0, 0.35, 0.3)
+## The team-colored disc under a unit (before Settings.unit_circle_size).
+const DISC_RADIUS := 0.42
+
 var _ring: MeshInstance3D
 var _ring_ready: StandardMaterial3D
 var _ring_selected: StandardMaterial3D
@@ -68,6 +76,13 @@ var _character: Node3D
 var _anim: AnimationPlayer
 var _look: Dictionary = {}
 var _team_ring: MeshInstance3D
+var _team_disc: MeshInstance3D
+## The dial around the unit's feet: it fills as the unit's turn comes round,
+## then empties while its countdown runs out. Built from DIAL_SEGMENTS wedges
+## laid in a circle, of which the first n are shown.
+var _dial: MultiMeshInstance3D
+var _dial_material: StandardMaterial3D
+var _dial_shown := -1
 
 
 func setup(unit, team_color: Color) -> void:
@@ -79,15 +94,48 @@ func setup(unit, team_color: Color) -> void:
 	if not _load_character(unit.job, team_color):
 		_build_capsule(unit, team_color)
 
-	# Thin team-colored ring always under the unit.
+	# The turn dial sits just outside the team ring.
+	var wedge := BoxMesh.new()
+	wedge.size = Vector3(DIAL_WEDGE, 0.02, 0.07)
+	var dial_mesh := MultiMesh.new()
+	dial_mesh.transform_format = MultiMesh.TRANSFORM_3D
+	dial_mesh.mesh = wedge
+	dial_mesh.instance_count = DIAL_SEGMENTS
+	_dial = MultiMeshInstance3D.new()
+	_dial.multimesh = dial_mesh
+	_dial_material = _material(TG_COLOR, true)
+	_dial.material_override = _dial_material
+	for i in DIAL_SEGMENTS:
+		# Clockwise from the top, each wedge turned to face out of the circle.
+		var angle := TAU * float(i) / DIAL_SEGMENTS
+		var spot := Vector3(sin(angle) * DIAL_RADIUS, 0.035, -cos(angle) * DIAL_RADIUS)
+		dial_mesh.set_instance_transform(i, Transform3D(Basis(Vector3.UP, -angle), spot))
+	dial_mesh.visible_instance_count = 0
+	add_child(_dial)
+
+	# A filled disc in the team's color under the unit, so which side a unit
+	# is on can be read at a glance, with a solid rim around it.
+	var disc := CylinderMesh.new()
+	disc.height = 0.02
+	disc.top_radius = DISC_RADIUS
+	disc.bottom_radius = DISC_RADIUS
+	disc.radial_segments = 32
+	_team_disc = MeshInstance3D.new()
+	_team_disc.mesh = disc
+	_team_disc.position.y = 0.02
+	var disc_color := team_color
+	disc_color.a = 0.45
+	_team_disc.material_override = _material(disc_color, true)
+	add_child(_team_disc)
 	var team_torus := TorusMesh.new()
-	team_torus.inner_radius = 0.36
-	team_torus.outer_radius = 0.42
+	team_torus.inner_radius = DISC_RADIUS - 0.06
+	team_torus.outer_radius = DISC_RADIUS
 	_team_ring = MeshInstance3D.new()
 	_team_ring.mesh = team_torus
 	_team_ring.position.y = 0.03
 	_team_ring.material_override = _material(team_color, true)
 	add_child(_team_ring)
+	set_circle_size(Settings.unit_circle_size)
 	_finish_setup(unit, team_color)
 
 
@@ -299,8 +347,11 @@ func refresh(unit, is_selected: bool, shown: bool) -> void:
 
 
 ## Updates the bars and the status line; called every frame.
-func set_status(unit, seconds_left: float) -> void:
+## `ready_seconds` is the unit's full countdown, so the dial can show how
+## much of it is left.
+func set_status(unit, seconds_left: float, ready_seconds := 0.0) -> void:
 	if unit.is_ko():
+		_set_dial(0.0, TG_COLOR)
 		var ko_text := "KO %d" % ceili(unit.ko_ticks / 10.0)
 		if _status.text != ko_text:
 			_status.text = ko_text
@@ -317,6 +368,14 @@ func set_status(unit, seconds_left: float) -> void:
 	else:
 		_set_bar(1, unit.tg / float(GameState.TG_MAX), TG_READY_COLOR if unit.ready else TG_COLOR)
 	_set_bar(2, unit.ult / 100.0, ULT_FULL_COLOR if unit.ult >= 100 else ULT_COLOR)
+	# The dial: filling while the turn comes round, emptying while it is here.
+	if unit.is_casting():
+		_set_dial(1.0 - float(unit.casting.ticks) / unit.casting.total, CAST_COLOR)
+	elif unit.ready:
+		var left: float = clampf(seconds_left / ready_seconds, 0.0, 1.0) if ready_seconds > 0.0 else 1.0
+		_set_dial(left, DIAL_URGENT_COLOR if seconds_left <= 5.0 else TG_READY_COLOR)
+	else:
+		_set_dial(unit.tg / float(GameState.TG_MAX), TG_COLOR)
 	var cast_left: float = unit.casting.ticks / 10.0 if unit.is_casting() else 0.0
 	var text: String
 	var color: Color
@@ -352,6 +411,25 @@ func _set_tags(unit) -> void:
 			tag.visible = true
 		else:
 			tag.visible = false
+
+
+## Scales the team circle and the turn dial around it, live, so the
+## Developer Tools slider can be dragged during a battle.
+func set_circle_size(scale_factor: float) -> void:
+	var s := maxf(0.2, scale_factor)
+	_team_disc.scale = Vector3(s, 1.0, s)
+	_team_ring.scale = Vector3(s, 1.0, s)
+	_dial.scale = Vector3(s, 1.0, s)
+
+
+## Fills the dial to a fraction of the way round, in a color.
+func _set_dial(fraction: float, color: Color) -> void:
+	var shown := clampi(roundi(fraction * DIAL_SEGMENTS), 0, DIAL_SEGMENTS)
+	if shown != _dial_shown:
+		_dial_shown = shown
+		_dial.multimesh.visible_instance_count = shown
+	if _dial_material.albedo_color != color:
+		_dial_material.albedo_color = color
 
 
 func _set_bar(i: int, fraction: float, color: Color) -> void:

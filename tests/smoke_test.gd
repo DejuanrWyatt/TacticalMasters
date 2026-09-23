@@ -1328,7 +1328,15 @@ func _test_dev_tools() -> void:
 	root.add_child(tools)
 	await process_frame
 	var sliders: Array = tools.find_children("*", "HSlider", true, false)
-	_check(sliders.size() == GameState.TUNING.size(), "Developer Tools has a slider per rule number")
+	_check(tools._sliders.size() == GameState.TUNING.size(), "Developer Tools has a slider per rule number")
+	# Plus the "Look" sliders, which change display settings rather than rules.
+	_check(sliders.size() > tools._sliders.size(), "Developer Tools also has the display sliders")
+	var settings := root.get_node("Settings")
+	var circle_before: float = settings.unit_circle_size
+	var look: HSlider = sliders[0]
+	look.value = 1.6
+	_check(is_equal_approx(settings.unit_circle_size, 1.6), "a display slider changes the setting at once")
+	settings.set_value("unit_circle_size", circle_before)
 	tools._sliders.wits_multiplier.value = 1.5
 	_check(config.tuning.get("wits_multiplier") == 1.5, "moving a slider saves the value")
 	var tip: String = tools._sliders.wits_multiplier.tooltip_text

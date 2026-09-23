@@ -6,7 +6,8 @@ extends Node
 signal changed
 
 const SAVE_PATH := "user://settings.cfg"
-const KEYS := ["master_volume", "music_volume", "sfx_volume", "ui_scale", "fullscreen", "camera_speed", "colorblind"]
+const KEYS := ["master_volume", "music_volume", "sfx_volume", "ui_scale", "fullscreen", "camera_speed", "colorblind",
+	"unit_circle_size"]
 ## Team colors: normal blue/red, or blue/orange for red-green colorblindness.
 const TEAM_COLORS := [Color(0.25, 0.5, 0.9), Color(0.85, 0.25, 0.22)]
 const COLORBLIND_COLORS := [Color(0.25, 0.5, 0.9), Color(0.95, 0.6, 0.1)]
@@ -18,6 +19,9 @@ var ui_scale := 1.0
 var fullscreen := false
 var camera_speed := 1.0
 var colorblind := false
+## How big the team-colored circle under each unit is, as a multiple of its
+## normal size (Developer Tools).
+var unit_circle_size := 1.0
 
 
 func _ready() -> void:

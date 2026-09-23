@@ -146,6 +146,7 @@ func _ready() -> void:
 	hud.build(GameConfig.mode != "online")
 	hud.tuning_changed.connect(_on_tuning_changed)
 	hud.inspect_closed.connect(func(): inspected_id = -1)
+	Settings.changed.connect(_apply_look)
 	hud.move_pressed.connect(_toggle_move)
 	hud.sprint_pressed.connect(_toggle_sprint)
 	hud.ability_pressed.connect(_select_ability)
@@ -1069,6 +1070,13 @@ func _replay_step(delta: float) -> void:
 
 # --- Presentation ----------------------------------------------------------
 
+## Display settings changed (the Developer Tools "Look" sliders): pass them
+## on to the units, so dragging a slider shows straight away.
+func _apply_look() -> void:
+	for view in unit_views.values():
+		view.set_circle_size(Settings.unit_circle_size)
+
+
 ## Rows for the all-units panel: everyone on the field, Blue then Red, with
 ## what is known about each (a hidden enemy shows as ???).
 func _field_entries() -> Array:
@@ -1144,7 +1152,7 @@ func _update_live_ui() -> void:
 			"selected": u.id == selected_id,
 			"hidden": not seen,
 		})
-		unit_views[u.id].set_status(u, state.seconds_left(u))
+		unit_views[u.id].set_status(u, state.seconds_left(u), state.clock_ticks(u) / float(GameState.TICKS_PER_SECOND))
 	hud.set_turn_order(entries)
 	hud.set_objective(_objective_text())
 	if replaying and not _replay_log.is_empty():
@@ -1194,6 +1202,12 @@ func _refresh() -> void:
 ## The path to the cursor, the area circle and the hover description.
 func _update_targeting() -> void:
 	var sel := _selected()
+	# The mouse is over an ability button: say what that ability does, whether
+	# or not it can be used right now.
+	var over_ability := hud.hovered_ability_text()
+	if over_ability != "":
+		hud.set_hover(over_ability)
+		return
 	if _can_input() and mode == Mode.MOVE:
 		var node := state.node_of(hover_point) if hover_point != NO_POINT else Vector2i(-99999, -99999)
 		if node != _hover_node:

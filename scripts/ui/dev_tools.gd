@@ -77,6 +77,15 @@ func _ready() -> void:
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(content)
 
+	content.add_child(_section("Look  (saved with your settings, not with the battle)"))
+	var look := GridContainer.new()
+	look.columns = 4
+	look.add_theme_constant_override("h_separation", 16)
+	look.add_theme_constant_override("v_separation", 4)
+	content.add_child(look)
+	_add_look_row(look, "Team circle size", "unit_circle_size", 0.4, 2.5, 0.05,
+		"How big the team-colored circle under each unit is. Bigger circles make it easier to tell the sides apart.")
+
 	content.add_child(_section("Rule numbers  (hover for the formula)"))
 	var grid := GridContainer.new()
 	grid.columns = 4
@@ -127,6 +136,40 @@ func show_values(values: Dictionary) -> void:
 	for key in _sliders:
 		(_sliders[key] as HSlider).set_value_no_signal(float(values.get(key, GameState.TUNING[key][0])))
 	_refresh()
+
+
+## A slider over one of the player's display settings (Settings), which
+## takes effect at once and is saved for next time.
+func _add_look_row(grid: GridContainer, title: String, key: String, low: float, high: float, step: float, tip: String) -> void:
+	var name_label := Label.new()
+	name_label.text = title
+	name_label.tooltip_text = tip
+	name_label.custom_minimum_size.x = 230
+	name_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	grid.add_child(name_label)
+	var s := HSlider.new()
+	s.min_value = low
+	s.max_value = high
+	s.step = step
+	s.custom_minimum_size = Vector2(320, 30)
+	s.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	s.focus_mode = Control.FOCUS_NONE
+	s.tooltip_text = tip
+	s.set_value_no_signal(float(Settings.get(key)))
+	var value := Label.new()
+	value.custom_minimum_size.x = 70
+	value.text = _fmt(float(Settings.get(key)))
+	value.mouse_filter = Control.MOUSE_FILTER_PASS
+	var on_change := func(v: float) -> void:
+		Settings.set_value(key, v)
+		value.text = _fmt(v)
+	s.value_changed.connect(on_change)
+	grid.add_child(s)
+	grid.add_child(value)
+	var reset := _button("Reset", func(): s.value = 1.0)
+	reset.custom_minimum_size = Vector2(80, 30)
+	reset.tooltip_text = "Back to the default: 1"
+	grid.add_child(reset)
 
 
 func _add_row(grid: GridContainer, key: String) -> void:

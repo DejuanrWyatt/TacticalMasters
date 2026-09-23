@@ -99,6 +99,9 @@ var _stats: Label
 var _action_bar: PanelContainer
 var _move_button: Button
 var _sprint_button: Button
+## Which ability button the mouse is over (-1 for none), and what to say
+## about it: the battle shows this in the hover preview.
+var _hovered_ability := -1
 var _ability_buttons: Array[Button] = []
 var _end_button: Button
 var _hover_panel: PanelContainer
@@ -565,6 +568,10 @@ func _build_action_bar() -> void:
 		b.add_theme_constant_override("icon_max_width", 22)
 		b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+		# Hovering a button shows what the ability does right away, in the
+		# preview above the bar, instead of waiting for a tooltip.
+		b.mouse_entered.connect(func(): _hovered_ability = i)
+		b.mouse_exited.connect(func(): _hovered_ability = -1 if _hovered_ability == i else _hovered_ability)
 		_ability_buttons.append(b)
 	_end_button = _action_button(row, end_turn_pressed.emit)
 	_end_button.toggle_mode = false
@@ -1067,7 +1074,9 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 		tip += "\n" + range_text
 		if game_state != null and b.get_meta("tip_sig", "") != _unit_tip_signature(u):
 			b.set_meta("tip_sig", _unit_tip_signature(u))
-			_set_tip(b, tip + "\n\n" + game_state.explain_ability(u, i))
+			var full: String = tip + "\n\n" + game_state.explain_ability(u, i)
+			_set_tip(b, full)
+			b.set_meta("hover_text", "%s%s\n%s" % [ab.name, "  (%s)" % blocked[i] if blocked[i] != "" else "", full])
 		b.disabled = not controllable or u.acted or blocked[i] != ""
 		b.set_pressed_no_signal(selected_slot == i)
 	_end_button.disabled = not controllable
@@ -1117,6 +1126,14 @@ func show_no_unit(text: String) -> void:
 	for part in [_hp_bar, _tg_bar, _ult_bar, _subtitle, _stats]:
 		part.visible = false
 	_action_bar.visible = false
+
+
+## What to show while the mouse is over an ability button, or "" when it
+## isn't over one.
+func hovered_ability_text() -> String:
+	if _hovered_ability < 0 or _hovered_ability >= _ability_buttons.size():
+		return ""
+	return _ability_buttons[_hovered_ability].get_meta("hover_text", "")
 
 
 func set_hover(text: String) -> void:
