@@ -39,13 +39,15 @@ battle vs the computer. Its log is in `%APPDATA%\Godot\app_userdata\Tactical Mas
 | What an enemy could do | Click it (or its chip): its stats card opens, and the ground it could walk to plus the reach of its longest attack are drawn in red. |
 | Unit Guide (stats, abilities, damage) | U, or the **Units** button. Also on the main menu. Pauses the game when not online. |
 | Camera | WASD / arrows pan · R / F raise / lower · Q / E or right-drag rotate and tilt · wheel zoom · middle-drag pan · C center on the selected unit. The camera never moves by itself: press C, or click a unit's chip in the turn order (a second click on your selected unit's chip centers on it). |
-| Menu (in battle) | **Menu** button: Resume, Options, Unit Guide, How to Play, Quit to Main Menu (pauses when not online) |
+| Edit layout | **Menu → Edit layout**: every panel gets a handle you can drag -- turn order, each team's turn cards, the objective line, the planning banner, the selected unit, the action bar, the hover preview, the field list and the stats cards. A turn card dragged along its team's row changes its place in it. **Reset layout** puts everything back. What you arrange is kept for every battle after (`user://layout.cfg`), and the battle holds while you arrange it. |
+| Menu (in battle) | **Menu** button: Resume, Options, Unit Guide, How to Play, Edit layout, Surrender, Quit to Main Menu (pauses when not online) |
 
 These are the default keys. Every keyboard control can be rebound in **Options** (main menu, or Menu → Options in battle):
 click an action, then press a key. If another action already uses that key, the two swap. Bindings are saved between sessions.
 
 **Options → Game** also has master / music / sound-effect volume, camera speed, UI scale, fullscreen,
-**colorblind team colors** (blue / orange), and **turn order as fixed squares** -- one square per unit instead of
+**colorblind team colors** (blue / orange), and **turn order as fixed squares** (one card per unit, grouped by team,
+each group placed wherever you like in Edit layout) -- one square per unit instead of
 chips sliding along a bar: gold with a flashing border while that unit can act and its countdown drains, grey with a
 red meter filling from the bottom while its gauge refills. Settings are saved (`user://settings.cfg`). New players: **How to Play**
 (main menu or in-game menu) walks through the rules page by page.
@@ -91,7 +93,8 @@ the end.
 - **Bars over every unit's head:** HP (green, red when low), TG (blue, gold when READY), Ultimate (orange, pale gold when full).
 - **At every unit's feet:** a filled circle in its **team's color** (its size is a Developer Tools slider), ringed by a
   **dial** that fills as its turn comes round and empties while its countdown runs out (purple while casting, red in
-  the last five seconds).
+  the last five seconds). Over its head it says only what it is doing -- **READY**, or the spell it is casting -- since
+  the dial and the turn order carry the timing.
 - **Cast times:** basic attacks, most melee and quick shots are **instant**. Stronger abilities take time to cast:
   0.5-1.5 s for abilities like Fire, Cure and Aimed Shot, and 2-4 s for Blizzard, Arrow Rain, Sanctuary and Meteor.
   A unit can move **before** casting, but not after. Only **instant** abilities let a unit move afterwards, so

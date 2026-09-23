@@ -376,21 +376,14 @@ func set_status(unit, seconds_left: float, ready_seconds := 0.0) -> void:
 		_set_dial(left, DIAL_URGENT_COLOR if seconds_left <= 5.0 else TG_READY_COLOR)
 	else:
 		_set_dial(unit.tg / float(GameState.TG_MAX), TG_COLOR)
-	var cast_left: float = unit.casting.ticks / 10.0 if unit.is_casting() else 0.0
-	var text: String
-	var color: Color
-	if unit.ready and unit.is_casting():
-		text = "READY %d · %s %.1fs" % [ceili(seconds_left), unit.casting.name, cast_left]
-		color = TG_READY_COLOR
-	elif unit.is_casting():
-		text = "%s %.1fs" % [unit.casting.name, cast_left]
+	var text := ""
+	var color := TG_READY_COLOR
+	if unit.is_casting():
+		text = unit.casting.name
 		color = CAST_COLOR.lightened(0.3)
 	elif unit.ready:
-		text = "READY %d" % ceili(seconds_left)
+		text = "READY"
 		color = Color(1, 0.35, 0.3) if seconds_left <= 5.0 else TG_READY_COLOR
-	else:
-		text = "%.1fs" % seconds_left
-		color = Color(0.75, 0.85, 1.0, 0.75)
 	# Changing a Label3D's text rebuilds its mesh, so only do it when needed.
 	if _status.text != text:
 		_status.text = text

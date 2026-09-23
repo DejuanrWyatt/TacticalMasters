@@ -165,6 +165,8 @@ func _ready() -> void:
 	hud.pause_pressed.connect(_toggle_pause)
 	hud.chip_pressed.connect(_on_chip_pressed)
 	hud.overlay_changed.connect(_on_overlay_changed)
+	# Rearranging the panels holds the battle, like the other overlays do.
+	hud.layout_editing_changed.connect(_on_overlay_changed)
 	hud.rematch_pressed.connect(_rematch)
 	hud.replay_pressed.connect(_watch_replay)
 	hud.replay_speed_changed.connect(_set_replay_speed)

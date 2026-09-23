@@ -158,6 +158,11 @@ func _initialize() -> void:
 		root.get_node("Settings").turn_icons = true
 		for i in 5:
 			await process_frame
+	if args.has("layout"):
+		# Edit layout: handles over everything that can be moved.
+		battle.hud.toggle_layout_editing()
+		for i in 10:
+			await process_frame
 	if args.has("field"):
 		# The all-units panel down the left edge.
 		battle.hud.toggle_field()

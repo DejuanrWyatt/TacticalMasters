@@ -19,6 +19,7 @@ signal end_turn_pressed
 signal menu_pressed
 signal surrender_pressed
 signal ready_pressed
+signal layout_editing_changed(editing: bool)
 signal pause_pressed
 signal chip_pressed(unit_id: int)
 ## An overlay (menu, Options or Unit Guide) opened or closed.
@@ -45,6 +46,7 @@ const OptionsMenu = preload("res://scripts/ui/options_menu.gd")
 const HowToPlay = preload("res://scripts/ui/how_to_play.gd")
 const DevTools = preload("res://scripts/ui/dev_tools.gd")
 const LogWindow = preload("res://scripts/ui/log_window.gd")
+const LayoutEditor = preload("res://scripts/ui/layout_editor.gd")
 
 const TEXT := Color(0.92, 0.94, 1.0)
 ## Turn order timeline: two parallel bars, one per team. Chips slide along
@@ -134,12 +136,15 @@ var _planning: PanelContainer
 var _planning_label: Label
 var _ready_button: Button
 ## The fixed turn squares (Settings.turn_icons), by unit id.
-var _squares_box: HBoxContainer
+var _squares_box: Control
 var _square_rows: Array[HBoxContainer] = []
 var _squares := {}
 var _field: PanelContainer
 var _field_box: VBoxContainer
 var _field_rows := {}
+## Dragging the panels around (Edit layout) and the bar shown while doing it.
+var _layout: LayoutEditor
+var _layout_bar: PanelContainer
 var _how_to: Control
 var _dev_tools: Control
 ## The battle's rules, for the calculation tooltips (set by Battle).
@@ -169,9 +174,69 @@ func build(can_pause: bool) -> void:
 	_build_action_bar()
 	_build_game_over()
 	_build_game_menu()
+	_build_layout_bar()
 
+	_layout = LayoutEditor.new()
+	_root.add_child(_layout)
+	_register_layout()
 	Keybinds.changed.connect(_update_key_labels)
 	_update_key_labels()
+
+
+## Everything the player may drag around in Edit layout.
+func _register_layout() -> void:
+	_layout.register("turn_order", _timeline, "Turn order bars")
+	_layout.register("turn_cards_blue", _square_rows[0], "Turn cards: first team")
+	_layout.register("turn_cards_red", _square_rows[1], "Turn cards: second team")
+	_layout.register("objective", _objective, "Objective line")
+	_layout.register("planning", _planning, "Planning banner")
+	_layout.register("unit_card", _card, "Selected unit")
+	_layout.register("action_bar", _action_bar, "Action bar")
+	_layout.register("hover", _hover_panel, "Hover preview")
+	_layout.register("field", _field, "Field list")
+	_layout.register("inspect_left", _inspect.left.card if _inspect.has("left") else null, "Ally card")
+	_layout.register("inspect_right", _inspect.right.card if _inspect.has("right") else null, "Enemy card")
+
+
+## Turns Edit layout on or off, with a banner while it is on.
+func toggle_layout_editing() -> void:
+	# The stats cards are built the first time a unit is clicked, so they are
+	# registered whenever editing starts rather than only at build time.
+	if _inspect.has("left"):
+		_layout.register("inspect_left", _inspect.left.card, "Ally card")
+		_layout.register("inspect_right", _inspect.right.card, "Enemy card")
+	var on := not _layout.is_editing()
+	_layout.set_editing(on)
+	_layout_bar.visible = on
+	if on and _game_menu.visible:
+		toggle_game_menu()
+	layout_editing_changed.emit(on)
+
+
+func is_layout_editing() -> bool:
+	return _layout != null and _layout.is_editing()
+
+
+## The bar shown while the layout is being edited.
+func _build_layout_bar() -> void:
+	_layout_bar = PanelContainer.new()
+	_layout_bar.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_layout_bar.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_layout_bar.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_layout_bar.offset_bottom = -120
+	_layout_bar.visible = false
+	_layout_bar.add_theme_stylebox_override("panel", _box(PANEL_BG, Color(0.45, 0.8, 1.0, 0.9), 1, 10, Vector2(14, 8)))
+	_root.add_child(_layout_bar)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	_layout_bar.add_child(row)
+	var hint := Label.new()
+	hint.text = "Edit layout: drag anything to move it, or a turn card to reorder its team"
+	hint.add_theme_color_override("font_color", Color(0.45, 0.8, 1.0))
+	hint.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(hint)
+	_menu_button(row, "Reset layout", func(): _layout.reset()).custom_minimum_size = Vector2(120, 32)
+	_menu_button(row, "Done", toggle_layout_editing).custom_minimum_size = Vector2(90, 32)
 
 
 # --- Theme -----------------------------------------------------------------
@@ -250,14 +315,18 @@ func _bar_x(seconds: float) -> float:
 ## border while that unit can act, and grey with a red meter filling from the
 ## bottom while its gauge refills.
 func _build_turn_squares() -> void:
-	_squares_box = HBoxContainer.new()
-	_squares_box.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	_squares_box.position = Vector2(12, 8)
-	_squares_box.add_theme_constant_override("separation", 18)
+	# One group per team, each of which can be picked up and moved on its own
+	# (Edit layout), and whose cards can be reordered inside it.
+	_squares_box = Control.new()
+	_squares_box.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_squares_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_squares_box.visible = false
 	_root.add_child(_squares_box)
 	for team in 2:
 		var team_row := HBoxContainer.new()
+		team_row.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+		team_row.offset_left = 12 + team * 4 * (SQUARE_SIZE.x + 4) + team * 24
+		team_row.offset_top = 8
 		team_row.add_theme_constant_override("separation", 4)
 		_squares_box.add_child(team_row)
 		_square_rows.append(team_row)
@@ -267,6 +336,8 @@ func _build_turn_squares() -> void:
 func _new_square(unit_id: int, team: int) -> Panel:
 	var square := Panel.new()
 	square.custom_minimum_size = SQUARE_SIZE
+	square.set_meta("unit_id", unit_id)
+	square.set_meta("team", team)
 	square.add_theme_stylebox_override("panel", _box(Color(0.05, 0.06, 0.1, 0.85), Color(1, 1, 1, 0.2), 2, 6, Vector2.ZERO))
 	# The meter sits behind the icon and grows from the bottom.
 	var meter := ColorRect.new()
@@ -282,6 +353,7 @@ func _new_square(unit_id: int, team: int) -> Panel:
 	button.focus_mode = Control.FOCUS_NONE
 	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	button.pressed.connect(func(): chip_pressed.emit(unit_id))
+	button.gui_input.connect(_on_square_input.bind(square, team))
 	square.add_child(button)
 	var icon := TextureRect.new()
 	icon.name = "Icon"
@@ -307,6 +379,49 @@ func _new_square(unit_id: int, team: int) -> Panel:
 	return square
 
 
+## While the layout is being edited, dragging a card moves it along its
+## team's row: where it is dropped decides its new place.
+func _on_square_input(event: InputEvent, square: Panel, team: int) -> void:
+	if not is_layout_editing() or not (event is InputEventMouseButton):
+		return
+	if event.button_index != MOUSE_BUTTON_LEFT or event.pressed:
+		return
+	var row: HBoxContainer = _square_rows[team]
+	var dropped_at: float = event.global_position.x + square.global_position.x
+	var place := 0
+	for other in row.get_children():
+		if other != square and other.global_position.x + other.size.x * 0.5 < dropped_at:
+			place += 1
+	row.move_child(square, clampi(place, 0, row.get_child_count() - 1))
+	_save_square_order()
+
+
+## Remembers the order of each team's cards with the rest of the layout.
+func _save_square_order() -> void:
+	var order := {}
+	for team in 2:
+		var ids := []
+		for square in _square_rows[team].get_children():
+			ids.append(int(square.get_meta("unit_id", -1)))
+		order[str(team)] = ids
+	_layout.set_extra("turn_card_order", order)
+
+
+## Puts the cards back in the order the player left them in.
+func _apply_square_order() -> void:
+	var order: Dictionary = _layout.get_extra("turn_card_order", {})
+	for team in 2:
+		var ids = order.get(str(team), [])
+		if not (ids is Array):
+			continue
+		var place := 0
+		for id in ids:
+			var square: Panel = _squares.get(int(id), null)
+			if square != null and square.get_parent() == _square_rows[team]:
+				_square_rows[team].move_child(square, place)
+				place += 1
+
+
 ## Fills the fixed squares from the same entries the bars use.
 func _update_squares(entries: Array) -> void:
 	# A slow pulse for the border of whoever can act right now.
@@ -315,6 +430,7 @@ func _update_squares(entries: Array) -> void:
 		var square: Panel = _squares.get(e.id, null)
 		if square == null:
 			square = _new_square(e.id, e.team)
+			_apply_square_order()
 		var icon := square.get_node("Icon") as TextureRect
 		var wanted := _icon(Jobs.icon_path(e.job)) if not e.hidden else null
 		if icon.texture != wanted:
@@ -896,6 +1012,7 @@ func _build_game_menu() -> void:
 	_menu_button(box, "Unit Guide", open_guide)
 	_menu_button(box, "How to Play", _open_how_to)
 	_menu_button(box, "Developer Tools", _open_dev_tools)
+	_menu_button(box, "Edit layout", toggle_layout_editing)
 	_surrender_button = _menu_button(box, "Surrender", _on_surrender)
 	_menu_button(box, "Quit to Main Menu", menu_pressed.emit)
 

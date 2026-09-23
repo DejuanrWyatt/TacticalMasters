@@ -133,6 +133,7 @@ func _test_rules() -> void:
 	_test_planning_stage()
 	await _test_menus_fit()
 	await _test_walk_into_range()
+	await _test_layout_editing()
 	_test_new_statuses()
 	_test_ko_and_raise()
 	_test_line_of_sight()
@@ -931,6 +932,10 @@ func _test_walk_into_range() -> void:
 	for i in 5:
 		await process_frame
 	var state = scene.state
+	# A real battle rolls evasion and crits from a random seed; this is about
+	# walking into range, so those are turned off for it.
+	state.tuning["evade_multiplier"] = 0.0
+	state.tuning["crit_chance_multiplier"] = 0.0
 	var hitter = state.units[0]
 	var victim = state.units[4]
 	for other in state.units:
@@ -990,6 +995,47 @@ func _test_walk_into_range() -> void:
 	scene._fire_pending_ability()
 	_check(victim.hp < before, "a target still standing there is hit (%d -> %d)" % [before, victim.hp])
 	scene.free()
+
+
+## Edit layout: panels can be dragged somewhere else, stay there for the next
+## battle, and go back where they belong when the layout is reset.
+func _test_layout_editing() -> void:
+	var hud = load("res://scripts/battle/hud.gd").new()
+	var state := _new_state()
+	hud.game_state = state
+	root.add_child(hud)
+	hud.build(true)
+	await process_frame
+	var layout = hud._layout
+	_check(layout._panels.size() >= 6, "the movable panels are registered (%d)" % layout._panels.size())
+	_check(not hud.is_layout_editing(), "a battle doesn't start in Edit layout")
+
+	hud.toggle_layout_editing()
+	_check(hud.is_layout_editing() and hud._layout_bar.visible, "Edit layout turns on, with its bar")
+	var card = hud._card
+	var was: float = card.offset_left
+	layout._nudge("unit_card", Vector2(40, -25))
+	_check(is_equal_approx(card.offset_left, was + 40.0), "a panel moves by what it was dragged")
+	_check(layout._saved.get("unit_card", Vector2.ZERO) == Vector2(40, -25), "and how far it moved is remembered")
+
+	# A new battle's HUD puts it back where the player left it.
+	layout._save()
+	var again = load("res://scripts/battle/hud.gd").new()
+	again.game_state = state
+	root.add_child(again)
+	again.build(true)
+	await process_frame
+	_check(is_equal_approx(again._card.offset_left, was + 40.0), "the next battle opens with it where it was left")
+
+	# Reset puts everything back.
+	again._layout.reset()
+	_check(is_equal_approx(again._card.offset_left, was), "Reset layout puts a panel back")
+	_check(again._layout._saved.is_empty(), "and forgets what was saved")
+
+	hud.toggle_layout_editing()
+	_check(not hud.is_layout_editing(), "Edit layout turns off again")
+	hud.free()
+	again.free()
 
 
 func _test_ko_and_raise() -> void:
