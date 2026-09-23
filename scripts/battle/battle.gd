@@ -162,6 +162,8 @@ func _ready() -> void:
 	hud.replay_speed_changed.connect(_set_replay_speed)
 	hud.replay_seek.connect(_replay_seek)
 	hud.replay_step_pressed.connect(_replay_one)
+	hud.replay_back_pressed.connect(_replay_back)
+	hud.replay_pause_pressed.connect(_toggle_pause)
 	hud.replay_results_pressed.connect(func(): _replay_seek(1.0))
 	if replaying:
 		hud.show_replay_bar(true)
@@ -927,6 +929,13 @@ func _replay_seek(fraction: float) -> void:
 	get_tree().reload_current_scene()
 
 
+## Rewinds the replay by one order. There is no undo in the rules, so it
+## replays the battle from the start up to the order before this one.
+func _replay_back() -> void:
+	if replaying and _replay_i > 0:
+		_replay_seek(float(_replay_i - 1) / _replay_log.size())
+
+
 ## Plays the replay's next order, for stepping through a battle by hand.
 func _replay_one() -> void:
 	if replaying and _replay_i < _replay_log.size() and state.winner == -1:
@@ -1185,6 +1194,10 @@ func _update_live_ui() -> void:
 			"tip": "",  # filled in below, only when it would change
 			"selected": u.id == selected_id,
 			"hidden": not seen,
+			# For the fixed squares: how full the gauge is, and how much of the
+			# countdown is left once the unit is ready.
+			"tg": u.tg / float(GameState.TG_MAX),
+			"ready_left": clampf(float(u.clock) / maxf(1.0, state.clock_ticks(u)), 0.0, 1.0) if u.ready else 0.0,
 		})
 		unit_views[u.id].set_status(u, state.seconds_left(u), state.clock_ticks(u) / float(GameState.TICKS_PER_SECOND))
 	hud.set_turn_order(entries)

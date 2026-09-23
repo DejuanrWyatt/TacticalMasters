@@ -128,6 +128,7 @@ func _test_rules() -> void:
 	_test_ground_and_capture()
 	_test_saved_teams()
 	_test_sprint_engage_hustle()
+	_test_log_entries()
 	_test_new_statuses()
 	_test_ko_and_raise()
 	_test_line_of_sight()
@@ -215,7 +216,7 @@ func _test_statuses() -> void:
 	for i in 4000:
 		var r := s4.apply({"type": "advance", "ticks": 1})
 		for line in r.logs:
-			if line.contains("loses its turn"):
+			if String(line.text).contains("loses its turn"):
 				lost_turns += 1
 		if not stunned.has_status("stun"):
 			break
@@ -731,6 +732,37 @@ func _test_sprint_engage_hustle() -> void:
 	# It wears off when the turn comes round.
 	_force_ready(quick, waiter)
 	_check(not waiter.hustling, "the bonus ends when the next turn arrives")
+
+
+## Every log line says what kind of thing happened and who it was about, so
+## the combat log can color it and put that unit's icon beside it.
+func _test_log_entries() -> void:
+	var state := _new_state()
+	var hitter = state.units[4]
+	var victim = state.units[0]
+	_stage(state, hitter, victim, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
+	var result := state.apply({"type": "ability", "unit": hitter.id, "serial": hitter.serial, "slot": 0, "target": victim.pos})
+	_check(not result.logs.is_empty(), "using an ability writes to the log")
+	var kinds := {}
+	for line in result.logs:
+		_check(line is Dictionary and line.has("text") and line.has("kind") and line.has("unit"),
+			"a log line carries its text, kind and unit (%s)" % line)
+		kinds[line.kind] = true
+	_check(kinds.has("damage"), "an attack is logged as damage (%s)" % kinds.keys())
+
+	# A healer's line is healing, and it knows which unit it was about.
+	var heal := _new_state()
+	var mage = heal.units[3]
+	var hurt = heal.units[0]
+	_stage(heal, mage, hurt, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
+	hurt.hp = 10
+	var cure := heal.apply({"type": "ability", "unit": mage.id, "serial": mage.serial, "slot": 1, "target": hurt.pos})
+	var healed_line := {}
+	for line in cure.logs:
+		if line.kind == "heal" or line.kind == "cast":
+			healed_line = line
+	_check(not healed_line.is_empty(), "a Cure is logged as healing or casting")
+	_check(healed_line.get("unit", -1) == mage.id, "the line is about the unit that cast it")
 
 
 func _test_ko_and_raise() -> void:

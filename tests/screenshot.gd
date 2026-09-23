@@ -131,6 +131,11 @@ func _initialize() -> void:
 		battle.hud._log.toggle_options()
 		for i in 10:
 			await process_frame
+	if args.has("squares"):
+		# Turn order as fixed squares instead of the sliding bars.
+		root.get_node("Settings").set_value("turn_icons", true)
+		for i in 5:
+			await process_frame
 	if args.has("field"):
 		# The all-units panel down the left edge.
 		battle.hud.toggle_field()

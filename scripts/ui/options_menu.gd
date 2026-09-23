@@ -64,6 +64,7 @@ func _ready() -> void:
 	_choice(game, "UI scale", "ui_scale", [0.9, 1.0, 1.15, 1.3], ["90%", "100%", "115%", "130%"])
 	_toggle(game, "Fullscreen", "fullscreen")
 	_toggle(game, "Colorblind team colors (blue / orange)", "colorblind")
+	_toggle(game, "Turn order as fixed squares instead of sliding bars", "turn_icons")
 
 	content.add_child(_section("Controls"))
 	var help := Label.new()

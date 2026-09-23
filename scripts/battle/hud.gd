@@ -28,6 +28,8 @@ signal replay_speed_changed(speed: float)
 ## A point in the replay to jump to, from 0 (the start) to 1 (the end).
 signal replay_seek(fraction: float)
 signal replay_step_pressed
+signal replay_back_pressed
+signal replay_pause_pressed
 signal replay_results_pressed
 signal chat_submitted(text: String)
 signal chat_toggled(open: bool)
@@ -72,6 +74,8 @@ const GOLD := Color(1.0, 0.82, 0.35)
 const URGENT := Color(1.0, 0.38, 0.32)
 const CAST := Color(0.75, 0.45, 1.0)
 const PANEL_BG := Color(0.06, 0.08, 0.12, 0.78)
+## A fixed turn square (the other turn order display).
+const SQUARE_SIZE := Vector2(44, 48)
 
 var _root: Control
 var _timeline: Control
@@ -117,6 +121,7 @@ var _rematch_button: Button
 var _replay_button: Button
 var _replay_bar: PanelContainer
 var _replay_slider: HSlider
+var _replay_pause_button: Button
 var _chat: LineEdit
 var _guide: Control
 var _options: Control
@@ -124,6 +129,10 @@ var _game_menu: Control
 var _surrender_button: Button
 var _field_button: Button
 var _objective: Label
+## The fixed turn squares (Settings.turn_icons), by unit id.
+var _squares_box: HBoxContainer
+var _square_rows: Array[HBoxContainer] = []
+var _squares := {}
 var _field: PanelContainer
 var _field_box: VBoxContainer
 var _field_rows := {}
@@ -145,6 +154,7 @@ func build(can_pause: bool) -> void:
 	add_child(_root)
 
 	_build_turn_order()
+	_build_turn_squares()
 	_build_objective()
 	_build_field()
 	_build_corner_buttons(can_pause)
@@ -230,6 +240,105 @@ func _bar_x(seconds: float) -> float:
 
 
 ## A line under the turn bars: the time left, and who is holding the middle.
+## The other way of showing turn order (Options): one fixed square per unit
+## instead of chips sliding along a bar. A square is gold with a flashing
+## border while that unit can act, and grey with a red meter filling from the
+## bottom while its gauge refills.
+func _build_turn_squares() -> void:
+	_squares_box = HBoxContainer.new()
+	_squares_box.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_squares_box.position = Vector2(12, 8)
+	_squares_box.add_theme_constant_override("separation", 18)
+	_squares_box.visible = false
+	_root.add_child(_squares_box)
+	for team in 2:
+		var team_row := HBoxContainer.new()
+		team_row.add_theme_constant_override("separation", 4)
+		_squares_box.add_child(team_row)
+		_square_rows.append(team_row)
+
+
+## One square, built the first time its unit needs one.
+func _new_square(unit_id: int, team: int) -> Panel:
+	var square := Panel.new()
+	square.custom_minimum_size = SQUARE_SIZE
+	square.add_theme_stylebox_override("panel", _box(Color(0.05, 0.06, 0.1, 0.85), Color(1, 1, 1, 0.2), 2, 6, Vector2.ZERO))
+	# The meter sits behind the icon and grows from the bottom.
+	var meter := ColorRect.new()
+	meter.name = "Meter"
+	# Anchored along the bottom edge and grown upward by its offset, so the
+	# meter fills the square from the bottom instead of spilling below it.
+	meter.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	meter.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	square.add_child(meter)
+	var button := Button.new()
+	button.name = "Pick"
+	button.flat = true
+	button.focus_mode = Control.FOCUS_NONE
+	button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	button.pressed.connect(func(): chip_pressed.emit(unit_id))
+	square.add_child(button)
+	var icon := TextureRect.new()
+	icon.name = "Icon"
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	icon.offset_left = 5
+	icon.offset_top = 3
+	icon.offset_right = -5
+	icon.offset_bottom = -13
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	square.add_child(icon)
+	var badge := Label.new()
+	badge.name = "Badge"
+	badge.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	badge.offset_top = -13
+	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	badge.add_theme_font_size_override("font_size", 9)
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	square.add_child(badge)
+	_square_rows[team].add_child(square)
+	_squares[unit_id] = square
+	return square
+
+
+## Fills the fixed squares from the same entries the bars use.
+func _update_squares(entries: Array) -> void:
+	# A slow pulse for the border of whoever can act right now.
+	var pulse := 0.55 + 0.45 * sin(Time.get_ticks_msec() / 180.0)
+	for e in entries:
+		var square: Panel = _squares.get(e.id, null)
+		if square == null:
+			square = _new_square(e.id, e.team)
+		var icon := square.get_node("Icon") as TextureRect
+		var wanted := _icon(Jobs.icon_path(e.job)) if not e.hidden else null
+		if icon.texture != wanted:
+			icon.texture = wanted
+		var meter := square.get_node("Meter") as ColorRect
+		var style: StyleBoxFlat = square.get_theme_stylebox("panel")
+		if e.ready:
+			# Its turn: gold, with the meter draining as its countdown runs out.
+			style.bg_color = Color(0.45, 0.35, 0.08, 0.9)
+			style.border_color = Color(GOLD, pulse)
+			meter.color = Color(1.0, 0.82, 0.35, 0.35)
+			meter.offset_top = -SQUARE_SIZE.y * float(e.get("ready_left", 1.0))
+			icon.modulate = Color(1, 1, 1, 1)
+			_set_text(square.get_node("Badge") as Label, "%ds" % ceili(e.seconds))
+			_set_color(square.get_node("Badge") as Label, GOLD)
+		else:
+			# Waiting: grey, with the meter filling up to its next turn.
+			style.bg_color = Color(0.07, 0.08, 0.11, 0.85)
+			style.border_color = Color(1, 1, 1, 0.2)
+			meter.color = Color(0.8, 0.25, 0.2, 0.45)
+			meter.offset_top = -SQUARE_SIZE.y * float(e.get("tg", 0.0))
+			icon.modulate = Color(0.55, 0.58, 0.62, 1)
+			var casting: bool = e.casting != ""
+			_set_text(square.get_node("Badge") as Label, "%.1fs" % e.cast_seconds if casting else "%ds" % ceili(e.seconds))
+			_set_color(square.get_node("Badge") as Label, CAST if casting else DIM)
+		square.modulate.a = 0.45 if e.hidden else 1.0
+		_set_tip(square, e.tip)
+
+
 func _build_objective() -> void:
 	_objective = Label.new()
 	_objective.set_anchors_preset(Control.PRESET_TOP_WIDE)
@@ -671,6 +780,9 @@ func _build_game_over() -> void:
 	_replay_slider.tooltip_text = "Jump to a point in the battle"
 	_replay_slider.drag_ended.connect(_on_replay_drag_ended)
 	replay_row.add_child(_replay_slider)
+	_replay_pause_button = _small_button(replay_row, "Pause", replay_pause_pressed.emit)
+	_replay_pause_button.tooltip_text = "Stop the replay where it is, or start it again"
+	_small_button(replay_row, "Back", replay_back_pressed.emit).tooltip_text = "Rewind one order"
 	_small_button(replay_row, "Step", replay_step_pressed.emit).tooltip_text = "Play the next order"
 	_small_button(replay_row, "Results", replay_results_pressed.emit).tooltip_text = "Skip to the end and show the results"
 	_small_button(replay_row, "Exit", menu_pressed.emit)
@@ -843,6 +955,16 @@ func _new_chip(unit_id: int) -> Button:
 
 
 func set_turn_order(entries: Array) -> void:
+	# Fixed squares instead of the sliding bars, if that's what is wanted.
+	if Settings.turn_icons:
+		if _timeline.visible:
+			_timeline.visible = false
+			_squares_box.visible = true
+		_update_squares(entries)
+		return
+	if not _timeline.visible:
+		_timeline.visible = true
+		_squares_box.visible = false
 
 	# Where each chip goes: READY units in the zone at the left end, the rest
 	# along the bar by seconds until ready (closer = further left and bigger).
@@ -1222,6 +1344,8 @@ func _update_key_labels() -> void:
 
 func set_paused(paused: bool) -> void:
 	_pause_button.text = "%s %s" % ["Resume" if paused else "Pause", Keybinds.key_name("pause")]
+	if _replay_pause_button != null:
+		_replay_pause_button.text = "Play" if paused else "Pause"
 
 
 # --- Overlays --------------------------------------------------------------
