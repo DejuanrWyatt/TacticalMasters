@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "071ac7e7-0dbf-422f-9823-fd6bd829d538",
+      "id": "6ea241f7-b935-45f1-9cb0-0af53fe3080c",
       "name": "Venom Fang",
       "description": "Quick melee killer, nature element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "43db6bb3-b254-47d3-80db-3b4430fa5b0d",
+          "id": "dee49987-0729-4fd9-990d-36224f90a67c",
           "key": "hp",
           "name": "HP",
-          "base": 75,
+          "base": 71,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "4f8fed91-f1a2-4cbb-b394-4b0d783de3f5",
+          "id": "2784cb91-09d5-4a46-aecd-81190954d79e",
           "key": "power",
           "name": "Power",
-          "base": 16,
+          "base": 14,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,10 +715,10 @@
           "overrides": {}
         },
         {
-          "id": "8aa39517-dec9-43bc-b7bb-653dd3e6db49",
+          "id": "5cf03790-34ec-474c-8e55-e7193da91aea",
           "key": "aeva",
           "name": "A-Eva",
-          "base": 24,
+          "base": 22,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "dfe12252-7ebb-43cc-af6f-61457a346d67",
+          "id": "4da8a33d-c23f-484c-8884-757078d853b1",
           "key": "meva",
           "name": "M-Eva",
           "base": 10,
@@ -739,10 +739,10 @@
           "overrides": {}
         },
         {
-          "id": "68226c6f-2f7b-4f23-b9bf-dee9ddae643b",
+          "id": "78e14bc3-c6b4-4ff5-8c42-877c17ab5e03",
           "key": "crit",
           "name": "Crit",
-          "base": 20,
+          "base": 17,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "90084147-ee04-445b-8b0e-6c040a0481bf",
+          "id": "b504cb13-0beb-4fb8-9dfe-f0b5caaa5ab1",
           "key": "attdef",
           "name": "AttDef",
           "base": 8,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "1e3818dc-ccfd-4be8-bffc-9b7af24fec9a",
+          "id": "504ebdb9-8dc0-4dd9-b7cf-7e1e1db7ee72",
           "key": "magdef",
           "name": "MagDef",
           "base": 7,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "d337c54f-1135-4850-8142-af6712d30fba",
+          "id": "994bcf70-260e-4b77-b2f1-bb8d050e7c4c",
           "key": "wits",
           "name": "Wits",
           "base": 14,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "eb7618d4-f51e-4ce0-a08d-49bd2123cfe0",
+          "id": "ab90aae3-4283-4b08-ba08-2e47055db9f5",
           "key": "move",
           "name": "Move",
           "base": 8,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "6826a6ae-2b35-470d-a994-f5de0c432bc2",
+          "id": "71788aad-a276-4aef-8d36-2bf8457cccd5",
           "key": "patience",
           "name": "Patience",
           "base": 6,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "05eef135-d56b-4b93-b64d-4d1535bd0b69",
+          "id": "44151647-00f7-4bd9-8de5-288e6fb0dec0",
           "key": "sight",
           "name": "Sight",
           "base": 10,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "4a225990-870d-47f6-b5e2-178017c6c3e2",
+          "id": "5dc1df15-aa31-4bda-aa18-021b146b1ca9",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.608Z",
-      "updatedAt": "2026-09-22T23:19:44.608Z"
+      "createdAt": "2026-09-23T05:05:02.219Z",
+      "updatedAt": "2026-09-23T05:05:02.219Z"
     },
     {
-      "id": "f86daf11-8470-45ba-9b06-c07b1a2ac7f4",
+      "id": "d4b13663-9a8b-40c4-bdcc-018912632db5",
       "name": "Thorn Dagger",
       "description": "Stab an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "16984a59-6e1a-4ff1-864c-11840900333c",
+          "id": "0d8b4c54-0b62-4200-8d55-7a48764af1aa",
           "key": "power",
           "name": "Power",
           "base": 21,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "d00f4d31-8c70-4f96-b84e-aa50e5ac9502",
+          "id": "3d2d07a9-93ea-4402-8d4d-72f74467ad2f",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.608Z",
-      "updatedAt": "2026-09-22T23:19:44.608Z"
+      "createdAt": "2026-09-23T05:05:02.219Z",
+      "updatedAt": "2026-09-23T05:05:02.219Z"
     },
     {
-      "id": "2519888d-ea73-49f3-800c-934d1ba52555",
+      "id": "f3b05e14-3860-4c63-a12c-59c2fbc0e77b",
       "name": "Thorn Kunai",
       "description": "Throw a blade at an enemy 2-8 m away; Burns for 2 turns.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "50be9afe-e89d-4613-b58a-251debec9b10",
+          "id": "5d30a6ef-3ca4-4893-9f79-edb38897c8c1",
           "key": "power",
           "name": "Power",
           "base": 13,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "a4c07595-0f52-464a-af03-8241ab0dcfa8",
+          "id": "57bdc735-e249-4028-872e-9dc196b6f56a",
           "key": "min_range",
           "name": "Min range",
           "base": 2,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "9392d758-62be-4eac-b10f-ef318cc188cf",
+          "id": "171395ca-5fef-4734-95e0-84a5eb3cf62e",
           "key": "cast_range",
           "name": "Cast range",
           "base": 8,
@@ -1009,7 +1009,7 @@
           "overrides": {}
         },
         {
-          "id": "f6c2640e-11fe-40cf-b85b-b7f09bed0bd2",
+          "id": "12b5a870-0762-46f8-826b-a6097531aaed",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 1,
@@ -1021,7 +1021,7 @@
           "overrides": {}
         },
         {
-          "id": "438f01f2-3a25-4514-9f47-fcca6e5eb845",
+          "id": "881f674c-7daa-4ca9-ab2a-4016b3e1f5b3",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1035,7 +1035,7 @@
       ],
       "effects": [
         {
-          "id": "62340d2e-f7aa-4b75-9a10-cdf92e0b2b9e",
+          "id": "a73b87b9-b1dd-4a86-a0dd-29ca6671d1d6",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1048,7 +1048,7 @@
           "notes": ""
         },
         {
-          "id": "eb84c860-7663-47ab-84cb-d12f26a34a66",
+          "id": "8cfe9c23-8772-4009-9fd8-ab17fd8990c5",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1086,11 +1086,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.608Z",
-      "updatedAt": "2026-09-22T23:19:44.608Z"
+      "createdAt": "2026-09-23T05:05:02.219Z",
+      "updatedAt": "2026-09-23T05:05:02.219Z"
     },
     {
-      "id": "9f0e5057-054b-434a-9e99-831a001bdb14",
+      "id": "48e8b94a-9843-41c1-89a6-8c17f031ecc0",
       "name": "Thorn Veil",
       "description": "Slow every enemy within 2 m of a point 1-5 m away; Slows for 2 turns.",
       "kind": "Active",
@@ -1115,7 +1115,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "c8b4c1ef-4af4-4342-804b-b47baabd6e42",
+          "id": "2fb8d0c4-cae3-438e-ae51-f264d88acf71",
           "key": "min_range",
           "name": "Min range",
           "base": 1,
@@ -1127,7 +1127,7 @@
           "overrides": {}
         },
         {
-          "id": "d41916c4-48d9-46cf-ae53-342a033f83b0",
+          "id": "61cd7455-5a11-433a-a214-73ef14c63de7",
           "key": "cast_range",
           "name": "Cast range",
           "base": 5,
@@ -1139,7 +1139,7 @@
           "overrides": {}
         },
         {
-          "id": "76f6c73d-c094-4f63-a96d-c76596cfb17f",
+          "id": "278f1748-d422-4108-8f51-0cc9e676dd76",
           "key": "radius",
           "name": "Radius",
           "base": 2,
@@ -1151,7 +1151,7 @@
           "overrides": {}
         },
         {
-          "id": "b59aa0ec-eedc-4d91-9aac-0de96941e66b",
+          "id": "4b9ceddf-1335-4897-ab95-601fa5023d2a",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 3,
@@ -1163,7 +1163,7 @@
           "overrides": {}
         },
         {
-          "id": "d1edc9fc-c47e-4e63-ba95-57e23f878908",
+          "id": "f5279ca7-3a50-4a1a-9bce-82962bde0068",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1177,7 +1177,7 @@
       ],
       "effects": [
         {
-          "id": "f4e11f33-0575-4f5f-8b8e-eef2fed94769",
+          "id": "15321589-1a68-4111-9d07-3f22e90127e9",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1215,11 +1215,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.608Z",
-      "updatedAt": "2026-09-22T23:19:44.608Z"
+      "createdAt": "2026-09-23T05:05:02.219Z",
+      "updatedAt": "2026-09-23T05:05:02.219Z"
     },
     {
-      "id": "53df2356-2452-4c0e-86d9-10005f2f82b9",
+      "id": "9843c653-cef0-43e5-b37c-c8067255e356",
       "name": "Thorn Execution",
       "description": "A killing blow on an adjacent enemy; Burns for 2 turns.",
       "kind": "Active",
@@ -1245,7 +1245,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "cc22cae5-c1da-4869-a893-4dc6ce3c41cf",
+          "id": "6c640f82-e6de-495c-a6d5-aebe9fd2d714",
           "key": "power",
           "name": "Power",
           "base": 54,
@@ -1257,7 +1257,7 @@
           "overrides": {}
         },
         {
-          "id": "88c3f2a1-2a12-4e01-aac7-f145ff078ce2",
+          "id": "4398a2d4-bfb6-47ca-8a0d-cf509bab8fc3",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1271,7 +1271,7 @@
       ],
       "effects": [
         {
-          "id": "d3fd752d-da24-4ca2-a22e-c5566061869b",
+          "id": "bc4f9f18-0ceb-4268-ad4f-5a1c3f0dcbb5",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1284,7 +1284,7 @@
           "notes": ""
         },
         {
-          "id": "257feda1-f4bf-4d73-b224-362cd0ef2bca",
+          "id": "e42bc228-b89b-415e-9f44-0573b0cb4f29",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1322,8 +1322,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.608Z",
-      "updatedAt": "2026-09-22T23:19:44.608Z"
+      "createdAt": "2026-09-23T05:05:02.219Z",
+      "updatedAt": "2026-09-23T05:05:02.219Z"
     }
   ]
 }

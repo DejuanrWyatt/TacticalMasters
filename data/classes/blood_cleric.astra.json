@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "c700a436-d918-4a49-8a24-8bc6bf7198f8",
+      "id": "d59937a0-95f0-4637-8460-784c3515a31b",
       "name": "Blood Cleric",
       "description": "Healer who revives, shadow element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "37b76479-b4ae-4038-a425-928287bd5b65",
+          "id": "59478b56-6bdb-46e2-aa66-9f4e300c7e2b",
           "key": "hp",
           "name": "HP",
-          "base": 66,
+          "base": 70,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "6636b0ad-24e1-475d-b944-251f1b8354b0",
+          "id": "dbb86fe8-3e61-4608-9091-22b6358d5f71",
           "key": "power",
           "name": "Power",
-          "base": 15,
+          "base": 17,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "9c7bc6e1-f97f-4e19-8d64-13a2a6f8eaad",
+          "id": "6ccd96e3-3ea4-4b8d-bfd0-b70a7e04a579",
           "key": "aeva",
           "name": "A-Eva",
           "base": 5,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "8df0923b-c5dd-42fc-a769-7245dfa762ff",
+          "id": "a2623fe4-b692-4526-aba4-9b769ccde990",
           "key": "meva",
           "name": "M-Eva",
           "base": 19,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "d8f662ed-fc9f-42af-b387-ba3b20a5231d",
+          "id": "91ec4ebc-57cd-4130-bf90-452c82418443",
           "key": "crit",
           "name": "Crit",
           "base": 7,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "dabd56fd-5f32-4cd7-afcf-4e4cac40b917",
+          "id": "7f03e58a-0eca-4931-807a-4ff2e4c2a2bb",
           "key": "attdef",
           "name": "AttDef",
           "base": 4,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "f9ff7c96-0591-44a9-af2f-24fffe0b01e9",
+          "id": "8d11f172-6e2c-4cef-8a7a-efd605477ae0",
           "key": "magdef",
           "name": "MagDef",
           "base": 13,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "87c9ec30-68f4-43ad-9a2f-4d4a4c2f9ec6",
+          "id": "0c881d7b-585f-4d6a-b845-c82ced0a7bab",
           "key": "wits",
           "name": "Wits",
           "base": 8,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "55318134-0e66-44d5-9fda-7d8a970d5bea",
+          "id": "7b06b825-326f-4720-b7df-0d0ae3fc3c65",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "fce087e9-ca30-44c4-a254-1de78418d267",
+          "id": "68533b38-dec4-4ef5-be9e-42ea524453b5",
           "key": "patience",
           "name": "Patience",
           "base": 8,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "787c882a-8df4-4965-bc27-5acd1e1dd482",
+          "id": "c8a67c96-64b8-4be6-a81b-4fc4dbb0088a",
           "key": "sight",
           "name": "Sight",
           "base": 10,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "c94d34ee-501d-4a49-8d83-b88f2d7a4bce",
+          "id": "6bd576f2-cfd7-48e1-94f4-276f666dc063",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.616Z",
-      "updatedAt": "2026-09-22T23:19:44.616Z"
+      "createdAt": "2026-09-23T05:05:02.225Z",
+      "updatedAt": "2026-09-23T05:05:02.225Z"
     },
     {
-      "id": "3ae22b9f-d264-4946-a724-c1c47e495e28",
+      "id": "caa47621-ea01-468d-bbc6-fa6f456c5c33",
       "name": "Shadow Rod",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "bb5489af-0be7-41e5-abf8-f49af1fa1caa",
+          "id": "9715c868-7494-4bbf-920d-9716990475da",
           "key": "power",
           "name": "Power",
           "base": 9,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "85fd8975-2cce-43ea-a1a1-2ea5d6a88012",
+          "id": "1272ce94-29d3-42e9-b4c8-d09f8eb3a066",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.616Z",
-      "updatedAt": "2026-09-22T23:19:44.616Z"
+      "createdAt": "2026-09-23T05:05:02.225Z",
+      "updatedAt": "2026-09-23T05:05:02.225Z"
     },
     {
-      "id": "1e06b1b6-087a-47eb-88ca-173909211460",
+      "id": "04fca80c-a2e6-4217-bfb0-c763e1c63d57",
       "name": "Shadow Mend",
       "description": "Heal an ally up to 6 m away. (1 s)",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "9a29feb8-9bdc-45da-9810-9dcf221ec217",
+          "id": "69588417-08d5-4bae-8726-ea4e754adf23",
           "key": "power",
           "name": "Power",
           "base": 7,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "ef57761f-45e6-48ff-9cc9-80b8c928dddc",
+          "id": "ec0978ee-c08a-4452-aa1c-37fc4bc2f9b5",
           "key": "cast_range",
           "name": "Cast range",
           "base": 6,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "0b830fac-e3ed-44fe-8f51-803b6d49de8c",
+          "id": "c66cd6e9-00ab-4641-b1f6-1db00c2c5d11",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "88b41a3d-7958-48d6-af78-2133e0b3dad3",
+          "id": "38ae6729-8d64-4d36-831a-b47a9e13e87d",
           "name": "Heal",
           "type": "Heal",
           "trigger": "On hit",
@@ -1049,11 +1049,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.616Z",
-      "updatedAt": "2026-09-22T23:19:44.616Z"
+      "createdAt": "2026-09-23T05:05:02.225Z",
+      "updatedAt": "2026-09-23T05:05:02.225Z"
     },
     {
-      "id": "f30d128c-f09e-4935-bbdd-cf375b439522",
+      "id": "a7e08df3-a4f1-4142-b59d-78e9fc42b2f6",
       "name": "Shadow Rebirth",
       "description": "Revive a knocked-out ally up to 5 m away with 30% HP. (2 s)",
       "kind": "Active",
@@ -1079,7 +1079,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "077a9a0d-9c61-41ca-9e97-78afa3caf432",
+          "id": "3f24c870-3b4d-4ef2-b225-0c1581012bb4",
           "key": "power",
           "name": "Power",
           "base": 0.3,
@@ -1091,7 +1091,7 @@
           "overrides": {}
         },
         {
-          "id": "ee39c00b-2d4b-4288-a172-a15d24fc48d4",
+          "id": "c00f7aef-8301-4593-8063-48e49f231e8f",
           "key": "cast_range",
           "name": "Cast range",
           "base": 5,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "743dc330-d661-44c0-978f-f1707978c8b1",
+          "id": "bdcf28a8-5e89-4497-9b91-c11805a51d79",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1115,7 +1115,7 @@
           "overrides": {}
         },
         {
-          "id": "cd19b57b-f3a9-4d40-8589-ee8ad4cac385",
+          "id": "23839c06-8157-4385-a213-1ebc4ca5df72",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 4,
@@ -1129,7 +1129,7 @@
       ],
       "effects": [
         {
-          "id": "863c2743-34be-4b57-ae62-f6d745d15316",
+          "id": "f4a57049-2396-4d49-8f2b-d77e5d983378",
           "name": "Heal",
           "type": "Heal",
           "trigger": "On hit",
@@ -1167,11 +1167,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.616Z",
-      "updatedAt": "2026-09-22T23:19:44.616Z"
+      "createdAt": "2026-09-23T05:05:02.225Z",
+      "updatedAt": "2026-09-23T05:05:02.225Z"
     },
     {
-      "id": "5c222c8e-bee9-488f-8021-4ffdbfc6e4d0",
+      "id": "8e3ce1a1-42b9-4453-912f-0be2d0ee7842",
       "name": "Shadow Sanctuary",
       "description": "Heal every ally within 3.5 m of a point up to 8 m away; Regen for 3 turns. (3 s)",
       "kind": "Active",
@@ -1197,7 +1197,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "67d298cf-3030-49f4-85b6-3c2e65eeb34c",
+          "id": "970b33c8-be16-483e-92fb-688b305f9713",
           "key": "power",
           "name": "Power",
           "base": 12,
@@ -1209,7 +1209,7 @@
           "overrides": {}
         },
         {
-          "id": "e311031a-9400-426e-af1c-6f088b2bc4c6",
+          "id": "cee70735-84ee-4777-9778-28843473f439",
           "key": "cast_range",
           "name": "Cast range",
           "base": 8,
@@ -1221,7 +1221,7 @@
           "overrides": {}
         },
         {
-          "id": "64381a9d-f8fa-4dc0-8025-5e323abce22f",
+          "id": "b0f6cfc8-08bd-4e54-ad76-05e21183da61",
           "key": "radius",
           "name": "Radius",
           "base": 3.5,
@@ -1233,7 +1233,7 @@
           "overrides": {}
         },
         {
-          "id": "23ba7824-4e55-4351-a46e-506ab855c9a5",
+          "id": "b1897cd5-8b7f-4d96-a554-bc8ae998089e",
           "key": "cast_time",
           "name": "Cast time",
           "base": 3,
@@ -1245,7 +1245,7 @@
           "overrides": {}
         },
         {
-          "id": "bee903ae-b9f4-4ec1-9726-3e8d83fc6db8",
+          "id": "03ef8044-01ba-4907-b662-aa709db29d72",
           "key": "status_duration",
           "name": "Status turns",
           "base": 3,
@@ -1259,7 +1259,7 @@
       ],
       "effects": [
         {
-          "id": "3963699e-a4f5-43ff-9f9d-cb9043dbf837",
+          "id": "43650e7c-ab88-4160-9dd9-ee710f4c617d",
           "name": "Heal",
           "type": "Heal",
           "trigger": "On hit",
@@ -1297,8 +1297,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.616Z",
-      "updatedAt": "2026-09-22T23:19:44.616Z"
+      "createdAt": "2026-09-23T05:05:02.225Z",
+      "updatedAt": "2026-09-23T05:05:02.225Z"
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "4f0ac91a-1ff9-4326-9c95-e64ef7ea167b",
+      "id": "1c902bc3-4ece-4c78-a269-b805d557e512",
       "name": "Golem Master",
       "description": "Slow caster of huge summons, earth element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "28938bd6-5ed6-4305-9d38-a60a1776903c",
+          "id": "e246c3c6-827c-4384-b4cc-0775408e6170",
           "key": "hp",
           "name": "HP",
-          "base": 75,
+          "base": 81,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "a3761977-5c76-44bb-881e-c843adca2734",
+          "id": "b108a950-690d-437d-bf1c-227c70f420c8",
           "key": "power",
           "name": "Power",
-          "base": 19,
+          "base": 21,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "8d0659c3-4f47-4f27-a3e8-2f5794ada7a4",
+          "id": "0bb6a051-2179-4164-86d8-067418bc75a6",
           "key": "aeva",
           "name": "A-Eva",
           "base": 5,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "aac0d828-7b9f-4da5-b393-b9f7e145d9d4",
+          "id": "1fdbe479-0b79-4231-ba46-fe9dd9a48576",
           "key": "meva",
           "name": "M-Eva",
           "base": 14,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "9bb4c25d-4beb-4126-880c-2085df950559",
+          "id": "dd0e984e-1ceb-4196-8140-03c8c49f6f03",
           "key": "crit",
           "name": "Crit",
           "base": 10,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "0be0a0f6-6ae9-41ce-9cfa-25dcece27573",
+          "id": "eda18062-8920-4e83-b2f5-2d0c71f77be1",
           "key": "attdef",
           "name": "AttDef",
           "base": 6,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "3ff7352b-01be-4bc6-9f17-e15a690fc69f",
+          "id": "fc5d8e83-bf42-4674-9ca9-1181afd27e95",
           "key": "magdef",
           "name": "MagDef",
           "base": 12,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "7198c223-46cb-4f24-a491-8fb5c8e865f8",
+          "id": "85f756b2-6766-42b4-9900-4bfec40494f1",
           "key": "wits",
           "name": "Wits",
           "base": 6,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "70591b66-94df-4c30-b146-7c52bb98f6b9",
+          "id": "b26a1735-247a-4f5c-833c-bdba39c1f0ef",
           "key": "move",
           "name": "Move",
           "base": 5,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "0045a19f-f663-4749-a9a5-37f9c43d0d73",
+          "id": "14036e97-7ff1-44ab-98c7-f4ea4c576e39",
           "key": "patience",
           "name": "Patience",
           "base": 9,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "59e30f5e-b053-4803-a427-d4078212dad7",
+          "id": "cf9762e8-b00f-487d-b4e6-c67a7ea7fb31",
           "key": "sight",
           "name": "Sight",
           "base": 10,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "f80ce694-45b3-498a-9d2f-6141ae8a9efd",
+          "id": "62b52211-ea36-4291-8ffb-3296b113eee0",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.619Z",
-      "updatedAt": "2026-09-22T23:19:44.619Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     },
     {
-      "id": "37d768bc-6f4e-497b-8c31-6e7635b8e579",
+      "id": "76555266-e45b-429b-812f-d37de4daa000",
       "name": "Stone Rod",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "18f1cb3f-87bf-476c-8f63-3742b2f37e7c",
+          "id": "b53b17fd-935c-4783-9dc2-ddad02152659",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "25376651-94b1-438a-8c90-d2209b63b355",
+          "id": "5eee7015-f960-4120-88ac-049cb08e9f9f",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.619Z",
-      "updatedAt": "2026-09-22T23:19:44.619Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     },
     {
-      "id": "c488925e-4dc9-4da5-9c67-2cfaf3139677",
+      "id": "0e92c7f0-35bc-494e-bf51-f81827337718",
       "name": "Summon Golem",
       "description": "The Golem strikes every enemy within 2 m of a point 3-9 m away; Stuns for 1 turn. (2 s)",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "28090016-946b-4250-813a-44f6f917557f",
+          "id": "1106cf6e-14ac-47e6-b6d5-3374c99300ab",
           "key": "power",
           "name": "Power",
           "base": 27,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "aac49ff9-d177-49ea-b616-c3ae704677fd",
+          "id": "726ba0cf-a01d-41a9-adab-a68319257761",
           "key": "min_range",
           "name": "Min range",
           "base": 3,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "07f5d8f4-5a7d-4ad8-955c-e1ae220c7ca5",
+          "id": "ea26fff3-d8d8-4a9a-8824-a202e5654b2c",
           "key": "cast_range",
           "name": "Cast range",
           "base": 9,
@@ -1009,7 +1009,7 @@
           "overrides": {}
         },
         {
-          "id": "354ab7c2-2b67-45c3-bdce-e38a27da2a82",
+          "id": "ee8fa46d-ceae-4a39-93ba-f42235a011ec",
           "key": "radius",
           "name": "Radius",
           "base": 2,
@@ -1021,7 +1021,7 @@
           "overrides": {}
         },
         {
-          "id": "a1b7617d-2605-4194-be37-2f701fe8ab01",
+          "id": "f4384465-b60c-4eca-aca1-33f3f66f87a8",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1033,7 +1033,7 @@
           "overrides": {}
         },
         {
-          "id": "49cbc7fb-8b22-4fd4-a773-b6f139aa4ba6",
+          "id": "e3a5919b-398e-4591-84b8-186adedc3798",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -1045,7 +1045,7 @@
           "overrides": {}
         },
         {
-          "id": "aed0609a-b195-41d6-b9b5-0771f3e797c7",
+          "id": "79d0c568-d291-4f83-babd-510d042f31ea",
           "key": "status_duration",
           "name": "Status turns",
           "base": 1,
@@ -1059,7 +1059,7 @@
       ],
       "effects": [
         {
-          "id": "a14bc412-1d81-4120-81f1-2f8569e9fe39",
+          "id": "8853173e-7fdc-4065-85ef-35b11e31e070",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1072,7 +1072,7 @@
           "notes": ""
         },
         {
-          "id": "a0317920-281c-472b-8ce9-1e8ec636a929",
+          "id": "b227810b-cb8f-4b91-be4a-0c9fa555ed81",
           "name": "Stun",
           "type": "Stun",
           "trigger": "On hit",
@@ -1110,11 +1110,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.619Z",
-      "updatedAt": "2026-09-22T23:19:44.619Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     },
     {
-      "id": "89fc1bdd-4da4-4bfd-97d0-5718c36cb946",
+      "id": "cc8bdf0c-c2f9-4de3-91a1-d53431a44d80",
       "name": "Golem Pact",
       "description": "Bless every ally within 3 m of a point up to 6 m away; AttDef +6 for 2 turns. (1 s)",
       "kind": "Active",
@@ -1139,7 +1139,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "d5960695-6cfa-4be6-a57d-17eaf161e789",
+          "id": "b1d7eb9c-eb80-494e-879d-bf2bc8ed79c4",
           "key": "cast_range",
           "name": "Cast range",
           "base": 6,
@@ -1151,7 +1151,7 @@
           "overrides": {}
         },
         {
-          "id": "3fb823d8-10ba-455c-9374-70ea5d014b4d",
+          "id": "b24917c5-5302-4ad4-a863-16ac228cf4b8",
           "key": "radius",
           "name": "Radius",
           "base": 3,
@@ -1163,7 +1163,7 @@
           "overrides": {}
         },
         {
-          "id": "7f8d9338-b163-40f1-9a0b-c6bff3d44fad",
+          "id": "12913259-4816-40e1-835f-6aac26345234",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1175,7 +1175,7 @@
           "overrides": {}
         },
         {
-          "id": "73ada9ba-b3cf-4e86-ae0c-805f66f2afe8",
+          "id": "e5a76db9-bdab-4a0c-a652-1392abbd3983",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 3,
@@ -1187,7 +1187,7 @@
           "overrides": {}
         },
         {
-          "id": "a9f40499-91ec-4104-aaa8-5ec64e74f87a",
+          "id": "2391da77-1242-4828-a390-5951c3edf0a9",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1199,7 +1199,7 @@
           "overrides": {}
         },
         {
-          "id": "557702c3-eea5-4d56-b49e-a45943520e8e",
+          "id": "3ec65c5a-a3fe-41bc-9b85-b2ca156cf71a",
           "key": "buff_attdef",
           "name": "Buff AttDef",
           "base": 6,
@@ -1213,7 +1213,7 @@
       ],
       "effects": [
         {
-          "id": "6b60779f-4e80-4510-b3ff-741e2248b14a",
+          "id": "a8ed8e9f-fb74-40cb-b5f4-897f93277c17",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1251,11 +1251,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.619Z",
-      "updatedAt": "2026-09-22T23:19:44.619Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     },
     {
-      "id": "9d0d0691-53ab-4b88-98ff-a087cc4de15a",
+      "id": "770035d5-f75c-4fd5-bf0a-82e5e2a341fb",
       "name": "Golem Ascendant",
       "description": "Every enemy within 4 m of a point 4-11 m away; Stuns for 1 turn. (4 s)",
       "kind": "Active",
@@ -1281,7 +1281,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "e1b07ed4-1a44-4d01-a721-75a6fc300610",
+          "id": "4779f394-846b-41a1-ba68-2770fe852e5b",
           "key": "power",
           "name": "Power",
           "base": 42,
@@ -1293,7 +1293,7 @@
           "overrides": {}
         },
         {
-          "id": "254de833-e1c6-4a7c-aee7-7f2ad3c6111c",
+          "id": "c49a7892-8401-41f7-974d-e52da51ca3a3",
           "key": "min_range",
           "name": "Min range",
           "base": 4,
@@ -1305,7 +1305,7 @@
           "overrides": {}
         },
         {
-          "id": "9ecbc2ed-dfd4-4f71-be85-521ba5b0dfc7",
+          "id": "9d222612-12a9-41aa-a47f-7e160ac12587",
           "key": "cast_range",
           "name": "Cast range",
           "base": 11,
@@ -1317,7 +1317,7 @@
           "overrides": {}
         },
         {
-          "id": "10a25da0-385c-4827-86d0-bdd0634d2635",
+          "id": "8132e4cf-a4bd-4a19-9464-14c91fee4634",
           "key": "radius",
           "name": "Radius",
           "base": 4,
@@ -1329,7 +1329,7 @@
           "overrides": {}
         },
         {
-          "id": "afb766b7-0a3a-4008-96ef-964b1aa38cd1",
+          "id": "b86c9376-c197-41ec-aaab-8cb5effd6054",
           "key": "cast_time",
           "name": "Cast time",
           "base": 4,
@@ -1341,7 +1341,7 @@
           "overrides": {}
         },
         {
-          "id": "547e61b6-f4d2-4200-898d-5394b91004db",
+          "id": "42a1720a-2c72-4dfe-b041-a6c7e1898a54",
           "key": "status_duration",
           "name": "Status turns",
           "base": 1,
@@ -1355,7 +1355,7 @@
       ],
       "effects": [
         {
-          "id": "f0d0f316-0700-4bb1-8cb3-d7a528eb3fbd",
+          "id": "82a28cc4-2145-48b6-a23d-808e01200b30",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1368,7 +1368,7 @@
           "notes": ""
         },
         {
-          "id": "5a943070-aa5b-4134-b171-f2f17a0566f6",
+          "id": "0e399fa8-59b1-4523-9f1e-30368ceb17e6",
           "name": "Stun",
           "type": "Stun",
           "trigger": "On hit",
@@ -1406,8 +1406,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.620Z",
-      "updatedAt": "2026-09-22T23:19:44.620Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     }
   ]
 }

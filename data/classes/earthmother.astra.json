@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "3093cf67-5f90-45db-bafe-3572ad0d9872",
+      "id": "461f070f-9843-47d7-a90c-ea0db6b9bd17",
       "name": "Earthmother",
       "description": "Healer who revives, earth element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "5aac46bb-a45c-4ecb-b832-5457fcf2330c",
+          "id": "a600abc0-210a-46fe-8f0c-4aff26faeea5",
           "key": "hp",
           "name": "HP",
-          "base": 74,
+          "base": 78,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "71f0d46c-e98e-48ef-8f91-b9fff30ec846",
+          "id": "ef845aa1-09ea-4437-9cf6-9a7aa48c2a2d",
           "key": "power",
           "name": "Power",
-          "base": 15,
+          "base": 17,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "62723693-5a4e-4439-be91-4ec24c784ee0",
+          "id": "7909474a-7d4c-4a52-b6d2-48df9633560a",
           "key": "aeva",
           "name": "A-Eva",
           "base": 5,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "25bce9c9-0085-4661-ac56-83c87effb196",
+          "id": "497a49c8-a5f9-4dd3-9c8c-0a7c66f62d6a",
           "key": "meva",
           "name": "M-Eva",
           "base": 16,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "e4a991d4-ad2d-4dc1-b9e1-f2b9bce252e3",
+          "id": "0f4bc5cd-cae3-4c66-b577-b06eec399d27",
           "key": "crit",
           "name": "Crit",
           "base": 5,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "c189cee0-9da1-4379-a96a-6f3e612ea590",
+          "id": "bfe90663-9043-4cca-9d3b-23bed89f1115",
           "key": "attdef",
           "name": "AttDef",
           "base": 7,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "4eb9805e-3418-4991-8239-d9d0a67df109",
+          "id": "95aa1abd-cb68-4f6d-b59b-5bfc09681a0c",
           "key": "magdef",
           "name": "MagDef",
           "base": 13,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "2a0f6349-d986-44ea-a74f-df0b5517ea41",
+          "id": "03c9512d-6a52-4121-8d5b-ba54587a7c55",
           "key": "wits",
           "name": "Wits",
           "base": 8,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "3b47169f-48ff-42df-a9e0-afdc863f3b60",
+          "id": "9c8d5be1-7561-4c40-a775-08f4110c8c8a",
           "key": "move",
           "name": "Move",
           "base": 5,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "14d7c273-40e9-41a4-ace2-7314c47545f3",
+          "id": "30b0bc4c-9fb2-47b1-853b-6f0c74ced4f2",
           "key": "patience",
           "name": "Patience",
           "base": 8,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "082452e1-2930-4f0e-93ca-6bca8967818c",
+          "id": "ca04e09f-ec1b-4c83-8208-05471d4c306d",
           "key": "sight",
           "name": "Sight",
           "base": 10,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "088cc6d8-4dd7-45fe-836c-5d965b73e869",
+          "id": "63bc2ad5-bcaa-41c2-bb97-45b7aca4c0b0",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.615Z",
-      "updatedAt": "2026-09-22T23:19:44.615Z"
+      "createdAt": "2026-09-23T05:05:02.223Z",
+      "updatedAt": "2026-09-23T05:05:02.223Z"
     },
     {
-      "id": "2e99daa6-0f94-42f6-8e37-89a114253c6a",
+      "id": "9704a214-848d-40d1-9555-32da09c85b32",
       "name": "Stone Rod",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "359eb058-988f-4ca1-b76b-ffe4c209890c",
+          "id": "702a99b7-48af-473d-b2bf-39c79e999253",
           "key": "power",
           "name": "Power",
           "base": 9,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "df752f7e-a98e-48ef-a026-7b89d2280661",
+          "id": "de0bc99b-6d3d-40ee-b2a4-b7c8b6dbd30c",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.615Z",
-      "updatedAt": "2026-09-22T23:19:44.615Z"
+      "createdAt": "2026-09-23T05:05:02.224Z",
+      "updatedAt": "2026-09-23T05:05:02.224Z"
     },
     {
-      "id": "a6fe13e3-ceb8-44eb-8277-d7ef3727dafa",
+      "id": "08f6e145-85a3-432e-935c-424e45417605",
       "name": "Stone Mend",
       "description": "Heal an ally up to 6 m away. (1 s)",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "cd147a92-9a1e-492a-b11e-921fe3e43bdb",
+          "id": "7ba110a3-87da-4566-b73a-e31259181400",
           "key": "power",
           "name": "Power",
           "base": 7,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "965f0c81-fa92-4d13-a1f5-92237c3f057e",
+          "id": "98c2881b-6866-45d8-bc3a-c4d646c321d1",
           "key": "cast_range",
           "name": "Cast range",
           "base": 6,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "3859b7a3-f803-4b80-bd16-035b5a9fd73f",
+          "id": "fd549de5-28cd-45a3-bfd3-5639b173ad27",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "acbdfbb4-9142-4c15-9787-2758c483c112",
+          "id": "f90806c1-0773-4703-8fbd-c598b2dcde25",
           "name": "Heal",
           "type": "Heal",
           "trigger": "On hit",
@@ -1049,11 +1049,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.615Z",
-      "updatedAt": "2026-09-22T23:19:44.615Z"
+      "createdAt": "2026-09-23T05:05:02.224Z",
+      "updatedAt": "2026-09-23T05:05:02.224Z"
     },
     {
-      "id": "4a6d066e-4613-406e-80c9-90fe5769b53a",
+      "id": "484f9345-bab1-4edd-b494-8facacb6a1b3",
       "name": "Stone Rebirth",
       "description": "Revive a knocked-out ally up to 5 m away with 30% HP. (2 s)",
       "kind": "Active",
@@ -1079,7 +1079,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "542ebd4d-1f6d-46b2-96b4-66e134f4068b",
+          "id": "181cac2a-4839-4b90-982a-68d301a49a7b",
           "key": "power",
           "name": "Power",
           "base": 0.3,
@@ -1091,7 +1091,7 @@
           "overrides": {}
         },
         {
-          "id": "b2724f58-16db-4641-a8b4-d32d82bae2b9",
+          "id": "1bc13995-847c-4bf6-8698-cce85fa0cd7e",
           "key": "cast_range",
           "name": "Cast range",
           "base": 5,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "a402e9ed-2ffa-4854-b809-4efb6e67d426",
+          "id": "e06e989b-93c3-46f9-9a00-80086871dcb5",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1115,7 +1115,7 @@
           "overrides": {}
         },
         {
-          "id": "c18ac68e-c2db-4a7f-945a-306d8b7121fa",
+          "id": "fa3cc84c-a07a-4836-b510-049b76182106",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 4,
@@ -1129,7 +1129,7 @@
       ],
       "effects": [
         {
-          "id": "2612f2f8-13a3-47cc-a185-f19e1168db4d",
+          "id": "f41f83e3-e340-451b-adc2-3d278d4427b8",
           "name": "Heal",
           "type": "Heal",
           "trigger": "On hit",
@@ -1167,11 +1167,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.615Z",
-      "updatedAt": "2026-09-22T23:19:44.615Z"
+      "createdAt": "2026-09-23T05:05:02.224Z",
+      "updatedAt": "2026-09-23T05:05:02.224Z"
     },
     {
-      "id": "ad33811f-9cee-45f1-a0c6-c097eb9ff23b",
+      "id": "f3a1e0fb-c892-423c-9ef5-4a35993269db",
       "name": "Stone Sanctuary",
       "description": "Heal every ally within 3.5 m of a point up to 8 m away; Regen for 3 turns. (3 s)",
       "kind": "Active",
@@ -1197,7 +1197,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "517fd70b-98b7-46d7-b7e1-42121adf4826",
+          "id": "8f4eef95-29cf-4950-a760-a80b1bab0a05",
           "key": "power",
           "name": "Power",
           "base": 12,
@@ -1209,7 +1209,7 @@
           "overrides": {}
         },
         {
-          "id": "b7afe524-339b-4921-a183-415541304e75",
+          "id": "305189bd-9244-4ac6-99c9-f222e6ad2422",
           "key": "cast_range",
           "name": "Cast range",
           "base": 8,
@@ -1221,7 +1221,7 @@
           "overrides": {}
         },
         {
-          "id": "e05f7f59-5c71-4848-80c4-e09cdff5854b",
+          "id": "497401ac-73f5-4b8d-a20c-9c02416ff3f0",
           "key": "radius",
           "name": "Radius",
           "base": 3.5,
@@ -1233,7 +1233,7 @@
           "overrides": {}
         },
         {
-          "id": "1fa41bca-0a4e-4a41-92f8-14fc140d54bf",
+          "id": "1998a7f8-9ce1-4851-a10f-4cbda455eec3",
           "key": "cast_time",
           "name": "Cast time",
           "base": 3,
@@ -1245,7 +1245,7 @@
           "overrides": {}
         },
         {
-          "id": "c2cc8cb4-051d-4dc2-a0f0-1eed8d2442c1",
+          "id": "16e1cd01-b6cd-4615-aba8-fb632394030b",
           "key": "status_duration",
           "name": "Status turns",
           "base": 3,
@@ -1259,7 +1259,7 @@
       ],
       "effects": [
         {
-          "id": "b148a2d1-b641-4653-a34c-99d581fe1d44",
+          "id": "9ed6ac54-05fb-4ee9-830e-5d82e95b27f9",
           "name": "Heal",
           "type": "Heal",
           "trigger": "On hit",
@@ -1297,8 +1297,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.615Z",
-      "updatedAt": "2026-09-22T23:19:44.615Z"
+      "createdAt": "2026-09-23T05:05:02.224Z",
+      "updatedAt": "2026-09-23T05:05:02.224Z"
     }
   ]
 }

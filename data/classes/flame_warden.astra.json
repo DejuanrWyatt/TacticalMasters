@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "f0af4593-81aa-46c3-a9f1-fb7d90bd8c65",
+      "id": "cb59e0e4-3c94-478f-b404-f7ff4c4ed664",
       "name": "Flame Warden",
       "description": "Tank who shields allies, fire element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "4b41fd51-6163-42d1-a163-7050aaddcf5f",
+          "id": "7295c403-f804-42a8-b014-228c8655a231",
           "key": "hp",
           "name": "HP",
-          "base": 113,
+          "base": 117,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "866ceb7e-1e2b-4975-b313-0ebec414bbee",
+          "id": "c9c4a7e6-0837-4d57-b4d1-af86676bc60e",
           "key": "power",
           "name": "Power",
-          "base": 14,
+          "base": 16,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "127f3b32-e325-4d3c-9b77-dc0344b98716",
+          "id": "ae26e02d-f934-4e36-acbb-2727c4af06af",
           "key": "aeva",
           "name": "A-Eva",
           "base": 6,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "2bc81103-e6f6-4472-8afa-e70148f93848",
+          "id": "eed96a17-7f0e-420b-97f4-f99614efcd11",
           "key": "meva",
           "name": "M-Eva",
           "base": 8,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "f5edd378-f57b-43a8-a671-275e506ac4d4",
+          "id": "36edc46e-b411-41d7-b39d-a2279d849a88",
           "key": "crit",
           "name": "Crit",
           "base": 5,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "0d482ae3-6427-4adc-81df-93a2c1feccba",
+          "id": "68731ecb-a293-42a3-8a9c-8a0164309148",
           "key": "attdef",
           "name": "AttDef",
           "base": 13,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "6efc123b-576d-4c76-9d60-beb7c05f2dc8",
+          "id": "4e40e839-3c75-4de0-89cd-b346adea6087",
           "key": "magdef",
           "name": "MagDef",
           "base": 8,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "be876dfb-ab4c-4c2a-a3a9-edae921ee17b",
+          "id": "8168b3f2-ee29-4b70-ba88-599eb841b03a",
           "key": "wits",
           "name": "Wits",
           "base": 6,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "20927201-3073-4942-b9c1-6fec979db046",
+          "id": "7703794c-ac15-4759-8d19-c53b4cb9c40e",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "49f180c5-77f6-47ee-a93b-d41cceefbbe1",
+          "id": "5eadee06-0b35-49b7-9eab-4971d6096683",
           "key": "patience",
           "name": "Patience",
           "base": 8,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "cc9e544f-46c0-48c1-98f5-0e02254bf769",
+          "id": "7ad7e5ef-486c-4225-aa1e-be891894be29",
           "key": "sight",
           "name": "Sight",
           "base": 8,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "189b0354-021d-4579-a1e9-3976a93b1ed9",
+          "id": "ccdbf1d7-0949-4a11-a1c8-eabb363a0e81",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.603Z",
-      "updatedAt": "2026-09-22T23:19:44.603Z"
+      "createdAt": "2026-09-23T05:05:02.215Z",
+      "updatedAt": "2026-09-23T05:05:02.215Z"
     },
     {
-      "id": "e846a4b9-24ed-439f-8d51-e8cac60b8ed0",
+      "id": "2b12b7bd-74d8-47a5-aad8-d62b13076978",
       "name": "Flame Mace",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "a7b321b8-c2a1-4c5f-9540-04be91a924ab",
+          "id": "13f0afb1-2674-456b-ac2a-524105f8e74e",
           "key": "power",
           "name": "Power",
           "base": 17,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "0c9f007a-0324-4e5f-8593-11352f4f48af",
+          "id": "0aed83b9-d135-4ca0-afac-63ba62b5095e",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.603Z",
-      "updatedAt": "2026-09-22T23:19:44.603Z"
+      "createdAt": "2026-09-23T05:05:02.215Z",
+      "updatedAt": "2026-09-23T05:05:02.215Z"
     },
     {
-      "id": "4c0c7b04-15a5-444e-aae9-7f87cf990a8b",
+      "id": "e682f70e-e500-4988-b706-82b949867a8e",
       "name": "Flame Bash",
       "description": "Shield-bash an adjacent enemy; Burns for 2 turns.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "1dbd93fc-a009-495c-8b85-58836a95cf41",
+          "id": "3b2f19e2-69b1-454b-a798-55677e3b382a",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "c039746f-fd4f-42b4-8ae0-d76581d8dbd7",
+          "id": "38bf46c8-78f4-49d2-818e-6d080f75c6b9",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "cc770c77-5383-43b6-8832-c5dfb6e76967",
+          "id": "42a7e01a-3af4-4bf4-aaa0-5bd98559b49c",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "85845c99-1b05-4c65-bf74-42c2d9d73c43",
+          "id": "c52ab1af-cc6d-4f06-b850-d85a7db51b5a",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1024,7 +1024,7 @@
           "notes": ""
         },
         {
-          "id": "1efc8bbf-30fc-474d-a0fe-b15a0770fd78",
+          "id": "96566e80-9a1a-4eb2-957b-a75c3764ae69",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1062,11 +1062,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.603Z",
-      "updatedAt": "2026-09-22T23:19:44.603Z"
+      "createdAt": "2026-09-23T05:05:02.215Z",
+      "updatedAt": "2026-09-23T05:05:02.215Z"
     },
     {
-      "id": "25f1522f-8353-447a-a4ad-21b14ad10a50",
+      "id": "4d4ca017-ec33-44db-acf6-fdb9e24f7786",
       "name": "Flame Ward",
       "description": "Every ally within 4 m is shielded; AttDef +5, Power +5 for 2 turns. Always on, for allies nearby.",
       "kind": "Aura",
@@ -1091,7 +1091,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "ec030d50-6764-4059-bd53-9ebc57c06fbe",
+          "id": "3310a248-7df2-4f7e-85a4-2fab49d6e13a",
           "key": "radius",
           "name": "Radius",
           "base": 4,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "73afc0fa-0351-47af-99b0-70d2252d167d",
+          "id": "6a27285a-a8b8-4f98-92cd-ce305fba6996",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1115,7 +1115,7 @@
           "overrides": {}
         },
         {
-          "id": "10fdab75-2772-4a45-9ae4-e645c81443e3",
+          "id": "d067389f-5dd9-4042-9416-5d6e713580d0",
           "key": "buff_attdef",
           "name": "Buff AttDef",
           "base": 5,
@@ -1127,7 +1127,7 @@
           "overrides": {}
         },
         {
-          "id": "7ccce8e4-745c-4bd8-9611-ff1fc1bee204",
+          "id": "afe5f363-44f8-4db2-a0ea-8d80ff6be4fd",
           "key": "buff_power",
           "name": "Buff Power",
           "base": 5,
@@ -1141,7 +1141,7 @@
       ],
       "effects": [
         {
-          "id": "92e5c653-0019-4253-a477-aca2d51b175c",
+          "id": "8826c164-6fc8-482d-845f-4cf14047ecc7",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1179,11 +1179,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.603Z",
-      "updatedAt": "2026-09-22T23:19:44.603Z"
+      "createdAt": "2026-09-23T05:05:02.215Z",
+      "updatedAt": "2026-09-23T05:05:02.215Z"
     },
     {
-      "id": "cd6eb028-f5f7-453e-a71a-6759ca8c61da",
+      "id": "fa23aad1-f17e-4bae-89a9-4d75abf38e13",
       "name": "Flame Bastion",
       "description": "Slam the ground, hitting every enemy within 3 m of you; Burns for 2 turns. (1 s)",
       "kind": "Active",
@@ -1209,7 +1209,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "e003a378-9ba6-4812-b652-fb935572e8a1",
+          "id": "92cfafa1-eb07-4b8a-bf3d-f8a52f6bcd8e",
           "key": "power",
           "name": "Power",
           "base": 24,
@@ -1221,7 +1221,7 @@
           "overrides": {}
         },
         {
-          "id": "5150f32f-66f5-4b5a-b5b3-46ffce0987c3",
+          "id": "011bd24b-11b7-48c3-83d8-cdbed2626e9d",
           "key": "radius",
           "name": "Radius",
           "base": 3,
@@ -1233,7 +1233,7 @@
           "overrides": {}
         },
         {
-          "id": "a79b3743-78eb-401d-b74a-e7303aaf74a5",
+          "id": "16c1a426-7f52-4280-9c90-9ab2d9e16a58",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1245,7 +1245,7 @@
           "overrides": {}
         },
         {
-          "id": "32fcdd19-34cb-4a3a-abd7-994cabc6f3e2",
+          "id": "b9495418-928a-4cb7-9f20-37b83d393984",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1259,7 +1259,7 @@
       ],
       "effects": [
         {
-          "id": "f1405a58-2e4a-43c1-9053-dad137a082cb",
+          "id": "d33ce716-fe61-44f0-8016-4da1267be762",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1272,7 +1272,7 @@
           "notes": ""
         },
         {
-          "id": "c35548ec-d29d-4b0a-bd08-fa17678e2c28",
+          "id": "0ec977a6-58a3-4cae-8d36-b75b8f697dba",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1310,8 +1310,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.604Z",
-      "updatedAt": "2026-09-22T23:19:44.604Z"
+      "createdAt": "2026-09-23T05:05:02.215Z",
+      "updatedAt": "2026-09-23T05:05:02.215Z"
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "e03ecf12-d3e6-43c4-a8a5-0bb4eaa62adc",
+      "id": "ea0543de-9ca9-485f-b0d4-2cc29e5f5c38",
       "name": "Thornblade",
       "description": "Melee fighter with blade magic, nature element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "a502ef99-d596-4580-8caa-11a7ccec85f8",
+          "id": "7580026e-96b2-4637-9d2f-f7804b1661aa",
           "key": "hp",
           "name": "HP",
           "base": 96,
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "f54e122d-feb1-40c5-bcdd-b7038b6f923a",
+          "id": "041bada6-09be-4182-a9be-53186a091abf",
           "key": "power",
           "name": "Power",
-          "base": 13,
+          "base": 15,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "e024b291-7490-4ce0-8f43-583c3a57fba8",
+          "id": "a003da1f-6464-48fb-b66a-69d8bc0bd360",
           "key": "aeva",
           "name": "A-Eva",
           "base": 10,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "4aa4a561-a099-4730-805f-3c33f6d6fccd",
+          "id": "842d65ad-0dc0-45fb-9bde-9695e28eb0b4",
           "key": "meva",
           "name": "M-Eva",
           "base": 10,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "8da0e064-33d0-441c-869b-f62b27ffad13",
+          "id": "4c67f35b-3852-4067-bf61-54c58e373a65",
           "key": "crit",
           "name": "Crit",
           "base": 12,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "e0864b6c-89cc-46c7-bc6a-811fdc4f362c",
+          "id": "2a8409c0-edea-4c21-8ce7-ce314fa325dc",
           "key": "attdef",
           "name": "AttDef",
           "base": 10,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "f270de80-da07-4ce9-a214-8c4ba1d58529",
+          "id": "a2f1294d-541d-4bf2-9c84-9c7ab09503ac",
           "key": "magdef",
           "name": "MagDef",
           "base": 9,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "349ff106-adad-4ca6-8aa3-8f4c141c09ff",
+          "id": "d168f8fb-d2cb-448c-bde4-e4f70d271df1",
           "key": "wits",
           "name": "Wits",
           "base": 10,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "629c7fd9-fe09-4e6b-866f-7987a0f957fc",
+          "id": "48071e12-81c3-4b80-873e-0e1aa9cc3118",
           "key": "move",
           "name": "Move",
           "base": 7,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "0732241b-57d6-41af-8712-9b4517c46497",
+          "id": "8bcd77e7-90af-436c-bd11-ab32aa063b0c",
           "key": "patience",
           "name": "Patience",
           "base": 7,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "7ffe147d-f739-454c-bb41-b133e4b3a25a",
+          "id": "b76da312-82bc-4c5b-a925-5fe5a2fff402",
           "key": "sight",
           "name": "Sight",
           "base": 9,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "e79d21e7-23fc-400d-beaf-f3ba16e206ea",
+          "id": "25415c0d-15df-4e1e-ad4e-8fceff5ba66a",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.622Z",
-      "updatedAt": "2026-09-22T23:19:44.622Z"
+      "createdAt": "2026-09-23T05:05:02.230Z",
+      "updatedAt": "2026-09-23T05:05:02.230Z"
     },
     {
-      "id": "1ae02a90-06f7-472f-bdd2-176ba65d695f",
+      "id": "767cb9b7-ffda-4a15-a5cd-f680ee0ab25a",
       "name": "Thorn Slash",
       "description": "Cut an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "2febda65-0fca-4229-9443-75526cecbbfe",
+          "id": "edd407fa-1b83-4de2-9415-f3e3264a5c7f",
           "key": "power",
           "name": "Power",
           "base": 18,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "7984f621-a9c0-4796-82d6-e66a62a37f46",
+          "id": "9da6e331-8bda-4fb9-94e3-8c662c01dcbf",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.622Z",
-      "updatedAt": "2026-09-22T23:19:44.622Z"
+      "createdAt": "2026-09-23T05:05:02.230Z",
+      "updatedAt": "2026-09-23T05:05:02.230Z"
     },
     {
-      "id": "745f7af1-6d7b-40a6-8069-d988312be0f0",
+      "id": "051e3597-03b8-4dea-ab2e-9d4bf4842c18",
       "name": "Thorn Edge",
       "description": "A spell-charged cut on an adjacent enemy; Burns for 2 turns.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "ec55ee2f-1686-4510-8233-65e2d734f672",
+          "id": "66223798-8b87-4f75-8b48-c7d46437ace5",
           "key": "power",
           "name": "Power",
           "base": 25,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "c7c8746f-e978-4b97-a621-b43861f23ce6",
+          "id": "d1183016-21d9-45b3-9996-1cae28a13a04",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "496c3a6f-f1a4-4c18-99a2-916c12766895",
+          "id": "269b9d91-a1d4-4549-9374-cb6b58cdd34c",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "df510b50-88b4-4c40-94df-537133694e47",
+          "id": "08b27f7e-ce0f-4b40-aa75-cef35c131154",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1024,7 +1024,7 @@
           "notes": ""
         },
         {
-          "id": "224de85d-251a-440c-a07b-e95ff2b0cf9a",
+          "id": "a2ae3c4a-8ad8-4c85-849d-eb278c2e7580",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1062,11 +1062,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.622Z",
-      "updatedAt": "2026-09-22T23:19:44.622Z"
+      "createdAt": "2026-09-23T05:05:02.230Z",
+      "updatedAt": "2026-09-23T05:05:02.230Z"
     },
     {
-      "id": "0faf87db-6427-4842-8ab2-a4af96298e52",
+      "id": "599faf42-582b-4605-99d3-d86da1c5a28d",
       "name": "Thorn Lance",
       "description": "A spear of magic through everyone in a line up to 7 m. (1 s)",
       "kind": "Active",
@@ -1091,7 +1091,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "f0cadd93-0472-4b55-b34a-2fdf2794f32c",
+          "id": "ee511e3f-5c06-4925-bd3b-530a94253e33",
           "key": "power",
           "name": "Power",
           "base": 13,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "f794f232-61dd-4c9f-b9d3-80171e608c02",
+          "id": "23d2c07a-a7ad-4f1e-969c-1bf4dd55e47e",
           "key": "min_range",
           "name": "Min range",
           "base": 2,
@@ -1115,7 +1115,7 @@
           "overrides": {}
         },
         {
-          "id": "34323ca1-a854-4497-b015-6353532c4315",
+          "id": "44f85f45-cde2-4ea8-8f89-f6a9dc46c857",
           "key": "cast_range",
           "name": "Cast range",
           "base": 7,
@@ -1127,7 +1127,7 @@
           "overrides": {}
         },
         {
-          "id": "c3dcac4a-9035-4844-a441-1ad16cc17fb9",
+          "id": "16043c64-58b7-40e2-8e91-0f38a69861bd",
           "key": "radius",
           "name": "Radius",
           "base": 0.7,
@@ -1139,7 +1139,7 @@
           "overrides": {}
         },
         {
-          "id": "aed74635-d3f8-433a-87d6-e28b342d6a8e",
+          "id": "8c33fcb6-4ea6-4be9-8dda-2a0c59d7efac",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1153,7 +1153,7 @@
       ],
       "effects": [
         {
-          "id": "174cec0a-eed5-4fad-b4bf-c5a61d82b4a6",
+          "id": "cde0aa0b-dfe4-4914-932a-ce3a4a1aaf05",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1191,11 +1191,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.622Z",
-      "updatedAt": "2026-09-22T23:19:44.622Z"
+      "createdAt": "2026-09-23T05:05:02.230Z",
+      "updatedAt": "2026-09-23T05:05:02.230Z"
     },
     {
-      "id": "b88c8ff2-f238-4ea1-b5d7-4c44303b8514",
+      "id": "bfc665da-8267-4a32-8c83-fed0f7a40f11",
       "name": "Thorn Maelstrom",
       "description": "Blade magic hits every enemy within 2.5 m of you; Burns for 2 turns. (1 s)",
       "kind": "Active",
@@ -1221,7 +1221,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "1f4aeeff-4216-4099-a70b-c7e6181857d0",
+          "id": "83fbaf05-ead8-4b7f-ba70-5b07d2a444f6",
           "key": "power",
           "name": "Power",
           "base": 29,
@@ -1233,7 +1233,7 @@
           "overrides": {}
         },
         {
-          "id": "848f2c53-daf1-4fce-aea6-1904756934f7",
+          "id": "67cd5be6-8504-4bd7-b283-64ff9060c5cf",
           "key": "radius",
           "name": "Radius",
           "base": 2.5,
@@ -1245,7 +1245,7 @@
           "overrides": {}
         },
         {
-          "id": "375c51ac-8ec5-4f2a-a034-cfb3f0468cfc",
+          "id": "53b7f95a-44bd-4893-8fdd-74faacc306c8",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1257,7 +1257,7 @@
           "overrides": {}
         },
         {
-          "id": "1fbdb44b-e9bc-4c39-bd43-3b8d7ceff5d0",
+          "id": "3f6dc90f-fa5f-4571-af08-6123a8fd78cf",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1271,7 +1271,7 @@
       ],
       "effects": [
         {
-          "id": "a1f27f33-5f3e-413a-a382-555da898ea1c",
+          "id": "d4f0e9d4-2ae8-4e00-a35b-a42741c1c79e",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1284,7 +1284,7 @@
           "notes": ""
         },
         {
-          "id": "5a17d4ad-4c10-4c85-b357-fb5cf855c068",
+          "id": "9b4d388f-686f-401d-8469-5304f9562988",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1322,8 +1322,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.622Z",
-      "updatedAt": "2026-09-22T23:19:44.622Z"
+      "createdAt": "2026-09-23T05:05:02.230Z",
+      "updatedAt": "2026-09-23T05:05:02.230Z"
     }
   ]
 }

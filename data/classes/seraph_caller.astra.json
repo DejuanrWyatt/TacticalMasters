@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "6aacbb41-3c06-4d88-9e8d-69296a6fedba",
+      "id": "b95a144a-119b-47ba-9d25-4d99e1f8eef2",
       "name": "Seraph Caller",
       "description": "Slow caster of huge summons, holy element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "7c7a9c11-cc04-4390-b4c5-41f43c10710d",
+          "id": "1fb37c75-b244-454a-bf85-7895f1d26c3b",
           "key": "hp",
           "name": "HP",
-          "base": 69,
+          "base": 75,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "8ce7174d-6893-40ba-b4d6-44b13f8d24ec",
+          "id": "72e279cc-5371-49b4-9bf4-10b78ec5bc63",
           "key": "power",
           "name": "Power",
-          "base": 19,
+          "base": 21,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "7d0d4e97-e35d-4225-8725-0c1eb99ca10c",
+          "id": "48138816-a92f-40fc-84f3-c6f36d11afcc",
           "key": "aeva",
           "name": "A-Eva",
           "base": 5,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "7a00b648-2ba3-4ce4-8cd3-63036191f93b",
+          "id": "41cf227f-03e7-4501-bb56-374d433341ee",
           "key": "meva",
           "name": "M-Eva",
           "base": 14,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "22f47127-ded5-450b-83c3-b720321e5bdf",
+          "id": "efcb3ccf-5fe6-44e3-9d02-5de46bb40319",
           "key": "crit",
           "name": "Crit",
           "base": 10,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "a8d7b88a-8ea0-4d8e-be9e-1a4e55586938",
+          "id": "07a996d0-46ba-47d1-b072-42f81c5cfa1e",
           "key": "attdef",
           "name": "AttDef",
           "base": 4,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "0c98a271-5a19-476c-97bb-a160951fe6f0",
+          "id": "293c2a3b-1912-4ff2-a5fa-f366d80e5c42",
           "key": "magdef",
           "name": "MagDef",
           "base": 14,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "bd2e522f-5803-4d87-b338-f96885a766cc",
+          "id": "b380d2c0-f169-4c62-8df4-4b34e56bc52a",
           "key": "wits",
           "name": "Wits",
           "base": 6,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "b6f5356a-e7af-4a70-97df-8527d527eb94",
+          "id": "2f19ee16-9a64-43c7-9960-2e116dd129bc",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "6a7a57e9-9bfc-4161-b035-dfea0f76c5ee",
+          "id": "9370c81c-446b-41c7-83dd-881a0260f012",
           "key": "patience",
           "name": "Patience",
           "base": 9,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "e049d562-6d63-4b06-83bf-0d732f82f394",
+          "id": "35e078c6-2c00-4fd3-b5e4-12a06e1ebeba",
           "key": "sight",
           "name": "Sight",
           "base": 10,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "e27b8af5-4544-4323-8911-0c4570a4e736",
+          "id": "3b2ea496-539f-48b1-ae27-585dbe2cfc87",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.620Z",
-      "updatedAt": "2026-09-22T23:19:44.620Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     },
     {
-      "id": "e02524e4-7e23-4ef6-8f85-10ea62e577b3",
+      "id": "a5f303f6-0411-426e-aec2-ea5c8a691cb2",
       "name": "Holy Rod",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "3d53905f-ceb7-4f2b-acb9-55fbb589cbef",
+          "id": "206544d0-96ca-4cb6-8543-129e75580980",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "12371877-1f18-47e5-a199-21a93ddaa40b",
+          "id": "f4ba334a-11d9-4d35-a328-22c249b40d4b",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.620Z",
-      "updatedAt": "2026-09-22T23:19:44.620Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     },
     {
-      "id": "aa3313d5-2b84-4941-807a-dcb3828f16f6",
+      "id": "ae7b25f2-1fe5-4980-8f90-6323e1c5c0ab",
       "name": "Summon Seraph",
       "description": "The Seraph strikes every enemy within 2 m of a point 3-9 m away. (2 s)",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "87e3286c-a8d7-4854-a1cc-010d5f036afb",
+          "id": "0c9f69c1-913e-4b73-9f79-849e7f2aaf41",
           "key": "power",
           "name": "Power",
           "base": 29.7,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "937c6308-94ff-44f7-a7f3-d6cb808b2a0a",
+          "id": "d050fcfa-7d52-4770-a8a6-9193693c5a08",
           "key": "min_range",
           "name": "Min range",
           "base": 3,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "294f9aaa-7263-4de5-a830-608d91e5ec75",
+          "id": "9c2fd479-2a93-4697-987a-2cbe24677ab4",
           "key": "cast_range",
           "name": "Cast range",
           "base": 9,
@@ -1009,7 +1009,7 @@
           "overrides": {}
         },
         {
-          "id": "634e6c84-3d72-4e06-9ec7-9c6eeb7a8845",
+          "id": "18a66ac5-6a2f-4965-853a-c2002191cf23",
           "key": "radius",
           "name": "Radius",
           "base": 2,
@@ -1021,7 +1021,7 @@
           "overrides": {}
         },
         {
-          "id": "00d065d0-ade8-46a6-afb4-f8dbe8044719",
+          "id": "377ea07c-09d7-47c6-b8fe-028f417250f4",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1033,7 +1033,7 @@
           "overrides": {}
         },
         {
-          "id": "efefa361-9614-4725-9ee5-e7163eb680fb",
+          "id": "77840d0e-acda-4a2b-9c6c-a6d170aafb50",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -1047,7 +1047,7 @@
       ],
       "effects": [
         {
-          "id": "750a3c0a-4fc5-40a2-be12-94f5b0fee707",
+          "id": "9adeca95-c3a5-4156-ab69-c27f4f8600d0",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1085,11 +1085,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.620Z",
-      "updatedAt": "2026-09-22T23:19:44.620Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     },
     {
-      "id": "eb43b3bb-caf1-4677-bd90-7725b28b5ade",
+      "id": "78822034-9b63-4c82-a271-ab823db3e85e",
       "name": "Seraph Pact",
       "description": "Bless every ally within 3 m of a point up to 6 m away; AttDef +4, MagDef +4 for 2 turns. (1 s)",
       "kind": "Active",
@@ -1114,7 +1114,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "f8ccaee0-5a43-4fd0-afee-bbb42858a3d5",
+          "id": "e9bbc356-e1f8-4363-93c1-be4e175b80ba",
           "key": "cast_range",
           "name": "Cast range",
           "base": 6,
@@ -1126,7 +1126,7 @@
           "overrides": {}
         },
         {
-          "id": "e0f75786-3b7d-4ea8-a569-2f8a0c315c49",
+          "id": "00610d95-8c5b-4f98-abd8-fe965b1a033b",
           "key": "radius",
           "name": "Radius",
           "base": 3,
@@ -1138,7 +1138,7 @@
           "overrides": {}
         },
         {
-          "id": "0598a945-cba7-429f-850e-12851b47d4d3",
+          "id": "5efb702f-fa6e-4db3-8eec-91c05edcf0fd",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1150,7 +1150,7 @@
           "overrides": {}
         },
         {
-          "id": "02e63739-c818-4445-8e9e-f115593c49f9",
+          "id": "1e825a7f-08b6-4ecd-a3f0-f1e9a742d312",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 3,
@@ -1162,7 +1162,7 @@
           "overrides": {}
         },
         {
-          "id": "38988365-0dcc-477f-9f3e-9db507eaac23",
+          "id": "28f8a34b-30c1-4a05-810e-f31b592342f1",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1174,7 +1174,7 @@
           "overrides": {}
         },
         {
-          "id": "32f2454f-db99-4834-8b23-fd31f778d632",
+          "id": "05f48ac2-dcd4-4beb-8fe9-7d7e8f516c22",
           "key": "buff_attdef",
           "name": "Buff AttDef",
           "base": 4,
@@ -1186,7 +1186,7 @@
           "overrides": {}
         },
         {
-          "id": "3c748889-fdff-4329-84d9-49bbf26af92e",
+          "id": "078af9ea-fcba-4de7-a023-396d5160e0ff",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": 4,
@@ -1200,7 +1200,7 @@
       ],
       "effects": [
         {
-          "id": "23552e0a-2272-40d8-b097-718f900a58ca",
+          "id": "094fc8cf-857b-4ab7-9cb2-43bcc216ebbb",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1238,11 +1238,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.620Z",
-      "updatedAt": "2026-09-22T23:19:44.620Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     },
     {
-      "id": "6663b896-eb1e-4036-b36a-8c5678b744a2",
+      "id": "2e47f134-9b6e-4523-acb7-bf4543e35e27",
       "name": "Seraph Ascendant",
       "description": "Every enemy within 4 m of a point 4-11 m away. (4 s)",
       "kind": "Active",
@@ -1268,7 +1268,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "715da818-9cb9-4e40-839b-567300f69e7b",
+          "id": "cb195e3a-33e6-4f88-ae1b-d9e215b02671",
           "key": "power",
           "name": "Power",
           "base": 46.2,
@@ -1280,7 +1280,7 @@
           "overrides": {}
         },
         {
-          "id": "7dae9117-c40c-4a20-a8d4-fffab7ec54d6",
+          "id": "bb77e6ec-0638-4c7b-b38c-28583bdba524",
           "key": "min_range",
           "name": "Min range",
           "base": 4,
@@ -1292,7 +1292,7 @@
           "overrides": {}
         },
         {
-          "id": "1cd4e0cf-1372-4ee7-a19b-b6c107368e93",
+          "id": "0b0c4bd7-bfa2-42e9-8790-2047d53a3df4",
           "key": "cast_range",
           "name": "Cast range",
           "base": 11,
@@ -1304,7 +1304,7 @@
           "overrides": {}
         },
         {
-          "id": "cc76fdb0-76cc-4bd3-8cad-255d1f701b37",
+          "id": "9f0921f5-fcc0-4bf7-92e8-9b902c5bb655",
           "key": "radius",
           "name": "Radius",
           "base": 4,
@@ -1316,7 +1316,7 @@
           "overrides": {}
         },
         {
-          "id": "1f94d0e4-a7a1-4f12-9939-1ced18fdcfaa",
+          "id": "2e0f1cf6-8a87-48d5-9da3-e87ed759a0ed",
           "key": "cast_time",
           "name": "Cast time",
           "base": 4,
@@ -1330,7 +1330,7 @@
       ],
       "effects": [
         {
-          "id": "d02f937c-51ab-4e67-806d-96a0355229fc",
+          "id": "57f2a211-3420-42bd-a92d-d5c5d5a620eb",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1368,8 +1368,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.620Z",
-      "updatedAt": "2026-09-22T23:19:44.620Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     }
   ]
 }

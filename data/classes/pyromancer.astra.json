@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "43f54d9f-57f6-4e25-8b9e-9db0e832dd7b",
+      "id": "a3e029d2-0c9d-4c12-9b53-18d77febe9c8",
       "name": "Pyromancer",
       "description": "Area magic damage, fire element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "499de2fd-2a76-4e59-b7d8-ebc0113e6a3a",
+          "id": "71e9a67d-382e-4dea-809b-b3082138409f",
           "key": "hp",
           "name": "HP",
           "base": 64,
@@ -703,7 +703,7 @@
           "overrides": {}
         },
         {
-          "id": "45fab623-87bb-466d-b3ae-7ed3e12f3c40",
+          "id": "3571dfba-acda-45e8-a74c-f03f6375018c",
           "key": "power",
           "name": "Power",
           "base": 18,
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "7e46f955-6166-4a08-9a21-de2995dd8268",
+          "id": "fb1480e8-8617-449c-825e-7c822cd28938",
           "key": "aeva",
           "name": "A-Eva",
           "base": 5,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "67b5c104-ad50-4a27-8bb8-0fc6db5f70c4",
+          "id": "d43e4b6b-1941-461a-9eb5-4260d6abc136",
           "key": "meva",
           "name": "M-Eva",
           "base": 14,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "833d7aad-d992-430e-9ee2-9b8cbc91c57a",
+          "id": "2392db4b-7af7-4c75-83a3-afb8f53b8423",
           "key": "crit",
           "name": "Crit",
           "base": 12,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "b6358766-33e7-42af-87a9-f25bd1ac67c1",
+          "id": "e208b85a-67f1-4932-bace-780190c9363d",
           "key": "attdef",
           "name": "AttDef",
           "base": 4,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "4dd9fa91-08c2-4837-85c4-844dd539bb5c",
+          "id": "aad50e1e-b76d-41a9-8ece-39596302015c",
           "key": "magdef",
           "name": "MagDef",
           "base": 11,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "e20e310e-6228-4677-b871-8dc80e5f1895",
+          "id": "9e818bf8-7c9b-45ea-93e0-c58db5b60d9e",
           "key": "wits",
           "name": "Wits",
           "base": 8,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "6bc1d982-75b3-49c8-bee6-5e532af2aa69",
+          "id": "94496bec-6d4a-4f17-af14-fdd8692255e5",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "945d2f71-68e9-4d0d-b1ac-1fe2f05ce351",
+          "id": "6717d10c-24c0-4343-8ad4-10674d426d28",
           "key": "patience",
           "name": "Patience",
           "base": 8,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "c944a8cd-b6c4-4e93-aaf3-05ca228fcdd5",
+          "id": "cdd1898d-4241-49d8-bc5f-ca09b03e3587",
           "key": "sight",
           "name": "Sight",
           "base": 10,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "5c3a9102-a96d-4612-8fb3-bf3c777e14a9",
+          "id": "48951e01-d3f7-4287-b0c3-59994f201d88",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.611Z",
-      "updatedAt": "2026-09-22T23:19:44.611Z"
+      "createdAt": "2026-09-23T05:05:02.221Z",
+      "updatedAt": "2026-09-23T05:05:02.221Z"
     },
     {
-      "id": "30a66060-1419-4c52-8f48-3ddd42c508c0",
+      "id": "2637fad3-fbd6-460e-8596-e57dd54ed211",
       "name": "Flame Bolt",
       "description": "A bolt at an enemy 2-8 m away. (1 s)",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "883c59c9-4731-4c26-8ece-26cf0561447f",
+          "id": "6e25c6b7-1706-45a4-83f9-ca06c37a697a",
           "key": "power",
           "name": "Power",
           "base": 29,
@@ -904,7 +904,7 @@
           "overrides": {}
         },
         {
-          "id": "efc2a09e-f56c-4250-9614-92e4fbb88058",
+          "id": "e022bcdf-e31d-45ee-aba3-d86161314b30",
           "key": "min_range",
           "name": "Min range",
           "base": 2,
@@ -916,7 +916,7 @@
           "overrides": {}
         },
         {
-          "id": "ab22cee7-b6b7-4a33-8ddf-ec845926710e",
+          "id": "30db1600-6320-4ce1-83bc-c328c2d93e5f",
           "key": "cast_range",
           "name": "Cast range",
           "base": 8,
@@ -928,7 +928,7 @@
           "overrides": {}
         },
         {
-          "id": "b75519be-bf99-468e-9df8-ed83f2043239",
+          "id": "5efd7437-90e5-4965-9fe3-ca144455e432",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -942,7 +942,7 @@
       ],
       "effects": [
         {
-          "id": "90fa564c-c343-4a8c-9454-fb1910b5c911",
+          "id": "460b5511-10b7-4257-bb8f-061d8aa477e3",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -980,11 +980,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.612Z",
-      "updatedAt": "2026-09-22T23:19:44.612Z"
+      "createdAt": "2026-09-23T05:05:02.221Z",
+      "updatedAt": "2026-09-23T05:05:02.221Z"
     },
     {
-      "id": "bcb35542-fbcf-42ba-a3c6-b4c2ca506ff7",
+      "id": "b0b1977d-f86d-4ae1-8117-defbc8736a75",
       "name": "Fireburst",
       "description": "Every enemy within 2 m of a point 2-8 m away; Burns for 2 turns. (2 s)",
       "kind": "Active",
@@ -1009,7 +1009,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "221d56ed-9aac-472d-a6cf-3a0bd4c6fb5c",
+          "id": "cbf5a034-2a7d-460f-830a-eb17fe1a23f9",
           "key": "power",
           "name": "Power",
           "base": 18,
@@ -1021,7 +1021,7 @@
           "overrides": {}
         },
         {
-          "id": "e28d3616-eb96-4811-96d2-b0be025f6a71",
+          "id": "7bc3546c-8b9f-4416-afe3-c6ddf41c783c",
           "key": "min_range",
           "name": "Min range",
           "base": 2,
@@ -1033,7 +1033,7 @@
           "overrides": {}
         },
         {
-          "id": "55d9b3c0-376e-42b7-ae32-a322cdcdf2f6",
+          "id": "2cfd7f08-1347-499b-9ced-d7ad04e6ca66",
           "key": "cast_range",
           "name": "Cast range",
           "base": 8,
@@ -1045,7 +1045,7 @@
           "overrides": {}
         },
         {
-          "id": "1370a10d-5d3b-4516-8e73-b56be2c22406",
+          "id": "8ae9aba1-5620-43fd-a8d1-04787c845001",
           "key": "radius",
           "name": "Radius",
           "base": 2,
@@ -1057,7 +1057,7 @@
           "overrides": {}
         },
         {
-          "id": "f6ac800d-73da-49e2-ba9d-b261268a2248",
+          "id": "60bad878-e80a-4772-a2bb-99d653e0d86b",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1069,7 +1069,7 @@
           "overrides": {}
         },
         {
-          "id": "1b67a306-7760-4a29-a9fa-acc153e9a0da",
+          "id": "a4e4d22c-db89-4946-82a7-749203b3d193",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -1081,7 +1081,7 @@
           "overrides": {}
         },
         {
-          "id": "17f9eb32-3395-4f4c-9311-4d455f6115d3",
+          "id": "3dbef466-564e-4049-92ac-56039c413ff6",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1095,7 +1095,7 @@
       ],
       "effects": [
         {
-          "id": "f1d55b7c-c2bd-4b3b-ac1b-54a41dc6af40",
+          "id": "8f30ba2b-f944-4ecd-adec-b60ab406fc6c",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1108,7 +1108,7 @@
           "notes": ""
         },
         {
-          "id": "8c675ced-ad9e-4b3d-8328-f0eb06f35d81",
+          "id": "fa6bfb6e-2098-47ae-91b2-817a16acc778",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1146,11 +1146,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.612Z",
-      "updatedAt": "2026-09-22T23:19:44.612Z"
+      "createdAt": "2026-09-23T05:05:02.221Z",
+      "updatedAt": "2026-09-23T05:05:02.221Z"
     },
     {
-      "id": "6a5dcc25-01de-4098-bf44-c6001430c445",
+      "id": "e040030c-1091-4d7b-8fe2-3a4038ae2d7d",
       "name": "Flame Staff",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -1175,7 +1175,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "6d4e386d-4743-44ee-914d-e3ec2dab392c",
+          "id": "7dd44f92-e994-446c-9ec9-0c2176b6ae2c",
           "key": "power",
           "name": "Power",
           "base": 11,
@@ -1189,7 +1189,7 @@
       ],
       "effects": [
         {
-          "id": "17ae0d9c-fe34-45ec-aa49-3579e27e7a0e",
+          "id": "d557a029-800c-4eba-adea-12d4a1313680",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1227,11 +1227,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.612Z",
-      "updatedAt": "2026-09-22T23:19:44.612Z"
+      "createdAt": "2026-09-23T05:05:02.221Z",
+      "updatedAt": "2026-09-23T05:05:02.221Z"
     },
     {
-      "id": "e0395943-7e09-45c2-b24c-c68b5cb9b046",
+      "id": "c5b50f76-1edd-4b4d-bc7b-d6c0938fdc36",
       "name": "Inferno",
       "description": "Every enemy within 3.5 m of a point 4-11 m away; Burns for 2 turns. (1 s) Repeats for 2 turns; the unit can't act meanwhile.",
       "kind": "Channeled",
@@ -1257,7 +1257,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "f62d5c69-82e3-4371-9619-adf87bda5628",
+          "id": "25f4bc81-701d-4dae-a295-03893d89b3e8",
           "key": "power",
           "name": "Power",
           "base": 22,
@@ -1269,7 +1269,7 @@
           "overrides": {}
         },
         {
-          "id": "5565726a-015b-4822-8931-5efeb8d09d8f",
+          "id": "3797a789-9681-4838-8715-21d58ad71f62",
           "key": "min_range",
           "name": "Min range",
           "base": 4,
@@ -1281,7 +1281,7 @@
           "overrides": {}
         },
         {
-          "id": "b194957a-7d05-4182-bc59-201058fb51e0",
+          "id": "6e223c8b-132c-4e6f-8e19-bfdde6b65210",
           "key": "cast_range",
           "name": "Cast range",
           "base": 11,
@@ -1293,7 +1293,7 @@
           "overrides": {}
         },
         {
-          "id": "4569d768-e6c0-4285-9666-a23ccd093874",
+          "id": "f44517c2-d3d3-4f3e-9b14-936d63c99204",
           "key": "radius",
           "name": "Radius",
           "base": 3.5,
@@ -1305,7 +1305,7 @@
           "overrides": {}
         },
         {
-          "id": "11673eed-2432-40df-b9d2-c9e7a0f770ed",
+          "id": "a3ffe5db-4074-41f9-8709-60d68139c45e",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1317,7 +1317,7 @@
           "overrides": {}
         },
         {
-          "id": "eb9fe86e-cb7b-48c2-9c44-cd74b16ebc0a",
+          "id": "bf533e1e-e5b1-40cb-aaa8-c118c841bcf6",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1329,7 +1329,7 @@
           "overrides": {}
         },
         {
-          "id": "25cc7ce8-5322-4db7-a239-2b855e3ce59c",
+          "id": "09cb0a00-f292-4017-8d95-a87298f53a1c",
           "key": "channel_turns",
           "name": "Channel turns",
           "base": 2,
@@ -1343,7 +1343,7 @@
       ],
       "effects": [
         {
-          "id": "e7eef81f-524f-4034-9f05-a237c72c34e3",
+          "id": "fdb3faca-2612-467d-b54b-d4bf7520f96b",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1356,7 +1356,7 @@
           "notes": ""
         },
         {
-          "id": "226f1c65-be45-459f-9ca4-10d3387d026d",
+          "id": "b3de850a-df24-4028-8789-bbe1dc9f6154",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1394,8 +1394,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.612Z",
-      "updatedAt": "2026-09-22T23:19:44.612Z"
+      "createdAt": "2026-09-23T05:05:02.221Z",
+      "updatedAt": "2026-09-23T05:05:02.221Z"
     }
   ]
 }

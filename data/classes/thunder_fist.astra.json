@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "12a00872-7cf6-4600-ac2e-31a0c7129cbb",
+      "id": "a040c3c9-fa16-46ca-a9ed-7d0358c7c334",
       "name": "Thunder Fist",
       "description": "Fast melee fighter, lightning element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "d0018162-8d9b-4243-a753-8c8d62473939",
+          "id": "45a32822-2108-4fd2-be24-09e855f5e754",
           "key": "hp",
           "name": "HP",
           "base": 75,
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "48e3f5cb-8054-48fc-9e53-71285cdb2c42",
+          "id": "72dc0901-510f-47d0-9a6e-fc701a110f3d",
           "key": "power",
           "name": "Power",
-          "base": 17,
+          "base": 16,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "ba4a3248-0f2e-4fbd-a7ab-5cfea8546d5a",
+          "id": "4ed7ae80-8c33-4009-993e-79366142ed48",
           "key": "aeva",
           "name": "A-Eva",
           "base": 18,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "79a55993-32f0-4b27-9177-80655920d0a0",
+          "id": "c0120797-81bf-425c-9459-9b5d64577799",
           "key": "meva",
           "name": "M-Eva",
           "base": 8,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "a1bfefc5-146d-4312-a9ee-28d12f23bce3",
+          "id": "29103f59-4c99-4391-8c5a-ad4d5314f751",
           "key": "crit",
           "name": "Crit",
           "base": 12,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "5c2d0302-ffef-4498-8fb7-0cf898fc4516",
+          "id": "f9855a6d-a635-4ef7-a435-6530454796d1",
           "key": "attdef",
           "name": "AttDef",
           "base": 8,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "bd04677f-42c1-4084-b8ed-0e4464a73efc",
+          "id": "5950895d-98b8-44d3-b337-a7a63ba7e137",
           "key": "magdef",
           "name": "MagDef",
           "base": 6,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "28b5a22a-fd95-4676-9223-4217587bffc7",
+          "id": "da9a5ea2-fc84-4942-9bc1-2ff2752ba68d",
           "key": "wits",
           "name": "Wits",
           "base": 14,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "69a603a1-58be-4ecc-9032-3a2223d2cfef",
+          "id": "edf12af9-38c4-4505-8538-4050c8c36cb6",
           "key": "move",
           "name": "Move",
           "base": 8,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "f7bd260f-a711-4ce6-a044-1fa85f79c9ed",
+          "id": "df9b1e0e-93f6-42ab-8198-e7a41ac8f45f",
           "key": "patience",
           "name": "Patience",
           "base": 5,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "67c1acee-2806-4a41-be17-06585f00ded6",
+          "id": "fdf47f60-f735-4ba1-bbdd-8903214f5dcb",
           "key": "sight",
           "name": "Sight",
           "base": 9,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "dbf1afe2-28c6-4bed-a583-b8cec0a7aff4",
+          "id": "84963e58-9f1a-4ed0-9854-11caac947e51",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.598Z",
-      "updatedAt": "2026-09-22T23:19:44.598Z"
+      "createdAt": "2026-09-23T05:05:02.211Z",
+      "updatedAt": "2026-09-23T05:05:02.211Z"
     },
     {
-      "id": "d27a9a15-6c9b-4ccc-9dd7-86ebb104c11f",
+      "id": "dd8ab315-99f5-4f3d-9d02-516d4cf105b3",
       "name": "Thunder Jab",
       "description": "Punch an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "7b11b9a1-2ae9-4b0d-9af3-32985b9d1082",
+          "id": "09d829e3-ff2a-4f58-a95b-1d7965fef230",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "6b356aab-4fdb-40ae-b8ff-dde2e60993f9",
+          "id": "6d0e8a25-731c-4902-a6e7-ffef60b19f39",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.598Z",
-      "updatedAt": "2026-09-22T23:19:44.598Z"
+      "createdAt": "2026-09-23T05:05:02.212Z",
+      "updatedAt": "2026-09-23T05:05:02.212Z"
     },
     {
-      "id": "708572ef-50ae-4930-a702-1f4ece0cf0fc",
+      "id": "2c3df6b4-7efd-483c-8d0f-095c40c6600e",
       "name": "Thunder Uppercut",
       "description": "A rising blow on an adjacent enemy; Stuns for 1 turn.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "6d322781-0cd1-4114-a755-30e3e95bb857",
+          "id": "ca9439f8-a6c5-4a7e-9ed1-aaab56f58234",
           "key": "power",
           "name": "Power",
           "base": 27,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "b336e927-8e2b-48cf-8b7f-69e9853fef76",
+          "id": "69df3ecf-7117-4beb-a435-93bd715af9fd",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "5263be3e-f5e7-4887-b768-bb8f2bfd99ba",
+          "id": "3dc2ad44-bac6-4d12-90eb-d7718250d1b9",
           "key": "status_duration",
           "name": "Status turns",
           "base": 1,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "d2e56097-4a77-4bc7-9419-7bd98bf555a1",
+          "id": "aac3e5dc-9ee3-4b9d-ae3f-5c31687e0552",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1024,7 +1024,7 @@
           "notes": ""
         },
         {
-          "id": "8c9b8d1b-5ac4-4918-904e-8056b3181ab9",
+          "id": "a74ca4f4-59c6-41b8-8306-73668cd0d879",
           "name": "Stun",
           "type": "Stun",
           "trigger": "On hit",
@@ -1062,11 +1062,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.598Z",
-      "updatedAt": "2026-09-22T23:19:44.598Z"
+      "createdAt": "2026-09-23T05:05:02.212Z",
+      "updatedAt": "2026-09-23T05:05:02.212Z"
     },
     {
-      "id": "ba045425-c018-4a3b-9400-842322705c30",
+      "id": "506404cd-b675-4cda-829f-43b668e8294d",
       "name": "Thunder Stance",
       "description": "Take a fighting stance; Wits +2 for 2 turns. Switched on and off.",
       "kind": "Toggle",
@@ -1091,7 +1091,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "8be90dbb-3424-4e38-aca3-a91675fd3216",
+          "id": "10b43160-58a9-4ba4-9be5-39b69af7a740",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "b10d5fe3-7c44-4f65-acd4-f54adab1b277",
+          "id": "0fc0863a-d70f-457e-b426-97b91d006264",
           "key": "buff_wits",
           "name": "Buff Wits",
           "base": 2,
@@ -1117,7 +1117,7 @@
       ],
       "effects": [
         {
-          "id": "a4c0e0ad-2fdd-49e1-af06-2dd2a9bdc198",
+          "id": "dae5277d-6f21-4d48-85e1-a2bca0a7e238",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1155,11 +1155,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.598Z",
-      "updatedAt": "2026-09-22T23:19:44.598Z"
+      "createdAt": "2026-09-23T05:05:02.212Z",
+      "updatedAt": "2026-09-23T05:05:02.212Z"
     },
     {
-      "id": "85aabcf0-26e1-4791-8f31-d1663e78cbe4",
+      "id": "f3cbcd16-bb74-4f24-9640-ff716eb99f52",
       "name": "Thunder Fury",
       "description": "A flurry hitting every enemy within 2.5 m of you; Stuns for 1 turn.",
       "kind": "Active",
@@ -1185,7 +1185,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "6f091fa2-67f4-45e2-85fc-a967ec3c03b4",
+          "id": "8c47a630-e176-40f8-a126-6f5f6f133b2c",
           "key": "power",
           "name": "Power",
           "base": 32,
@@ -1197,7 +1197,7 @@
           "overrides": {}
         },
         {
-          "id": "c5b777a4-a7d8-4361-b145-859b76202e98",
+          "id": "1b154604-859a-47f2-831f-33b467269120",
           "key": "radius",
           "name": "Radius",
           "base": 2.5,
@@ -1209,7 +1209,7 @@
           "overrides": {}
         },
         {
-          "id": "8a979125-96d1-4234-b5ac-a36d03e63ef5",
+          "id": "ec57242e-c2ec-487c-9d86-e87dc2bd840e",
           "key": "status_duration",
           "name": "Status turns",
           "base": 1,
@@ -1223,7 +1223,7 @@
       ],
       "effects": [
         {
-          "id": "2e878755-8edf-4438-afc3-37bc330c624f",
+          "id": "e9b08d82-e451-4a32-af17-783165c51cc1",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1236,7 +1236,7 @@
           "notes": ""
         },
         {
-          "id": "f204a4bc-d63e-4b3d-81a6-5d22e375f57e",
+          "id": "e1d4cee1-a3d0-404f-ab85-ac6afbffb422",
           "name": "Stun",
           "type": "Stun",
           "trigger": "On hit",
@@ -1274,8 +1274,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.598Z",
-      "updatedAt": "2026-09-22T23:19:44.598Z"
+      "createdAt": "2026-09-23T05:05:02.212Z",
+      "updatedAt": "2026-09-23T05:05:02.212Z"
     }
   ]
 }

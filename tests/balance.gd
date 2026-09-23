@@ -34,7 +34,11 @@ func _initialize() -> void:
 			var state := GameState.new()
 			# Each game gets its own seed, or every battle would play out the
 			# same way and a class would score 0% or 100% on one lucky roll.
+			# The AI is seeded from it too: at medium it makes deliberate
+			# mistakes, and unseeded those alone moved a class by 50 points
+			# between runs, which buried the change being measured.
 			state.setup(MapData.build(MapData.DEFAULT_MAP, rosters[0], rosters[1]), {}, 1 + (g / 2))
+			ai.rng.seed = 1 + g
 			var class_unit_id: int = state.units[0 if side == 0 else 4].id
 			while state.winner == -1 and state.tick < 40000:
 				var ready := state.orderable_units()

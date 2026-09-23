@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "2f6dac0e-9923-4293-8d18-cb9211eb52b6",
+      "id": "da08430f-183b-4e40-85ad-b5f7ed141234",
       "name": "Frost Brawler",
       "description": "Fast melee fighter, ice element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "5d0a49c1-6523-4ebb-97b1-f4068724831b",
+          "id": "46b75cd6-9064-4406-9231-deeb470c8691",
           "key": "hp",
           "name": "HP",
           "base": 87,
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "fe4da9c3-dbe6-473b-b405-ee65ba28a42b",
+          "id": "52c04646-028e-4336-9e41-6c333e9ceec2",
           "key": "power",
           "name": "Power",
-          "base": 17,
+          "base": 16,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "6a9f0191-ac52-42bf-b266-8e15c8aeb956",
+          "id": "3d72e8d7-97e9-41bb-8916-f56f0b70cf4c",
           "key": "aeva",
           "name": "A-Eva",
           "base": 18,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "cc56c91e-1184-40d5-8b39-458fb50e70c1",
+          "id": "b39e9590-100a-4423-a391-4be9e406cf81",
           "key": "meva",
           "name": "M-Eva",
           "base": 8,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "821bc0ff-6639-4f94-8824-504883e2551e",
+          "id": "03763e30-3b35-405c-9158-274e7cbb39ab",
           "key": "crit",
           "name": "Crit",
           "base": 12,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "9c736034-7a58-467f-9de0-d75caf81d371",
+          "id": "871ac5c6-aa57-4bea-9c71-6f8c81f64c2e",
           "key": "attdef",
           "name": "AttDef",
           "base": 8,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "ff7e7b39-61d7-4160-94c5-c4f1e65c1895",
+          "id": "b0cb9eac-8b84-4f12-b039-5f8c8c0098bf",
           "key": "magdef",
           "name": "MagDef",
           "base": 8,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "222dfe71-76ab-44b8-902e-2110db0d805e",
+          "id": "32bd0f46-5de9-4be8-baf9-cce531cce3ac",
           "key": "wits",
           "name": "Wits",
           "base": 10,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "e9bf7312-8122-4e1a-8246-e014cc5fbfc5",
+          "id": "e1428739-67de-485d-8d38-0a625cf97596",
           "key": "move",
           "name": "Move",
           "base": 8,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "fd86af6f-bbe8-4252-8e39-1e2bc23ed904",
+          "id": "ccd6a01d-3a17-4e0c-9406-b1d87c3fe661",
           "key": "patience",
           "name": "Patience",
           "base": 5,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "dc053696-bc0f-4b7d-84ba-5d953cef38d0",
+          "id": "ba2e43b7-0dc3-409b-84e8-d1c64be63a78",
           "key": "sight",
           "name": "Sight",
           "base": 9,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "3548b280-10a6-4b5d-bc91-2b031a97c698",
+          "id": "eeaaf096-0d6d-4966-953c-e6f33efd4f87",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.596Z",
-      "updatedAt": "2026-09-22T23:19:44.596Z"
+      "createdAt": "2026-09-23T05:05:02.210Z",
+      "updatedAt": "2026-09-23T05:05:02.210Z"
     },
     {
-      "id": "7809ad9a-295c-4b54-92c6-d975624396e1",
+      "id": "6598ea1e-7f76-4ba4-b5ed-c1a9e1d78e59",
       "name": "Frost Jab",
       "description": "Punch an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "29094608-d9f5-455c-b286-33c6a0c1d578",
+          "id": "70c4f978-4d09-4eff-bb0c-64a119749bc0",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "a90e331e-6efc-4208-a811-a1660fc9430a",
+          "id": "59fad10b-3980-4360-9987-017c2eaabdb2",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.596Z",
-      "updatedAt": "2026-09-22T23:19:44.596Z"
+      "createdAt": "2026-09-23T05:05:02.210Z",
+      "updatedAt": "2026-09-23T05:05:02.210Z"
     },
     {
-      "id": "1c54fc3d-8f4b-438a-bbc5-c396183c81b7",
+      "id": "10f9099b-3769-4f25-8273-f7b7eb5c8843",
       "name": "Frost Uppercut",
       "description": "A rising blow on an adjacent enemy; Slows for 2 turns.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "5ffd54be-70b6-4a9f-bb3e-253b473e3fdd",
+          "id": "c48a8c7a-5a62-4246-b3fd-d249bffaf244",
           "key": "power",
           "name": "Power",
           "base": 27,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "d6faa77c-959b-4887-9d1a-6f7d520bea2c",
+          "id": "0f53e0ed-2442-43c2-9343-9a9cf7abf2d5",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "34b5878e-b879-48f6-a83a-af3e3bbe4ab3",
+          "id": "d63b7edd-ba86-47ec-b878-e8081aef4fc5",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "89536b09-033c-4d62-8cd1-894a56d9e854",
+          "id": "87293736-e265-4857-8349-95a197347c7a",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1024,7 +1024,7 @@
           "notes": ""
         },
         {
-          "id": "1185fcd0-19d2-478a-ab67-356e48e64001",
+          "id": "3417719a-20b8-4e48-a1b9-088b14838f43",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1062,11 +1062,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.596Z",
-      "updatedAt": "2026-09-22T23:19:44.596Z"
+      "createdAt": "2026-09-23T05:05:02.210Z",
+      "updatedAt": "2026-09-23T05:05:02.210Z"
     },
     {
-      "id": "48bf627d-44d2-4f50-927f-2c94528bdb6f",
+      "id": "d4bb5a22-ff3b-45ba-aa60-93ba3e57bde1",
       "name": "Frost Stance",
       "description": "Take a fighting stance; MagDef +6 for 2 turns. Switched on and off.",
       "kind": "Toggle",
@@ -1091,7 +1091,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "068f13b4-bf13-4b8d-846f-ca619a00a85d",
+          "id": "2e8c7df7-e296-40e9-a8bc-af14845f7855",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "d3b9857a-a213-4b79-93f6-ebd42e1743c3",
+          "id": "80143ce1-e19a-4554-87de-84009035b0b2",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": 6,
@@ -1117,7 +1117,7 @@
       ],
       "effects": [
         {
-          "id": "1b13e3ab-d6b8-490e-9727-783a5b40a470",
+          "id": "79d30109-d8de-4a0f-8c60-1afb8b670d2c",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1155,11 +1155,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.596Z",
-      "updatedAt": "2026-09-22T23:19:44.596Z"
+      "createdAt": "2026-09-23T05:05:02.210Z",
+      "updatedAt": "2026-09-23T05:05:02.210Z"
     },
     {
-      "id": "74738d01-09f9-4b71-863f-e04acf2632c3",
+      "id": "e599ca01-cb14-4991-a80e-3bad7a06fdc5",
       "name": "Frost Fury",
       "description": "A flurry hitting every enemy within 2.5 m of you; Slows for 2 turns.",
       "kind": "Active",
@@ -1185,7 +1185,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "6c556933-8daf-4871-9b49-26e8fd35240a",
+          "id": "8de45cdf-3808-4824-b695-01d201e33e52",
           "key": "power",
           "name": "Power",
           "base": 32,
@@ -1197,7 +1197,7 @@
           "overrides": {}
         },
         {
-          "id": "9b6d9ee0-7e51-4aa8-8bcf-1f55596ff58c",
+          "id": "1b157c83-84e8-45f0-8c02-caa8b0c4d23f",
           "key": "radius",
           "name": "Radius",
           "base": 2.5,
@@ -1209,7 +1209,7 @@
           "overrides": {}
         },
         {
-          "id": "81080ce7-1895-452a-a8e1-9925d0a64869",
+          "id": "7c43454c-774a-4b8e-85a6-11ebc81c1929",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1223,7 +1223,7 @@
       ],
       "effects": [
         {
-          "id": "f6f012a9-dcb6-4491-9f04-36091e31e5f5",
+          "id": "f5688945-3e10-4624-8728-2e09339af0e8",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1236,7 +1236,7 @@
           "notes": ""
         },
         {
-          "id": "190476b1-fb9d-4875-9ff0-036e24890fa3",
+          "id": "7aed2062-3c31-4469-b41e-dff827c90a37",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1274,8 +1274,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.597Z",
-      "updatedAt": "2026-09-22T23:19:44.597Z"
+      "createdAt": "2026-09-23T05:05:02.211Z",
+      "updatedAt": "2026-09-23T05:05:02.211Z"
     }
   ]
 }

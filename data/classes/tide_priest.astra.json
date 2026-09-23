@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "abe6e1fd-b51c-410b-b156-c2eaed72300c",
+      "id": "1c2e4015-71b4-491a-93aa-642bfab01aed",
       "name": "Tide Priest",
       "description": "Healer who revives, water element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "2d2d2a1e-87ca-4ba5-9387-fa1eb3a3f03a",
+          "id": "dc635690-ff6b-4438-8add-3d227b375e2e",
           "key": "hp",
           "name": "HP",
-          "base": 76,
+          "base": 80,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "3cd11731-6371-4e87-a702-1c92a11e30bf",
+          "id": "6a3b48da-f477-45ad-adad-2d7bd7b1e565",
           "key": "power",
           "name": "Power",
-          "base": 15,
+          "base": 17,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "59b126c3-52f8-4a7f-81bf-7b41467f7abd",
+          "id": "70d29491-4aaa-4743-ba0e-0f8441ebc379",
           "key": "aeva",
           "name": "A-Eva",
           "base": 5,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "faff6a72-3c8e-4a3c-b9aa-08c615f87644",
+          "id": "eb00aa1b-6772-4827-be74-e12f62ad80d9",
           "key": "meva",
           "name": "M-Eva",
           "base": 16,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "fbfd0ab1-41b3-4868-89fc-1bbcf5855112",
+          "id": "b0fe4ba5-6850-46a3-bd45-7e6968ca63c4",
           "key": "crit",
           "name": "Crit",
           "base": 5,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "bb242a78-b51c-4ec7-98a1-c95d2cdd7dff",
+          "id": "0726a1d1-0d6f-4998-b739-ff130009074b",
           "key": "attdef",
           "name": "AttDef",
           "base": 5,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "e09aa453-89cb-4077-b126-8896e5ae2b5e",
+          "id": "05268362-e956-4cb4-9b60-3f15cb9077fe",
           "key": "magdef",
           "name": "MagDef",
           "base": 14,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "81239de4-d496-461e-beb6-5263aac3056c",
+          "id": "0ba16117-f6ed-491c-bf9a-34648e7e2ddb",
           "key": "wits",
           "name": "Wits",
           "base": 8,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "eaad03a1-a4d3-41aa-9952-b62e88b51917",
+          "id": "5e134de1-d060-455d-bd1c-08d9bbd74f6d",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "acafec95-c58b-4e82-a0c7-ebb9c02f7164",
+          "id": "eb073c95-2567-4d9f-b2b7-32b92b811a17",
           "key": "patience",
           "name": "Patience",
           "base": 8,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "07e1e386-0f87-450a-83ea-b70f6a775437",
+          "id": "d0a34818-603f-4960-b026-85225ce66741",
           "key": "sight",
           "name": "Sight",
           "base": 10,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "34e33d99-5d9b-4fe0-9c4a-2e180c4f5549",
+          "id": "ba415b2a-7faf-4b7a-ac9c-d545c6389416",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.615Z",
-      "updatedAt": "2026-09-22T23:19:44.615Z"
+      "createdAt": "2026-09-23T05:05:02.225Z",
+      "updatedAt": "2026-09-23T05:05:02.225Z"
     },
     {
-      "id": "19f2bcf6-713b-4eaa-b59f-925bf5be5332",
+      "id": "c46c627a-27eb-4c67-8d5e-7114efba2ab6",
       "name": "Tide Rod",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "7e8108b9-725e-4eb6-b636-7f9febcc72ba",
+          "id": "ee4a58f0-21b4-410d-8fb4-5a61f554d55e",
           "key": "power",
           "name": "Power",
           "base": 9,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "5f5fd103-9a58-4d4c-bb3a-31dd5c9a2acb",
+          "id": "b1bd2d6c-15bc-4bcc-99dd-0e74d88022fa",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.615Z",
-      "updatedAt": "2026-09-22T23:19:44.615Z"
+      "createdAt": "2026-09-23T05:05:02.225Z",
+      "updatedAt": "2026-09-23T05:05:02.225Z"
     },
     {
-      "id": "cc011316-a126-42ff-abbc-843e9ff9c88a",
+      "id": "22be4f68-906a-4854-8502-8adb3acba7bd",
       "name": "Tide Mend",
       "description": "Heal an ally up to 6 m away; Regen for 2 turns. (1 s)",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "3633f698-20fc-42ec-a255-da63c548bd30",
+          "id": "5ce553d1-1191-4408-9171-f29c7f0b2091",
           "key": "power",
           "name": "Power",
           "base": 7,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "7b282c68-9151-47f8-ad51-fbc3d46f9685",
+          "id": "ea1b545d-9aa1-4fde-95c6-ea614f810f87",
           "key": "cast_range",
           "name": "Cast range",
           "base": 6,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "885edbee-9251-4183-94c1-0f7a75879443",
+          "id": "f284400e-e2be-4984-a147-c3550442b70b",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1009,7 +1009,7 @@
           "overrides": {}
         },
         {
-          "id": "44870b47-b407-46b3-b1dd-010c5a9d98de",
+          "id": "624d8dfc-cb01-409a-b661-167f9b5e8e8c",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1023,7 +1023,7 @@
       ],
       "effects": [
         {
-          "id": "e9553de7-c81b-4912-80ce-814a9d760646",
+          "id": "e749cb5d-04ec-49aa-aaaa-009f1b97f503",
           "name": "Heal",
           "type": "Heal",
           "trigger": "On hit",
@@ -1061,11 +1061,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.615Z",
-      "updatedAt": "2026-09-22T23:19:44.615Z"
+      "createdAt": "2026-09-23T05:05:02.225Z",
+      "updatedAt": "2026-09-23T05:05:02.225Z"
     },
     {
-      "id": "a8997f07-c4e1-4543-8dd5-3d100d989970",
+      "id": "c5c55a4d-bfff-40be-b68a-575af158bae8",
       "name": "Tide Rebirth",
       "description": "Revive a knocked-out ally up to 5 m away with 30% HP. (2 s)",
       "kind": "Active",
@@ -1091,7 +1091,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "88a5d5fa-da07-44d3-9e6a-6801a15e9265",
+          "id": "e3f6098f-4391-4018-89f2-7d922927162c",
           "key": "power",
           "name": "Power",
           "base": 0.3,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "00e5c8fb-d8b2-4657-b65a-8893b9fe13a8",
+          "id": "5e6ed337-bffb-410d-9e5d-bbdc96597e96",
           "key": "cast_range",
           "name": "Cast range",
           "base": 5,
@@ -1115,7 +1115,7 @@
           "overrides": {}
         },
         {
-          "id": "64e58e9f-25c0-4986-8077-7edb678cc018",
+          "id": "6c75ef51-7bd5-4269-bbae-84cf5550f30b",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1127,7 +1127,7 @@
           "overrides": {}
         },
         {
-          "id": "9a5bf4d7-924d-4eb0-81ec-eeedb4e40b67",
+          "id": "b1829db7-54b8-40ec-8dda-aa6d454c05aa",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 4,
@@ -1141,7 +1141,7 @@
       ],
       "effects": [
         {
-          "id": "b5641e72-7f27-461a-ba0d-238521641eee",
+          "id": "b5c34768-c3b0-43f3-92d6-e49e81af7538",
           "name": "Heal",
           "type": "Heal",
           "trigger": "On hit",
@@ -1179,11 +1179,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.615Z",
-      "updatedAt": "2026-09-22T23:19:44.615Z"
+      "createdAt": "2026-09-23T05:05:02.225Z",
+      "updatedAt": "2026-09-23T05:05:02.225Z"
     },
     {
-      "id": "81088610-ea1b-4f21-a829-27fcfb78592b",
+      "id": "02995a10-b0c6-4442-99be-13a06cb34357",
       "name": "Tide Sanctuary",
       "description": "Heal every ally within 3.5 m of a point up to 8 m away; Regen for 3 turns. (3 s)",
       "kind": "Active",
@@ -1209,7 +1209,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "4bd9f3fc-e112-40f6-8fd1-d3fc350b1fd6",
+          "id": "f357ffad-e1ee-4f58-a7e9-562517d9bc21",
           "key": "power",
           "name": "Power",
           "base": 12,
@@ -1221,7 +1221,7 @@
           "overrides": {}
         },
         {
-          "id": "919aab01-aceb-4a75-b12b-b9bf6484fd21",
+          "id": "ce757fff-755e-4dc6-8e18-67cc7872d237",
           "key": "cast_range",
           "name": "Cast range",
           "base": 8,
@@ -1233,7 +1233,7 @@
           "overrides": {}
         },
         {
-          "id": "4c2eae45-3ce2-4d2b-9d59-6f2a64aeffaf",
+          "id": "3724de04-a81b-4409-912d-1d877facf7ed",
           "key": "radius",
           "name": "Radius",
           "base": 3.5,
@@ -1245,7 +1245,7 @@
           "overrides": {}
         },
         {
-          "id": "b17c9536-a250-4b46-a174-ca7953348af7",
+          "id": "01339b42-852d-4252-8c97-e4a9d4f01b6b",
           "key": "cast_time",
           "name": "Cast time",
           "base": 3,
@@ -1257,7 +1257,7 @@
           "overrides": {}
         },
         {
-          "id": "9efca187-abf7-45ba-8558-81adcbf5d0fa",
+          "id": "64a1652d-2cf7-4b36-a437-581d2ff0b23a",
           "key": "status_duration",
           "name": "Status turns",
           "base": 3,
@@ -1271,7 +1271,7 @@
       ],
       "effects": [
         {
-          "id": "22fb041f-fe2d-4970-a0a2-9c2a53915496",
+          "id": "147920b0-318d-40fc-8b62-557b21dcdcce",
           "name": "Heal",
           "type": "Heal",
           "trigger": "On hit",
@@ -1309,8 +1309,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.615Z",
-      "updatedAt": "2026-09-22T23:19:44.615Z"
+      "createdAt": "2026-09-23T05:05:02.225Z",
+      "updatedAt": "2026-09-23T05:05:02.225Z"
     }
   ]
 }

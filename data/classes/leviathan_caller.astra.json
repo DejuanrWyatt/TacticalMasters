@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "c6754800-2366-4d2d-96ba-fecd7961a0ca",
+      "id": "bd527d8d-8312-4801-a929-ef56f0062b44",
       "name": "Leviathan Caller",
       "description": "Slow caster of huge summons, water element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "2486dc7c-2076-4e9d-8b51-208d04031ca4",
+          "id": "fcbe807f-0772-4f44-8178-f9880281b41d",
           "key": "hp",
           "name": "HP",
-          "base": 77,
+          "base": 83,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "e921c1ff-1202-4a06-8ab6-463c0de2d215",
+          "id": "ea172413-e9cd-404b-86f9-4194081d8bde",
           "key": "power",
           "name": "Power",
-          "base": 19,
+          "base": 21,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "9cde75c4-b772-4833-953e-46e450223c7c",
+          "id": "67cb83bc-a03f-430d-a875-037dbe7f8fe9",
           "key": "aeva",
           "name": "A-Eva",
           "base": 5,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "8eb4bf40-e22f-49ca-8cb8-e39acfc4d7a7",
+          "id": "059a3b29-9fad-469c-aac9-2d37acae262d",
           "key": "meva",
           "name": "M-Eva",
           "base": 14,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "c160bacb-dcb9-434a-840e-21be4a48b962",
+          "id": "091215ae-600b-4cbc-ac6b-4508f262a0e7",
           "key": "crit",
           "name": "Crit",
           "base": 10,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "f3c7b2b3-266d-49bc-bed3-ed4faf872c84",
+          "id": "4ec4ed37-750d-41a6-9600-0dc772db49d5",
           "key": "attdef",
           "name": "AttDef",
           "base": 4,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "b4022a95-6c40-4f50-b7d3-e6f60362b43f",
+          "id": "16f73d32-9016-436c-8e1f-c7c07bdf6226",
           "key": "magdef",
           "name": "MagDef",
           "base": 13,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "dd506aa3-e90a-46fc-8834-dfd9ffe80db9",
+          "id": "a4f7446a-76f4-41d1-8e33-b234bfe066c6",
           "key": "wits",
           "name": "Wits",
           "base": 6,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "e2517ac7-a249-4c6d-be4a-47ca1e2c8d4b",
+          "id": "6eca61f6-7732-42aa-a008-a39262b55ac2",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "07039484-a935-4f53-8c54-3c29af3a980c",
+          "id": "f773be76-db58-499f-86c7-8993c5c39279",
           "key": "patience",
           "name": "Patience",
           "base": 9,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "c3d19516-38f5-459c-929d-0ad2bf7ca8e0",
+          "id": "95462f70-eb0d-4f1b-bc1b-162386835a44",
           "key": "sight",
           "name": "Sight",
           "base": 10,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "6c1b73e3-d8ed-4303-b86c-c9023c507520",
+          "id": "baa2e00d-f925-49d9-a2ee-1ba45a5d3739",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.620Z",
-      "updatedAt": "2026-09-22T23:19:44.620Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     },
     {
-      "id": "68ec9702-ccc4-480f-92de-ba6507815c7f",
+      "id": "1f787069-b403-4d65-914b-f7458012b63e",
       "name": "Tide Rod",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "13c24bd6-8ff7-4baf-b05a-f8bfc71d0463",
+          "id": "f3777834-5664-4b43-840f-fc8195e9ec13",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "79949bdd-8725-4628-92a0-b7d2312c1ef6",
+          "id": "c2ba8da7-3057-4a54-a2f2-8c8361c65431",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.620Z",
-      "updatedAt": "2026-09-22T23:19:44.620Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     },
     {
-      "id": "d24bcac4-cbf9-41b2-89fb-8ab442657b08",
+      "id": "205f46b6-5cdf-4bab-837a-0f9b27af76aa",
       "name": "Summon Leviathan",
       "description": "The Leviathan strikes every enemy within 2 m of a point 3-9 m away; Slows for 2 turns. (2 s)",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "362f2b7e-cecb-4c97-baf7-92f72810da3b",
+          "id": "8237e544-3098-4377-8230-74b20d1de369",
           "key": "power",
           "name": "Power",
           "base": 27,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "061f5d10-97cb-484d-bef3-e3d474cd1e69",
+          "id": "a0504869-b7d2-4171-bb4a-1a6f7f12432d",
           "key": "min_range",
           "name": "Min range",
           "base": 3,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "7a419df1-faa7-41ff-8fad-f6777da808c2",
+          "id": "594ff1d6-ce23-4b11-b767-21ad5c937c1e",
           "key": "cast_range",
           "name": "Cast range",
           "base": 9,
@@ -1009,7 +1009,7 @@
           "overrides": {}
         },
         {
-          "id": "fe896c47-2ff4-4bee-8730-f76a679ea278",
+          "id": "376ab49b-1134-4a50-9ade-008572ef7dc3",
           "key": "radius",
           "name": "Radius",
           "base": 2,
@@ -1021,7 +1021,7 @@
           "overrides": {}
         },
         {
-          "id": "5fc3acbe-1845-45a2-8a70-73fa6c1d4ebb",
+          "id": "bebec402-39a6-40b3-96d1-0e53ade8379a",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1033,7 +1033,7 @@
           "overrides": {}
         },
         {
-          "id": "cb233505-44c3-475f-aefa-a6daae4e59f0",
+          "id": "9131948e-0195-4d1c-b7d7-7050a6a354a5",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -1045,7 +1045,7 @@
           "overrides": {}
         },
         {
-          "id": "025f90ad-f81c-4954-9863-672731a74a2b",
+          "id": "43195bb7-67ba-491d-a5ad-fd70dcb09b52",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1059,7 +1059,7 @@
       ],
       "effects": [
         {
-          "id": "6a88833f-00f9-4eaf-8b31-b9d0fad25b5f",
+          "id": "9afb8f50-01f8-4a63-b02c-21a3375ec247",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1072,7 +1072,7 @@
           "notes": ""
         },
         {
-          "id": "442edf5b-fdd8-4a4a-bd18-a4fa1ee9afae",
+          "id": "db1b9b06-8cfc-4874-b7ce-98a57aa540c0",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1110,11 +1110,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.620Z",
-      "updatedAt": "2026-09-22T23:19:44.620Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     },
     {
-      "id": "aa2fa043-7def-4bf6-bbd7-d03a988cdb93",
+      "id": "2cb40d45-b7d0-4b14-91cc-b940a0bd1350",
       "name": "Leviathan Pact",
       "description": "Bless every ally within 3 m of a point up to 6 m away; MagDef +5 for 2 turns. (1 s)",
       "kind": "Active",
@@ -1139,7 +1139,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "a37ef005-30a7-4b7e-9e08-2b3087add46b",
+          "id": "b332810a-964f-4ae3-a73a-221073bd5835",
           "key": "cast_range",
           "name": "Cast range",
           "base": 6,
@@ -1151,7 +1151,7 @@
           "overrides": {}
         },
         {
-          "id": "92a38287-3f27-4f14-a967-0aef5bd76a48",
+          "id": "bad78963-ec77-4557-86de-83f476db0763",
           "key": "radius",
           "name": "Radius",
           "base": 3,
@@ -1163,7 +1163,7 @@
           "overrides": {}
         },
         {
-          "id": "885dbbc5-293e-49ce-afa9-9b41a508a726",
+          "id": "03acd3df-b626-4053-8985-9549d681e1d6",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1175,7 +1175,7 @@
           "overrides": {}
         },
         {
-          "id": "5b83d50d-9522-46c6-9c89-dc76f4344c82",
+          "id": "9d5499ea-1854-489e-b2a0-63e8dbd55104",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 3,
@@ -1187,7 +1187,7 @@
           "overrides": {}
         },
         {
-          "id": "ea6b3d67-5fab-4369-9e7c-992048f655d2",
+          "id": "e1c4d35d-b982-4806-ad81-83702d85f67c",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1199,7 +1199,7 @@
           "overrides": {}
         },
         {
-          "id": "d9acb273-ca20-473b-9e61-5ee1e1f6d45e",
+          "id": "03220f08-b80b-49ba-b757-a2818f2d65c9",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": 5,
@@ -1213,7 +1213,7 @@
       ],
       "effects": [
         {
-          "id": "842aeb5c-adce-48e1-bbb1-6457d5167d43",
+          "id": "deb456f2-d189-477f-b15e-20644ec08538",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1251,11 +1251,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.620Z",
-      "updatedAt": "2026-09-22T23:19:44.620Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     },
     {
-      "id": "2582d32b-bdc6-4529-939c-6d48e6529941",
+      "id": "9394ee84-3618-439c-8cde-9d66f0094694",
       "name": "Leviathan Ascendant",
       "description": "Every enemy within 4 m of a point 4-11 m away; Slows for 2 turns. (4 s)",
       "kind": "Active",
@@ -1281,7 +1281,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "12e30434-eef7-4594-95e2-a396a3ffde35",
+          "id": "c9adcc66-a3e6-48f9-9fca-c8ff35c870fc",
           "key": "power",
           "name": "Power",
           "base": 42,
@@ -1293,7 +1293,7 @@
           "overrides": {}
         },
         {
-          "id": "2d8762d4-aab8-4ec5-aba4-6ea3817a8515",
+          "id": "5b0b55e8-f008-4bce-8931-bba8bd0a2e4e",
           "key": "min_range",
           "name": "Min range",
           "base": 4,
@@ -1305,7 +1305,7 @@
           "overrides": {}
         },
         {
-          "id": "edcf18b9-c5a6-4016-aed5-0f27fe07a57c",
+          "id": "7b6d3d25-a774-48b0-8202-36894034f59a",
           "key": "cast_range",
           "name": "Cast range",
           "base": 11,
@@ -1317,7 +1317,7 @@
           "overrides": {}
         },
         {
-          "id": "29014ded-4123-4130-a367-13b899dc1309",
+          "id": "b3d7ce00-9ab9-407a-9790-a05dd4d9649d",
           "key": "radius",
           "name": "Radius",
           "base": 4,
@@ -1329,7 +1329,7 @@
           "overrides": {}
         },
         {
-          "id": "15bb95b8-d04f-431a-9328-5f2731e736db",
+          "id": "e7f6b706-dbca-44d2-b34a-df5e50a54235",
           "key": "cast_time",
           "name": "Cast time",
           "base": 4,
@@ -1341,7 +1341,7 @@
           "overrides": {}
         },
         {
-          "id": "ef1b2c42-2181-44ab-8db3-f0f097efde52",
+          "id": "d8fcd1d8-a785-4e22-ba5e-3133875bd787",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1355,7 +1355,7 @@
       ],
       "effects": [
         {
-          "id": "5d68e239-6695-4963-900c-da404c2d50d0",
+          "id": "47764e43-e37e-4f27-9557-93d2bb30b7b1",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1368,7 +1368,7 @@
           "notes": ""
         },
         {
-          "id": "68d828a4-ff45-4093-bc27-fad1dfb454a4",
+          "id": "fb6aca69-8f76-485d-ac47-0548e7c0b22f",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1406,8 +1406,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.620Z",
-      "updatedAt": "2026-09-22T23:19:44.620Z"
+      "createdAt": "2026-09-23T05:05:02.228Z",
+      "updatedAt": "2026-09-23T05:05:02.228Z"
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "b797532a-3364-40b5-9f7e-c755be819eaf",
+      "id": "210407ae-643b-40c1-bf20-46a9f09bcff4",
       "name": "Frost Witch",
       "description": "Weakens and puts enemies to sleep, ice element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "a697f8df-ba05-4c29-8377-1989073dba65",
+          "id": "5cdc7f34-986f-4b2e-bbbe-66928cbb9637",
           "key": "hp",
           "name": "HP",
-          "base": 72,
+          "base": 76,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "c471c67f-cff7-46c3-b25e-313e918d479b",
+          "id": "38736f5b-f902-4d20-968a-331d1b1039fe",
           "key": "power",
           "name": "Power",
-          "base": 17,
+          "base": 18,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "7bb48ca3-87d7-4c9d-9078-2c337a8b94f5",
+          "id": "fcd16394-753e-4b97-8fb9-5995c0ec2c5c",
           "key": "aeva",
           "name": "A-Eva",
           "base": 6,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "4723b6ec-2128-4a78-a65a-7c232d3549a6",
+          "id": "f832fe15-d46e-4b71-87ae-1a03fb8f89c2",
           "key": "meva",
           "name": "M-Eva",
           "base": 18,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "f2ec5c8e-fb6d-4edf-8e16-0817d701127e",
+          "id": "ae367c66-9651-46de-942c-fe2ca2499f20",
           "key": "crit",
           "name": "Crit",
           "base": 10,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "86ad0d18-8b51-400a-8f54-cda7c368ae26",
+          "id": "39267796-2498-4e63-9170-c7439c1781ef",
           "key": "attdef",
           "name": "AttDef",
           "base": 5,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "19908715-bf96-41c2-b30e-ab8a9420b59e",
+          "id": "41695a94-1000-4927-85c2-e11facd8df3d",
           "key": "magdef",
           "name": "MagDef",
           "base": 15,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "ed575afb-0493-4909-8228-fd9db45669be",
+          "id": "77d790f7-7cea-4072-8cdf-58fe0d20eeb5",
           "key": "wits",
           "name": "Wits",
           "base": 8,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "4c715015-5bd5-4e17-b912-48fe5227496d",
+          "id": "87fad069-52c6-40bf-a576-6de5b6801ab8",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "fb321d5b-0626-46fe-b28d-88a30ca0223f",
+          "id": "b7c25534-54a5-4c71-800d-ac19def74453",
           "key": "patience",
           "name": "Patience",
           "base": 9,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "f7d20151-c4a4-463e-8603-2d9a90daa86a",
+          "id": "beddb7ca-468f-472a-94f0-ef04057d332e",
           "key": "sight",
           "name": "Sight",
           "base": 11,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "f030229b-e778-42fe-905a-fe2d1bca2d93",
+          "id": "d92a93f1-c630-4d39-b657-a1463a09a07f",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.617Z",
-      "updatedAt": "2026-09-22T23:19:44.617Z"
+      "createdAt": "2026-09-23T05:05:02.226Z",
+      "updatedAt": "2026-09-23T05:05:02.226Z"
     },
     {
-      "id": "a1511dfa-52ee-4727-b1b7-7a29854721fb",
+      "id": "cc70ec5a-7d6b-440b-9a68-ede2df1502fe",
       "name": "Frost Hex",
       "description": "A curse-bolt at an enemy 1-7 m away.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "3252328c-5801-4ec2-956c-4e46d37df5c6",
+          "id": "51606308-4c8a-4799-9160-2c2aea571865",
           "key": "power",
           "name": "Power",
           "base": 20,
@@ -904,7 +904,7 @@
           "overrides": {}
         },
         {
-          "id": "197bd550-735b-4ed6-9770-07f904169372",
+          "id": "3f4d7192-6236-4218-9399-eeceefcd42b7",
           "key": "min_range",
           "name": "Min range",
           "base": 1,
@@ -916,7 +916,7 @@
           "overrides": {}
         },
         {
-          "id": "9bf4d2a7-7ead-4653-993b-f40c6c8238d9",
+          "id": "d5afd912-5449-4958-9d4e-c8c267fbf21a",
           "key": "cast_range",
           "name": "Cast range",
           "base": 7,
@@ -930,7 +930,7 @@
       ],
       "effects": [
         {
-          "id": "76a4f542-a562-4b50-acef-8598fbc09b9d",
+          "id": "a15ab7ed-7992-4f72-86c6-9248f6a261d9",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -968,11 +968,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.617Z",
-      "updatedAt": "2026-09-22T23:19:44.617Z"
+      "createdAt": "2026-09-23T05:05:02.226Z",
+      "updatedAt": "2026-09-23T05:05:02.226Z"
     },
     {
-      "id": "d120d061-432e-4e5f-af3d-272f4fcbc7b8",
+      "id": "a281ba9c-4ee4-4bed-9c3f-edd0b277c9d8",
       "name": "Frost Curse",
       "description": "Weaken an enemy 2-8 m away for 2 turns; Wits -3. (1 s)",
       "kind": "Active",
@@ -997,7 +997,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "e02b6dde-3f4a-40ca-84fb-7ef90dc09cd0",
+          "id": "46efbebb-18ab-4b1f-86dd-c07351210147",
           "key": "min_range",
           "name": "Min range",
           "base": 2,
@@ -1009,7 +1009,7 @@
           "overrides": {}
         },
         {
-          "id": "7f97a397-d4a9-4668-a622-9819ac975320",
+          "id": "31abf50d-09c0-493d-9c4e-99d4e18d77c6",
           "key": "cast_range",
           "name": "Cast range",
           "base": 8,
@@ -1021,7 +1021,7 @@
           "overrides": {}
         },
         {
-          "id": "1273af43-a6af-494f-bf67-20cef8f2a97d",
+          "id": "102d26a3-a92b-4b97-8144-f507f49d8284",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1033,7 +1033,7 @@
           "overrides": {}
         },
         {
-          "id": "78b4bc8c-6c72-4c85-b27b-22c0be2bbafe",
+          "id": "62ad2ddf-c588-4a32-af45-e4630ca82164",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 3,
@@ -1045,7 +1045,7 @@
           "overrides": {}
         },
         {
-          "id": "b96fb07e-e3ec-40de-a888-518cf68d7f6a",
+          "id": "d083739f-b034-4a15-9926-2f764f12eaae",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1057,7 +1057,7 @@
           "overrides": {}
         },
         {
-          "id": "cc8580a9-fb6d-4ff6-869f-6947356e03d3",
+          "id": "8bef4c74-e5f9-49b3-88c1-2e61a9d53250",
           "key": "buff_wits",
           "name": "Buff Wits",
           "base": -3,
@@ -1071,7 +1071,7 @@
       ],
       "effects": [
         {
-          "id": "7c7ccefb-480a-4ca6-be3a-9e878714ab6c",
+          "id": "c9a8b8d4-8bd3-4231-92e0-64ce8a2e3247",
           "name": "Debuff",
           "type": "Debuff",
           "trigger": "On hit",
@@ -1109,11 +1109,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.617Z",
-      "updatedAt": "2026-09-22T23:19:44.617Z"
+      "createdAt": "2026-09-23T05:05:02.226Z",
+      "updatedAt": "2026-09-23T05:05:02.226Z"
     },
     {
-      "id": "e111db1a-9741-43e3-9442-73a4b4860b18",
+      "id": "79835a10-fc61-4ba6-a5e5-72c2f299008a",
       "name": "Frost Slumber",
       "description": "Put an enemy 2-7 m away to sleep; Stuns for 1 turn. (2 s)",
       "kind": "Active",
@@ -1138,7 +1138,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "b3f9c3da-70fb-4ecb-a31c-2ad0ba42865d",
+          "id": "3e89afbf-7cb7-49e5-9859-f879d5321c5c",
           "key": "min_range",
           "name": "Min range",
           "base": 2,
@@ -1150,7 +1150,7 @@
           "overrides": {}
         },
         {
-          "id": "eb0d6acc-dcd6-49f2-a00b-cfa7f7ebd881",
+          "id": "2205cc98-33da-4326-aaa9-80986884cc3b",
           "key": "cast_range",
           "name": "Cast range",
           "base": 7,
@@ -1162,7 +1162,7 @@
           "overrides": {}
         },
         {
-          "id": "2716e2b8-8b35-4816-b0ba-cf0cbff87405",
+          "id": "deff6fa9-fbbc-4c20-8dc6-f50e44fc43f9",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1174,7 +1174,7 @@
           "overrides": {}
         },
         {
-          "id": "1de40e45-5f2d-4b70-983d-26ad3bc95ce7",
+          "id": "51ed8324-4dcc-4285-bda4-4931a5bb2907",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 3,
@@ -1186,7 +1186,7 @@
           "overrides": {}
         },
         {
-          "id": "c555d6bf-d53a-4bb3-ba3d-4eea8a3b1104",
+          "id": "a9637599-5eb2-4009-a1fa-29b99fee81a8",
           "key": "status_duration",
           "name": "Status turns",
           "base": 1,
@@ -1200,7 +1200,7 @@
       ],
       "effects": [
         {
-          "id": "23f7fc1c-acd9-460b-951b-06727524278e",
+          "id": "8569aa51-9705-44e0-8646-6592d1a8b552",
           "name": "Stun",
           "type": "Stun",
           "trigger": "On hit",
@@ -1238,11 +1238,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.617Z",
-      "updatedAt": "2026-09-22T23:19:44.617Z"
+      "createdAt": "2026-09-23T05:05:02.226Z",
+      "updatedAt": "2026-09-23T05:05:02.226Z"
     },
     {
-      "id": "360e309c-ba1e-4f28-9f0e-7d80aea7597e",
+      "id": "6a066ead-0859-42a0-b4f5-4afa3b289c38",
       "name": "Frost Doom",
       "description": "Every enemy within 3.5 m of a point 3-10 m away; Slows for 2 turns. (2.5 s)",
       "kind": "Active",
@@ -1268,7 +1268,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "ad0b71bf-81dc-4ec4-b22b-d2054516a418",
+          "id": "5fe8fa4c-b582-46f9-8fbb-b8c3c6df13d5",
           "key": "power",
           "name": "Power",
           "base": 29,
@@ -1280,7 +1280,7 @@
           "overrides": {}
         },
         {
-          "id": "d103140c-45a2-48db-a577-5dffe2356197",
+          "id": "7a9db2e1-0ec5-433c-99fc-9c58909e5f19",
           "key": "min_range",
           "name": "Min range",
           "base": 3,
@@ -1292,7 +1292,7 @@
           "overrides": {}
         },
         {
-          "id": "7fec0614-3199-4596-96de-fa5f9eb96bf2",
+          "id": "7994a71f-c1ab-4260-ac60-7f398e39f634",
           "key": "cast_range",
           "name": "Cast range",
           "base": 10,
@@ -1304,7 +1304,7 @@
           "overrides": {}
         },
         {
-          "id": "d57ca0eb-87a4-4098-8a5b-1af5127d23fd",
+          "id": "cedab25c-e051-4634-a7b5-f385c34c05d4",
           "key": "radius",
           "name": "Radius",
           "base": 3.5,
@@ -1316,7 +1316,7 @@
           "overrides": {}
         },
         {
-          "id": "b721b73b-e4dd-44cd-9f4e-5ebc964d6079",
+          "id": "1eb5e2ae-dac5-471a-8315-cd1a42a489e0",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2.5,
@@ -1328,7 +1328,7 @@
           "overrides": {}
         },
         {
-          "id": "27739091-9daa-407d-ba69-edbd57981890",
+          "id": "30661411-8a57-4a6a-bb2a-3bfeeefaafc1",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1342,7 +1342,7 @@
       ],
       "effects": [
         {
-          "id": "aa4bc307-3b89-4317-b914-332b9123df72",
+          "id": "ab4f0752-24eb-4fe4-9d1e-fa769123b801",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1355,7 +1355,7 @@
           "notes": ""
         },
         {
-          "id": "7dfeae6a-66bf-4bf3-9b3c-ec9361ed7312",
+          "id": "60fca3ea-e95a-423c-a12f-c5e7580b0041",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1393,8 +1393,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.617Z",
-      "updatedAt": "2026-09-22T23:19:44.617Z"
+      "createdAt": "2026-09-23T05:05:02.226Z",
+      "updatedAt": "2026-09-23T05:05:02.226Z"
     }
   ]
 }

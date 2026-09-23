@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "73d28b4e-845e-489a-8e30-c99f6dcc6d83",
+      "id": "47a96a14-ac65-4cbc-8380-76c027ec2b9e",
       "name": "Night Hunter",
       "description": "Long-range physical damage, shadow element.",
       "kind": "Passive",
@@ -691,7 +691,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "497eadd0-2f06-49f0-8dce-b4becd18c21e",
+          "id": "cd1e2403-cc3e-4163-8781-064af5d7fedf",
           "key": "hp",
           "name": "HP",
           "base": 62,
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "48468776-b833-4211-8669-2ac1b061300b",
+          "id": "c5cc0cf7-686a-4ae7-9df1-ea842060dbf9",
           "key": "power",
           "name": "Power",
-          "base": 15,
+          "base": 14,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "098e7f31-1b29-444d-b4fe-253c129b51d0",
+          "id": "2de3a4c8-8126-432c-82f5-e4b8251ba7ce",
           "key": "aeva",
           "name": "A-Eva",
           "base": 15,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "adee6bea-03c3-4396-b616-c3dd08a2ed58",
+          "id": "e6c85ecf-5637-41e3-9223-2cd646f3a4bb",
           "key": "meva",
           "name": "M-Eva",
           "base": 11,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "8030ffb6-676d-4bd1-8acc-830cd02b3da2",
+          "id": "923cc8ec-52d7-48be-9089-55a96c66ac54",
           "key": "crit",
           "name": "Crit",
           "base": 20,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "c6432eae-89ec-4012-a3de-7acd8107073d",
+          "id": "25df0dd6-c901-4a26-ac39-94cf090ffcd9",
           "key": "attdef",
           "name": "AttDef",
           "base": 5,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "4ab10f36-16b5-446c-bd25-d23aafba0b27",
+          "id": "7e3a9d74-3099-4a7e-8338-0cd725551838",
           "key": "magdef",
           "name": "MagDef",
           "base": 7,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "41bfb147-e8ea-4379-a869-1df1ec55024f",
+          "id": "7abba0f6-4549-49c9-a298-416329a27282",
           "key": "wits",
           "name": "Wits",
           "base": 12,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "e4d260e4-b5a7-41bd-9e54-70a0e30deb22",
+          "id": "86ae25df-0364-4e31-b4c9-84555eef9f99",
           "key": "move",
           "name": "Move",
           "base": 7,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "c1706f30-8272-4657-ad88-f636ab95f4a7",
+          "id": "be8d5d1c-a230-478c-aad6-7d7ebe2e515e",
           "key": "patience",
           "name": "Patience",
           "base": 6,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "9ffbfb56-9fb1-4ad0-941e-403eda9af911",
+          "id": "1a44dbc4-0b48-437a-93cd-f80d1b83f073",
           "key": "sight",
           "name": "Sight",
           "base": 13,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "5fbafc70-e563-4809-9549-92e7fe1267b7",
+          "id": "d6b9a527-0520-4c6d-861c-2e636ceb41c2",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.611Z",
-      "updatedAt": "2026-09-22T23:19:44.611Z"
+      "createdAt": "2026-09-23T05:05:02.221Z",
+      "updatedAt": "2026-09-23T05:05:02.221Z"
     },
     {
-      "id": "d7036077-ab0e-4317-9295-d9881c8975b8",
+      "id": "7462c3a4-304c-4b6d-8e3e-d0d12c7d1dce",
       "name": "Shadow Arrow",
       "description": "Shoot an enemy 2-10 m away.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "ba557d54-9191-4f6b-9be0-b79649c033f2",
+          "id": "cbcb81f2-9756-4968-9064-eeb96f64254f",
           "key": "power",
           "name": "Power",
           "base": 11,
@@ -904,7 +904,7 @@
           "overrides": {}
         },
         {
-          "id": "cce4668e-0057-4fc8-8e9a-d044b569002e",
+          "id": "8d97fbe4-263b-4fb2-9c38-4ae249e516eb",
           "key": "min_range",
           "name": "Min range",
           "base": 2,
@@ -916,7 +916,7 @@
           "overrides": {}
         },
         {
-          "id": "9786c062-24b7-4647-b8bb-d3e89f90962d",
+          "id": "d452466c-57b2-45d7-ae4a-7eecbf526a74",
           "key": "cast_range",
           "name": "Cast range",
           "base": 10,
@@ -930,7 +930,7 @@
       ],
       "effects": [
         {
-          "id": "eee165bc-a40a-4abb-b8a6-f92501fdd99b",
+          "id": "309da7c1-6f2d-4108-ac3d-d8df98a60589",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -968,11 +968,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.611Z",
-      "updatedAt": "2026-09-22T23:19:44.611Z"
+      "createdAt": "2026-09-23T05:05:02.221Z",
+      "updatedAt": "2026-09-23T05:05:02.221Z"
     },
     {
-      "id": "fcc9ccc5-352d-46ae-b9df-0a0e38ded867",
+      "id": "18d51d68-54cc-4ece-84fc-fba600140ea8",
       "name": "Shadow Snipe",
       "description": "A shot that pierces everyone in a line up to 13 m. (1 s)",
       "kind": "Active",
@@ -997,7 +997,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "daf36b5c-cd5a-4e5c-b29b-beccd64303fd",
+          "id": "827a093e-b74d-4e3a-bdb2-025689651c26",
           "key": "power",
           "name": "Power",
           "base": 23,
@@ -1009,7 +1009,7 @@
           "overrides": {}
         },
         {
-          "id": "fe6f3707-2a06-4993-b904-c1a13d14731a",
+          "id": "aa99d428-4023-44cc-8b54-ce6d2e74ca85",
           "key": "min_range",
           "name": "Min range",
           "base": 3,
@@ -1021,7 +1021,7 @@
           "overrides": {}
         },
         {
-          "id": "f6d941ff-a2c2-4d89-b782-1b8a0b8fa9bb",
+          "id": "748e7b32-1a2c-441d-9487-4519be31b776",
           "key": "cast_range",
           "name": "Cast range",
           "base": 13,
@@ -1033,7 +1033,7 @@
           "overrides": {}
         },
         {
-          "id": "3a04e6a0-ea1b-446e-a799-415882d699ee",
+          "id": "1e3c707f-20d0-4fe1-bb59-534989f73647",
           "key": "radius",
           "name": "Radius",
           "base": 0.7,
@@ -1045,7 +1045,7 @@
           "overrides": {}
         },
         {
-          "id": "1541d28d-2d3c-4b17-8ada-983ebb4ceb15",
+          "id": "81c47456-0667-4af8-98b1-9a60c9ff0166",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1057,7 +1057,7 @@
           "overrides": {}
         },
         {
-          "id": "e001a8d3-bdc0-4001-9a33-1b6043107318",
+          "id": "66c91a6e-944c-4c44-90d5-896b85d7af34",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 1,
@@ -1071,7 +1071,7 @@
       ],
       "effects": [
         {
-          "id": "2495b552-d8ab-4cfc-ad9e-62287f14f56d",
+          "id": "d8cec5e5-da6f-4843-bdf8-da6b4acff6d3",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1109,11 +1109,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.611Z",
-      "updatedAt": "2026-09-22T23:19:44.611Z"
+      "createdAt": "2026-09-23T05:05:02.221Z",
+      "updatedAt": "2026-09-23T05:05:02.221Z"
     },
     {
-      "id": "9a9369e9-ea49-4257-b400-886b61c0ad01",
+      "id": "59fad424-2078-499b-9d6d-9861910f9f52",
       "name": "Shadow Barb",
       "description": "A barbed arrow at an enemy 2-10 m away; MagDef -6, AttDef -3 for 2 turns.",
       "kind": "Active",
@@ -1138,7 +1138,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "bb457d25-ab3b-4e9e-8849-3751fe60089f",
+          "id": "eebd8a44-bfb0-47e8-bd7a-3428add0df8a",
           "key": "power",
           "name": "Power",
           "base": 9,
@@ -1150,7 +1150,7 @@
           "overrides": {}
         },
         {
-          "id": "2c71152f-94ff-42a3-a763-5944b78132d5",
+          "id": "5cb22647-21be-43a7-8616-deaaa776cf90",
           "key": "min_range",
           "name": "Min range",
           "base": 2,
@@ -1162,7 +1162,7 @@
           "overrides": {}
         },
         {
-          "id": "56f28ea5-ccd7-4355-b5d6-ca1f3e99dc73",
+          "id": "3e53dd7e-163c-45ee-9803-9cf89a145562",
           "key": "cast_range",
           "name": "Cast range",
           "base": 10,
@@ -1174,7 +1174,7 @@
           "overrides": {}
         },
         {
-          "id": "bd591653-af1a-4848-8519-6cdccb179f30",
+          "id": "67fa692b-668c-4f81-8b0e-cab434c20b39",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -1186,7 +1186,7 @@
           "overrides": {}
         },
         {
-          "id": "1f935085-763c-4775-badf-0a45763105ef",
+          "id": "70096fe0-424a-47a8-8468-6b56e0798c6d",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": -6,
@@ -1198,7 +1198,7 @@
           "overrides": {}
         },
         {
-          "id": "99483005-f802-426c-8ddc-8caa3812e2c2",
+          "id": "371f3590-96f3-4866-a9e8-7b2a7c34c8b6",
           "key": "buff_attdef",
           "name": "Buff AttDef",
           "base": -3,
@@ -1210,7 +1210,7 @@
           "overrides": {}
         },
         {
-          "id": "d1824597-6f80-4cd2-91ea-d21b872b684d",
+          "id": "211afdaa-e56b-4bba-8dbf-4a3239d2f8a0",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1224,7 +1224,7 @@
       ],
       "effects": [
         {
-          "id": "779655e5-4d19-4e24-b642-126dd9b57739",
+          "id": "9bc396d4-7016-44d7-a92e-c82d6f30245e",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1237,7 +1237,7 @@
           "notes": ""
         },
         {
-          "id": "8c91ad4c-e0a3-4a58-9605-8375996033e1",
+          "id": "3e6beb12-77cc-4703-b1e9-3aa86337320e",
           "name": "Debuff",
           "type": "Debuff",
           "trigger": "On hit",
@@ -1275,11 +1275,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.611Z",
-      "updatedAt": "2026-09-22T23:19:44.611Z"
+      "createdAt": "2026-09-23T05:05:02.221Z",
+      "updatedAt": "2026-09-23T05:05:02.221Z"
     },
     {
-      "id": "b3a35fb5-dbdc-4e98-9754-e12566c09575",
+      "id": "d8821308-04b3-4365-83dd-bebd03d04727",
       "name": "Umbral Burst Volley",
       "description": "Arrows fall on every enemy within 2.5 m of a point 4-13 m away; MagDef -6, AttDef -3 for 2 turns. (2 s)",
       "kind": "Active",
@@ -1305,7 +1305,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "11ce5758-c5ec-447d-8dba-86e2b4a8f927",
+          "id": "9580d79a-6d20-48e1-ab8d-3c94cc35a381",
           "key": "power",
           "name": "Power",
           "base": 21,
@@ -1317,7 +1317,7 @@
           "overrides": {}
         },
         {
-          "id": "0a5e175f-92b8-4466-8f9e-5ff058510351",
+          "id": "11336576-861b-414e-a99c-dd3ad7a63cb4",
           "key": "min_range",
           "name": "Min range",
           "base": 4,
@@ -1329,7 +1329,7 @@
           "overrides": {}
         },
         {
-          "id": "c8411ec3-d4c1-43a2-87a6-b8a52b723486",
+          "id": "70a018b6-7f01-4fed-a614-800242ecf3e3",
           "key": "cast_range",
           "name": "Cast range",
           "base": 13,
@@ -1341,7 +1341,7 @@
           "overrides": {}
         },
         {
-          "id": "99cdceda-6a65-471b-b4bb-7a8268667191",
+          "id": "4b51c263-9b9c-4d00-84f2-fb86962e1849",
           "key": "radius",
           "name": "Radius",
           "base": 2.5,
@@ -1353,7 +1353,7 @@
           "overrides": {}
         },
         {
-          "id": "95f6743f-c85e-4274-b96b-da3a1b197330",
+          "id": "443fd584-d7d1-4a49-8ffa-b09eee75b234",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1365,7 +1365,7 @@
           "overrides": {}
         },
         {
-          "id": "cc91bcff-c735-4680-98ae-29eeb96d6e47",
+          "id": "fff6456e-f3cc-4c27-b8a6-1b00a52cbc3c",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": -6,
@@ -1377,7 +1377,7 @@
           "overrides": {}
         },
         {
-          "id": "8fabc40b-3610-4871-987b-95324bbeb96a",
+          "id": "7d80cb0a-db08-46c8-aca0-41e616cc8456",
           "key": "buff_attdef",
           "name": "Buff AttDef",
           "base": -3,
@@ -1389,7 +1389,7 @@
           "overrides": {}
         },
         {
-          "id": "a981b31e-f42b-4308-b3a1-6a2cd8454397",
+          "id": "a71f1ff9-c48f-487a-b88e-e61d6d3f0e29",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1403,7 +1403,7 @@
       ],
       "effects": [
         {
-          "id": "4883c5a7-9f48-4044-9b06-1cbf82278135",
+          "id": "236eeb3e-70b4-41fb-a18c-03571b99d564",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1416,7 +1416,7 @@
           "notes": ""
         },
         {
-          "id": "6bd2b000-3816-4fc7-b1dd-f73bc95de355",
+          "id": "8bf2c41b-854b-496f-ac3a-3c81e1c6c597",
           "name": "Debuff",
           "type": "Debuff",
           "trigger": "On hit",
@@ -1454,8 +1454,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.611Z",
-      "updatedAt": "2026-09-22T23:19:44.611Z"
+      "createdAt": "2026-09-23T05:05:02.221Z",
+      "updatedAt": "2026-09-23T05:05:02.221Z"
     }
   ]
 }

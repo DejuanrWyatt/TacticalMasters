@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "61b9e38e-f8b7-4935-a73f-bc6d66f7dfb3",
+      "id": "bf28f8c7-3e64-4a26-b172-8ef527c2eb16",
       "name": "Glacier Guard",
       "description": "Tank who shields allies, ice element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "94efe131-cced-46ea-993e-448a99b7431f",
+          "id": "815f7295-5249-45bf-853b-84d6d67e2b5b",
           "key": "hp",
           "name": "HP",
-          "base": 118,
+          "base": 122,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "d7a7e38f-8da0-46ef-9dd5-05864f21422f",
+          "id": "b3381e00-018c-4ada-b871-32fa80eb7bda",
           "key": "power",
           "name": "Power",
-          "base": 14,
+          "base": 16,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "bfb80db1-7712-4d6d-bf51-376616a92a92",
+          "id": "5a7e6e81-457f-4688-a96d-15bb00760039",
           "key": "aeva",
           "name": "A-Eva",
           "base": 6,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "625c39d9-5c6b-4c66-8b63-73f0e007c09e",
+          "id": "1ad043eb-a42c-40df-94c7-9c4038954c91",
           "key": "meva",
           "name": "M-Eva",
           "base": 8,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "4bc9d1bb-0465-429c-a0eb-966d7420307a",
+          "id": "44d131ed-17b8-441c-8c03-4c75e27ef810",
           "key": "crit",
           "name": "Crit",
           "base": 5,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "bffdff85-492f-4c78-add7-ee9b636d1466",
+          "id": "eb158f3a-623f-46e5-bef3-6b5589b11af0",
           "key": "attdef",
           "name": "AttDef",
           "base": 13,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "3cefbacb-3ee4-4c0b-b726-33d0a3f32a21",
+          "id": "3b263f58-542d-4b54-9efb-c972389d0d80",
           "key": "magdef",
           "name": "MagDef",
           "base": 11,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "acfcd60a-97b9-4766-9343-9f529b30d024",
+          "id": "d0bb1295-6e92-49ec-84d3-705762dbbc90",
           "key": "wits",
           "name": "Wits",
           "base": 4,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "9b9e6e2d-4ee7-4ee5-bb37-2d638b5b2ff6",
+          "id": "c53ad93e-4343-4423-b37b-b005c2e7df95",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "123a5b66-60a3-4be5-9bbc-e1ffdfe09395",
+          "id": "c13e9c0e-7c4d-4d45-96a8-d26c8c6fb19c",
           "key": "patience",
           "name": "Patience",
           "base": 8,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "579ab330-70e4-49f6-af47-d557b9157285",
+          "id": "245e05b1-871e-420c-8f4b-409d51073745",
           "key": "sight",
           "name": "Sight",
           "base": 8,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "1718c936-91c8-4c1e-940f-48fccdfa8a07",
+          "id": "35e30996-5913-4c26-9eeb-7d7959aaacde",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.604Z",
-      "updatedAt": "2026-09-22T23:19:44.604Z"
+      "createdAt": "2026-09-23T05:05:02.215Z",
+      "updatedAt": "2026-09-23T05:05:02.215Z"
     },
     {
-      "id": "bbfd1f56-81b3-410c-98fd-a6a750392584",
+      "id": "3f80e50a-8383-441f-8b42-cf135f934311",
       "name": "Frost Mace",
       "description": "Strike an adjacent enemy.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "5d8fcd42-61fd-4ca8-a8e8-c3748d5a9c3f",
+          "id": "2af802be-a404-4d10-903e-b5e84ab3e1c3",
           "key": "power",
           "name": "Power",
           "base": 17,
@@ -906,7 +906,7 @@
       ],
       "effects": [
         {
-          "id": "7ee76844-96b4-469b-a58f-707d9394b820",
+          "id": "eb2948dd-9965-46af-9b50-3890df4a8603",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -944,11 +944,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.604Z",
-      "updatedAt": "2026-09-22T23:19:44.604Z"
+      "createdAt": "2026-09-23T05:05:02.215Z",
+      "updatedAt": "2026-09-23T05:05:02.215Z"
     },
     {
-      "id": "e9a6715a-b696-48bf-858f-0b32851df670",
+      "id": "cbfade29-f833-40f0-9173-30c8f1333976",
       "name": "Frost Bash",
       "description": "Shield-bash an adjacent enemy; Slows for 2 turns.",
       "kind": "Active",
@@ -973,7 +973,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "1425d2d5-c0e2-4dc4-bda6-53c4815df896",
+          "id": "df930445-d10a-405d-9278-2a1ba09fec41",
           "key": "power",
           "name": "Power",
           "base": 15,
@@ -985,7 +985,7 @@
           "overrides": {}
         },
         {
-          "id": "32a77eb3-8490-417d-ba4a-15a39094ca1c",
+          "id": "b66be194-b7d5-4d17-9c8c-9d14e644df04",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 2,
@@ -997,7 +997,7 @@
           "overrides": {}
         },
         {
-          "id": "8482f4bb-5b72-4ab4-828e-8182de6e3f12",
+          "id": "71f99878-c0cb-4e1c-98e7-54e058bacb65",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1011,7 +1011,7 @@
       ],
       "effects": [
         {
-          "id": "d87cae02-4959-48ae-a01f-b4a83403f859",
+          "id": "fbcb5880-d918-4893-b1fa-b28b60c291f4",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1024,7 +1024,7 @@
           "notes": ""
         },
         {
-          "id": "6cac7ae3-578f-48bb-a005-1dc741812aa8",
+          "id": "5ca4e48e-9cac-4372-aec1-0838b449db46",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1062,11 +1062,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.604Z",
-      "updatedAt": "2026-09-22T23:19:44.604Z"
+      "createdAt": "2026-09-23T05:05:02.215Z",
+      "updatedAt": "2026-09-23T05:05:02.215Z"
     },
     {
-      "id": "2c43ddb8-33e5-4e38-94fb-75507bca90a6",
+      "id": "c10941e9-8d73-462d-90ff-581894004551",
       "name": "Frost Ward",
       "description": "Every ally within 4 m is shielded; AttDef +5, MagDef +6 for 2 turns. Always on, for allies nearby.",
       "kind": "Aura",
@@ -1091,7 +1091,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "0a56b91b-1fdb-43a8-92b1-7fbbcb91ff7c",
+          "id": "703ccdfc-29ad-4afb-8b96-301f781dfdfb",
           "key": "radius",
           "name": "Radius",
           "base": 4,
@@ -1103,7 +1103,7 @@
           "overrides": {}
         },
         {
-          "id": "62cfdde4-7258-4a2e-8f06-6c8ddac7df0f",
+          "id": "1a8eecfb-d29d-494d-b047-1b2fbaf08669",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1115,7 +1115,7 @@
           "overrides": {}
         },
         {
-          "id": "253102b3-221c-4c56-952e-d3694cb7d96e",
+          "id": "11f1ff1c-fe11-4a0a-86c8-a9586925d8b0",
           "key": "buff_attdef",
           "name": "Buff AttDef",
           "base": 5,
@@ -1127,7 +1127,7 @@
           "overrides": {}
         },
         {
-          "id": "fb254241-275e-423e-a234-06da7afb987c",
+          "id": "b33a0c94-f785-43de-8a7b-64ad09bde4be",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": 6,
@@ -1141,7 +1141,7 @@
       ],
       "effects": [
         {
-          "id": "f3e7c6f1-8546-463b-b10e-2520710e1090",
+          "id": "4953ca48-e1bc-4020-a605-f3a089646f2a",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1179,11 +1179,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.604Z",
-      "updatedAt": "2026-09-22T23:19:44.604Z"
+      "createdAt": "2026-09-23T05:05:02.216Z",
+      "updatedAt": "2026-09-23T05:05:02.216Z"
     },
     {
-      "id": "3ec4f360-b65c-4416-94ac-fb3cee21961b",
+      "id": "90e17b44-1654-4391-a53c-44c23d9a1991",
       "name": "Frost Bastion",
       "description": "Slam the ground, hitting every enemy within 3 m of you; Slows for 2 turns. (1 s)",
       "kind": "Active",
@@ -1209,7 +1209,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "b67fef99-b280-405a-b250-69dd1f65e718",
+          "id": "04b403f1-4397-4a4e-93ec-44382987d6fc",
           "key": "power",
           "name": "Power",
           "base": 24,
@@ -1221,7 +1221,7 @@
           "overrides": {}
         },
         {
-          "id": "5325f62d-c4f6-4b22-b45d-5f7b2ced9a50",
+          "id": "e9c5986a-7eed-4600-97eb-0dd2b6e8ab49",
           "key": "radius",
           "name": "Radius",
           "base": 3,
@@ -1233,7 +1233,7 @@
           "overrides": {}
         },
         {
-          "id": "8bf8792b-dabc-42c5-906c-78ad3341bb16",
+          "id": "354c4c79-79ec-4dfc-94d6-22444e82c58a",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1,
@@ -1245,7 +1245,7 @@
           "overrides": {}
         },
         {
-          "id": "74697af9-a9ad-43ba-bea2-ccd2b3d7a6c5",
+          "id": "66d06edc-98f1-4968-b747-e38ad27279fe",
           "key": "status_duration",
           "name": "Status turns",
           "base": 2,
@@ -1259,7 +1259,7 @@
       ],
       "effects": [
         {
-          "id": "527b3119-59ef-4970-aa19-e450286983a4",
+          "id": "000c180f-1afa-465d-b3a6-e3e6cf79ffbd",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -1272,7 +1272,7 @@
           "notes": ""
         },
         {
-          "id": "068dbffc-eb33-4e50-817c-7711776d8c62",
+          "id": "20f1d502-d3f6-4282-aa74-8f40852b4c62",
           "name": "Slow",
           "type": "Slow",
           "trigger": "On hit",
@@ -1310,8 +1310,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.604Z",
-      "updatedAt": "2026-09-22T23:19:44.604Z"
+      "createdAt": "2026-09-23T05:05:02.216Z",
+      "updatedAt": "2026-09-23T05:05:02.216Z"
     }
   ]
 }

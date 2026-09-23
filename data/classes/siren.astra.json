@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 33,
+  "revision": 34,
   "registry": {
     "kinds": [
       "Active",
@@ -665,7 +665,7 @@
   ],
   "abilities": [
     {
-      "id": "c4226893-c17f-49c5-8062-ad85daa7054b",
+      "id": "8d64be59-c8c3-47f7-bf37-8aaeefb7a5bf",
       "name": "Siren",
       "description": "Speeds up and buffs allies, water element.",
       "kind": "Passive",
@@ -691,10 +691,10 @@
       "notes": "",
       "parameters": [
         {
-          "id": "1d7bac46-b427-4534-a850-c544c73d6019",
+          "id": "7a3b518b-6022-44aa-9daa-7ecce893d990",
           "key": "hp",
           "name": "HP",
-          "base": 74,
+          "base": 78,
           "step": 0,
           "unit": "",
           "mode": "Static",
@@ -703,10 +703,10 @@
           "overrides": {}
         },
         {
-          "id": "0ec43e50-fd25-4b1e-9f02-d7d9a0d74057",
+          "id": "5b638972-9f42-48b7-9d09-0ede81e5e0c8",
           "key": "power",
           "name": "Power",
-          "base": 13,
+          "base": 16,
           "step": 0.1,
           "unit": "",
           "mode": "Flat increase",
@@ -715,7 +715,7 @@
           "overrides": {}
         },
         {
-          "id": "39c3ebe2-9882-4571-9540-bcdaa305d029",
+          "id": "027397a9-f3f3-4abb-8b5f-0f5810725c7c",
           "key": "aeva",
           "name": "A-Eva",
           "base": 10,
@@ -727,7 +727,7 @@
           "overrides": {}
         },
         {
-          "id": "d4412012-2f42-4d51-bdb2-0a33b25f9a69",
+          "id": "fbd8d51b-76f8-4ec0-941c-aafab208fff9",
           "key": "meva",
           "name": "M-Eva",
           "base": 12,
@@ -739,7 +739,7 @@
           "overrides": {}
         },
         {
-          "id": "1b15f80a-82ee-4764-898a-0a8c65f10442",
+          "id": "7f837ab1-19d7-4f94-8492-2512211edcb5",
           "key": "crit",
           "name": "Crit",
           "base": 8,
@@ -751,7 +751,7 @@
           "overrides": {}
         },
         {
-          "id": "b527e5d8-222f-4d11-b462-68d92a18ec28",
+          "id": "e3a6cc1f-03a1-47b5-bd25-e348afe06fc3",
           "key": "attdef",
           "name": "AttDef",
           "base": 6,
@@ -763,7 +763,7 @@
           "overrides": {}
         },
         {
-          "id": "cc8a2690-2245-46b1-b4b3-3d17a154d6cf",
+          "id": "21a49bd1-1b18-4f83-a14a-ad7c7f5d15a9",
           "key": "magdef",
           "name": "MagDef",
           "base": 11,
@@ -775,7 +775,7 @@
           "overrides": {}
         },
         {
-          "id": "431e126d-56a2-4c5a-91cd-6a25f4fb7116",
+          "id": "8e9e6210-0928-4aa6-9a0e-8c9d079d53ae",
           "key": "wits",
           "name": "Wits",
           "base": 12,
@@ -787,7 +787,7 @@
           "overrides": {}
         },
         {
-          "id": "d715b760-6888-48cd-9204-8405118cd922",
+          "id": "4829d60b-614a-4fc9-8650-cd21d17812f6",
           "key": "move",
           "name": "Move",
           "base": 6,
@@ -799,7 +799,7 @@
           "overrides": {}
         },
         {
-          "id": "94fba181-0048-476f-8258-529050dfe65e",
+          "id": "88e086ea-c47e-4847-8d61-7f7d40cd3116",
           "key": "patience",
           "name": "Patience",
           "base": 7,
@@ -811,7 +811,7 @@
           "overrides": {}
         },
         {
-          "id": "9a038752-cc1e-4183-a4b3-cabf0cb44a56",
+          "id": "76838312-d476-44a9-aa0d-e852fca3e421",
           "key": "sight",
           "name": "Sight",
           "base": 11,
@@ -825,7 +825,7 @@
       ],
       "effects": [
         {
-          "id": "fe1c1c52-ca68-40c6-841f-d8cec63143a8",
+          "id": "6efd1593-1bad-4b29-9a87-f07796185ba0",
           "name": "Class stats",
           "type": "Buff",
           "trigger": "Always",
@@ -863,11 +863,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.617Z",
-      "updatedAt": "2026-09-22T23:19:44.617Z"
+      "createdAt": "2026-09-23T05:05:02.226Z",
+      "updatedAt": "2026-09-23T05:05:02.226Z"
     },
     {
-      "id": "33834a24-6f82-4ca0-a6b3-6a6096c81bd4",
+      "id": "6eca6877-8ba7-45aa-b865-d3577f312f99",
       "name": "Tide Chord",
       "description": "A sharp chord at an enemy 1-7 m away.",
       "kind": "Active",
@@ -892,7 +892,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "20aa534c-9aa5-4447-9bbe-053ceb06c0f3",
+          "id": "3ac26e4b-d231-418a-8e35-c84db8d146ff",
           "key": "power",
           "name": "Power",
           "base": 12,
@@ -904,7 +904,7 @@
           "overrides": {}
         },
         {
-          "id": "51b27108-af01-4e67-b515-7d342f98ecd7",
+          "id": "f15689ab-f645-4437-bed1-7aab26cbdbff",
           "key": "min_range",
           "name": "Min range",
           "base": 1,
@@ -916,7 +916,7 @@
           "overrides": {}
         },
         {
-          "id": "b0d8e59f-5e95-4205-9bca-485f0b46d461",
+          "id": "1b25163d-82dd-47ce-b518-4d41ac894cd7",
           "key": "cast_range",
           "name": "Cast range",
           "base": 7,
@@ -930,7 +930,7 @@
       ],
       "effects": [
         {
-          "id": "86d39576-bb2a-41b4-856d-4915717ae057",
+          "id": "f6fef662-97e5-44b1-b27d-6d8fe2964b7b",
           "name": "Damage",
           "type": "Damage",
           "trigger": "On hit",
@@ -968,11 +968,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.617Z",
-      "updatedAt": "2026-09-22T23:19:44.617Z"
+      "createdAt": "2026-09-23T05:05:02.226Z",
+      "updatedAt": "2026-09-23T05:05:02.226Z"
     },
     {
-      "id": "f468ebf9-5508-426e-848a-317e8e69d545",
+      "id": "e84fa845-526c-4300-86f1-4cee2885e327",
       "name": "Tide Anthem",
       "description": "Every ally within 3 m of a point up to 6 m away gains 25% TG. (1.5 s)",
       "kind": "Active",
@@ -997,7 +997,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "c1e6815c-308e-42ea-8253-28c1ce222ea9",
+          "id": "07ab6989-5964-482d-86ac-dbb17866ac03",
           "key": "cast_range",
           "name": "Cast range",
           "base": 6,
@@ -1009,7 +1009,7 @@
           "overrides": {}
         },
         {
-          "id": "b36ca8fc-da55-4ed9-acc5-c6cae77b3649",
+          "id": "85818c97-6c57-4517-948c-1d28c40f0806",
           "key": "radius",
           "name": "Radius",
           "base": 3,
@@ -1021,7 +1021,7 @@
           "overrides": {}
         },
         {
-          "id": "44d23c32-0412-41cc-91ad-4331072e5f97",
+          "id": "94a7c67f-eff0-4aa1-8f27-ae0784485577",
           "key": "cast_time",
           "name": "Cast time",
           "base": 1.5,
@@ -1033,7 +1033,7 @@
           "overrides": {}
         },
         {
-          "id": "3db440e6-209c-4386-a18c-1c05454596b8",
+          "id": "8dcb0c78-13b0-47ac-86e5-2a8cf740cea3",
           "key": "cooldown_turns",
           "name": "Cooldown turns",
           "base": 3,
@@ -1045,7 +1045,7 @@
           "overrides": {}
         },
         {
-          "id": "0f1b1947-583a-4728-a163-a6d544e3950a",
+          "id": "73a86891-5f72-4291-a2a5-f30deed9ae24",
           "key": "tg_change",
           "name": "TG change",
           "base": 25,
@@ -1059,7 +1059,7 @@
       ],
       "effects": [
         {
-          "id": "cdff6839-3fae-4bbb-8bf7-5e3f2c5d4315",
+          "id": "757c2041-cb0d-454c-be49-8709a87a807c",
           "name": "Speed up",
           "type": "Buff",
           "trigger": "On hit",
@@ -1097,11 +1097,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.617Z",
-      "updatedAt": "2026-09-22T23:19:44.617Z"
+      "createdAt": "2026-09-23T05:05:02.226Z",
+      "updatedAt": "2026-09-23T05:05:02.226Z"
     },
     {
-      "id": "05ddb6e9-5036-4c2b-9aa7-8bcb70330e8c",
+      "id": "1519998d-a0c5-44d6-a470-713a086d14f7",
       "name": "Tide Ballad",
       "description": "Every ally within 4 m is inspired; MagDef +5 for 2 turns. Always on, for allies nearby.",
       "kind": "Aura",
@@ -1126,7 +1126,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "e1ec460d-afb8-4ccc-bde0-b709d2fabbb5",
+          "id": "6beee7a9-7b7d-41e1-bea1-2a49541ee5c7",
           "key": "radius",
           "name": "Radius",
           "base": 4,
@@ -1138,7 +1138,7 @@
           "overrides": {}
         },
         {
-          "id": "c7c94f0b-a3dd-4aea-b4c0-98909219b71a",
+          "id": "e121e1bf-1e19-4559-a260-c1a141326576",
           "key": "buff_turns",
           "name": "Buff turns",
           "base": 2,
@@ -1150,7 +1150,7 @@
           "overrides": {}
         },
         {
-          "id": "830eabb2-7462-479e-b779-8db519e77987",
+          "id": "bee8eabb-a0f1-4b24-87c4-867c70c0be1a",
           "key": "buff_magdef",
           "name": "Buff MagDef",
           "base": 5,
@@ -1164,7 +1164,7 @@
       ],
       "effects": [
         {
-          "id": "9b039687-e12c-4dae-954c-54c1a17ee242",
+          "id": "530db41e-2932-44c7-97a8-fe453951ea06",
           "name": "Buff",
           "type": "Buff",
           "trigger": "On hit",
@@ -1202,11 +1202,11 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.617Z",
-      "updatedAt": "2026-09-22T23:19:44.617Z"
+      "createdAt": "2026-09-23T05:05:02.226Z",
+      "updatedAt": "2026-09-23T05:05:02.226Z"
     },
     {
-      "id": "7c47cbfd-517a-491b-881c-ec083686f9a6",
+      "id": "e5ad3109-26d3-42dc-8ef8-638af1532b14",
       "name": "Tide Finale",
       "description": "Heal every ally within 4 m of you; Regen for 3 turns. (2 s)",
       "kind": "Active",
@@ -1232,7 +1232,7 @@
       "notes": "",
       "parameters": [
         {
-          "id": "4cf48ecb-ed55-4758-9f2e-d3bb7ce42d99",
+          "id": "16d8319c-af48-4197-9f85-111687fb7b46",
           "key": "power",
           "name": "Power",
           "base": 5,
@@ -1244,7 +1244,7 @@
           "overrides": {}
         },
         {
-          "id": "56ba4aa0-619a-403d-8949-65ab3c377a7e",
+          "id": "96beac47-bcf0-4762-8b08-6bc5bc1c6127",
           "key": "radius",
           "name": "Radius",
           "base": 4,
@@ -1256,7 +1256,7 @@
           "overrides": {}
         },
         {
-          "id": "bd916ff0-5134-4289-9be6-2714978fce38",
+          "id": "4b7a148c-c336-4716-92c2-d9d1f49100e5",
           "key": "cast_time",
           "name": "Cast time",
           "base": 2,
@@ -1268,7 +1268,7 @@
           "overrides": {}
         },
         {
-          "id": "5806c91e-9a7f-408e-a46b-0adf1832bb1f",
+          "id": "05838797-f6da-49dc-9998-ef7db30e3855",
           "key": "status_duration",
           "name": "Status turns",
           "base": 3,
@@ -1282,7 +1282,7 @@
       ],
       "effects": [
         {
-          "id": "bf4eaac7-19b4-4dcf-bd73-3dc96e0942b3",
+          "id": "cdafbe65-7eac-4dbc-a857-0fe68a2e42ca",
           "name": "Heal",
           "type": "Heal",
           "trigger": "On hit",
@@ -1320,8 +1320,8 @@
         "notes": "Imported by Tactical Masters (scripts/core/astra_import.gd)."
       },
       "promptDrafts": {},
-      "createdAt": "2026-09-22T23:19:44.617Z",
-      "updatedAt": "2026-09-22T23:19:44.617Z"
+      "createdAt": "2026-09-23T05:05:02.226Z",
+      "updatedAt": "2026-09-23T05:05:02.226Z"
     }
   ]
 }
