@@ -1738,7 +1738,12 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 	# Head of the line, then each unit it touched, separated by commas.
 	var line: Array = [{"unit": u.id}, {"text": " uses ", "kind": "filler"}, {"text": ab.name, "kind": "ability"}]
 	if pieces.is_empty():
-		line.append({"text": " (no effect)", "kind": "filler"})
+		if ab.effect == "damage":
+			# Aimed at a spot its target has left: the blow hits open ground.
+			line.append({"text": " misses", "kind": "filler"})
+			result.events.append({"pos": target, "text": "MISS", "color": Color(0.85, 0.88, 1.0), "impact": true})
+		else:
+			line.append({"text": " (no effect)", "kind": "filler"})
 	else:
 		var first := true
 		for piece in pieces:

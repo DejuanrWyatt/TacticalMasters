@@ -129,6 +129,9 @@ func _build_pages() -> Array:
 			"Pick an ability, then click a target. Orange rings show its range; a red circle shows the area it hits.\n\n"
 			+ "[b]Click a unit[/b] and a cast follows that unit. [b]Click the ground[/b] and it lands on that spot, hitting "
 			+ "whoever is there when it goes off: use it to catch enemies where they're about to walk.\n\n"
+			+ "[b]Out of range?[/b] Click anyway: the unit walks as far as it needs to and uses the ability when it "
+			+ "arrives, aimed at the spot its target was standing on. Time runs on while it walks, so a target that "
+			+ "moves away in the meantime is missed entirely.\n\n"
 			+ "Ranged abilities need [b]line of sight[/b]: a hill between you and the target blocks the shot. Hover a target "
 			+ "to see the damage forecast before you commit."],
 		["Height, facing and statuses",

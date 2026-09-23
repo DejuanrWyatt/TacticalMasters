@@ -132,6 +132,7 @@ func _test_rules() -> void:
 	await _test_ability_classes()
 	_test_planning_stage()
 	await _test_menus_fit()
+	await _test_walk_into_range()
 	_test_new_statuses()
 	_test_ko_and_raise()
 	_test_line_of_sight()
@@ -918,6 +919,77 @@ func _test_ability_classes() -> void:
 			"ability %d is colored for what it does" % (i + 1))
 	_check(with_icons == 4, "each ability on the card has its icon (%d of 4)" % with_icons)
 	hud.free()
+
+
+## Ordering an ability on something out of reach: the unit walks into range
+## and uses it where the target was standing. If the target has moved on by
+## the time it gets there, the blow lands on empty ground and does nothing.
+func _test_walk_into_range() -> void:
+	root.get_node("GameConfig").mode = "hotseat"
+	var scene: Node = load("res://scenes/battle.tscn").instantiate()
+	root.add_child(scene)
+	for i in 5:
+		await process_frame
+	var state = scene.state
+	var hitter = state.units[0]
+	var victim = state.units[4]
+	for other in state.units:
+		if other != hitter and other != victim:
+			other.pos = Vector2(40, 40)
+	hitter.pos = state.snap(Vector2(10.25, 10.25))
+	# Out of reach of a melee blow, but within a walk of it.
+	victim.pos = state.snap(hitter.pos + Vector2(3.5, 0))
+	hitter.tg = GameState.TG_MAX - 1
+	for i in 6:
+		state.apply({"type": "advance", "ticks": 1})
+	_check(hitter.ready, "the unit is ready to be ordered about")
+	scene._select_unit(hitter.id)
+	scene.ability_slot = 0
+	scene.mode = scene.Mode.ABILITY
+	scene.reachable = state.reachable_nodes(hitter)
+	_check(not state.in_ability_range(hitter, 0, hitter.pos, victim.pos), "the target starts out of range")
+
+	var spot: Vector2 = scene._closest_spot_in_range(hitter, 0, victim.pos)
+	_check(spot != scene.NO_POINT, "there is somewhere in reach to attack from")
+	_check(state.in_ability_range(hitter, 0, spot, victim.pos), "and the attack reaches from there")
+
+	var target_spot: Vector2 = victim.pos
+	_check(scene._walk_into_range(hitter, victim.pos), "the order sets the unit walking")
+	_check(hitter.moved and hitter.pos == spot, "it walks to that spot")
+	_check(not scene._pending_ability.is_empty(), "the ability is waiting for it to arrive")
+
+	# It leaves before the blow lands: the attack hits where it was standing.
+	var hp_before: int = victim.hp
+	victim.pos = state.snap(Vector2(30.25, 30.25))
+	scene._fire_pending_ability()
+	# Using it spends the turn, which clears "acted" again: either way the
+	# unit is no longer standing there waiting to act.
+	_check(hitter.acted or not hitter.ready, "the ability is used on arrival")
+	_check(victim.hp == hp_before, "a target that has moved on takes nothing")
+	var missed := false
+	for row in scene.hud._log._lines.get_children():
+		for piece in row.get_children():
+			if piece is Label and String(piece.text).contains("misses"):
+				missed = true
+	_check(missed, "and it is logged as a miss")
+
+	# The same order with the target still there does land.
+	var second = state.units[1]
+	second.pos = state.snap(Vector2(12.25, 16.25))
+	victim.pos = state.snap(second.pos + Vector2(3.5, 0))
+	victim.hp = victim.max_hp()
+	second.tg = GameState.TG_MAX - 1
+	for i in 6:
+		state.apply({"type": "advance", "ticks": 1})
+	scene._select_unit(second.id)
+	scene.ability_slot = 0
+	scene.mode = scene.Mode.ABILITY
+	scene.reachable = state.reachable_nodes(second)
+	_check(scene._walk_into_range(second, victim.pos), "the second unit sets off too")
+	var before: int = victim.hp
+	scene._fire_pending_ability()
+	_check(victim.hp < before, "a target still standing there is hit (%d -> %d)" % [before, victim.hp])
+	scene.free()
 
 
 func _test_ko_and_raise() -> void:

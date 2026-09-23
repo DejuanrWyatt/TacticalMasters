@@ -106,6 +106,11 @@ var inspected_id := -1
 var _threat_signature := ""
 ## Whether the planning banner was up last frame (to clear it once).
 var _was_planning := false
+## An ability ordered from out of range: the unit walks there and uses it on
+## arrival (see _walk_into_range).
+var _pending_ability := {}
+## How long the last walk takes on screen, so the ability waits for it.
+var _last_walk_seconds := 0.0
 
 
 func _ready() -> void:
@@ -321,6 +326,9 @@ func _process(delta: float) -> void:
 				_send_checksum_if_due()
 			elif not _host_checksums.is_empty():
 				_check_checksums()
+	# The unit that set off to use an ability has arrived.
+	if not _pending_ability.is_empty() and not paused and Time.get_ticks_msec() >= int(_pending_ability.at):
+		_fire_pending_ability()
 	_update_planning()
 	_update_live_ui()
 
@@ -426,7 +434,7 @@ func _apply(cmd: Dictionary) -> void:
 		var points: Array[Vector3] = []
 		for p in walk_path:
 			points.append(board.ground(p))
-		unit_views[actor.id].walk(points)
+		_last_walk_seconds = unit_views[actor.id].walk(points)
 	for id in result.cast_started:
 		var caster := state.get_unit(id)
 		if _is_seen(caster):
@@ -755,6 +763,8 @@ func _pick(screen_pos: Vector2) -> void:
 func _on_click() -> void:
 	if hover_point == NO_POINT:
 		return
+	# Any new order replaces an attack that was still waiting for its walk.
+	_pending_ability = {}
 	var sel := _selected()
 	# While planning, a click puts the selected unit down instead of ordering it.
 	if state.is_planning():
@@ -776,6 +786,8 @@ func _on_click() -> void:
 			var aim := _aim()
 			if aim.ok:
 				_order({"type": "ability", "slot": ability_slot, "target": aim.point, "follow": aim.follow})
+			elif aim.why == "Out of range." and _walk_into_range(sel, aim.point):
+				pass  # walking there first; the ability goes off on arrival
 			else:
 				hud.log_message(aim.why)
 			return
@@ -819,6 +831,63 @@ func _aim() -> Dictionary:
 	return {"point": point, "follow": follow, "ok": true, "why": ""}
 
 
+## Asked to use an ability on something out of reach: walk to the nearest
+## spot it can be used from and use it there. The unit is on its way while
+## time runs on, so the ability goes off at the spot the target was standing
+## on -- if it has moved by then, the blow lands on empty ground.
+func _walk_into_range(sel: Unit, point: Vector2) -> bool:
+	if sel.moved or sel.is_casting() or reachable.is_empty():
+		return false
+	# Held on to before the walk is ordered: giving an order picks the unit's
+	# next step, which clears the ability that was selected.
+	var slot := ability_slot
+	var spot := _closest_spot_in_range(sel, slot, point)
+	if spot == NO_POINT:
+		return false
+	_order({"type": "move", "to": spot})
+	# On arrival: the same ability, aimed where the target is standing now.
+	_pending_ability = {
+		"unit": sel.id, "serial": sel.serial, "slot": slot, "target": point,
+		"at": Time.get_ticks_msec() + roundi(_last_walk_seconds * 1000.0),
+	}
+	return true
+
+
+## The spot the unit can reach that this ability could be used from, closest
+## to where it is standing (so it walks as little as it has to).
+func _closest_spot_in_range(sel: Unit, slot: int, point: Vector2) -> Vector2:
+	var ab := sel.ability(slot)
+	var best := NO_POINT
+	var best_walk := INF
+	for node in reachable:
+		var spot: Vector2 = state.node_pos(node)
+		if not state.in_ability_range(sel, slot, spot, point):
+			continue
+		if GameState.needs_line_of_sight(ab) and not state.has_line_of_sight(spot, point):
+			continue
+		var walk: float = reachable[node]
+		if walk < best_walk:
+			best_walk = walk
+			best = spot
+	return best
+
+
+## Uses the ability the unit walked over for, once it has arrived.
+func _fire_pending_ability() -> void:
+	var order: Dictionary = _pending_ability
+	_pending_ability = {}
+	var u := state.get_unit(int(order.unit))
+	if u == null or not u.is_alive() or u.serial != int(order.serial):
+		return  # its turn ended on the way over
+	var cmd := {"type": "ability", "unit": u.id, "serial": u.serial, "slot": int(order.slot),
+		"target": order.target, "follow": -1}
+	var reason := state.validate(cmd)
+	if reason != "":
+		hud.log_message(reason)
+		return
+	_submit(cmd)
+
+
 ## Whether a unit is the kind of target this ability takes.
 func _fits_target(sel: Unit, ab: Dictionary, t: Unit) -> bool:
 	if ab.target == "ko_ally":
@@ -839,6 +908,8 @@ func _on_chip_pressed(unit_id: int) -> void:
 
 
 func _select_unit(id: int) -> void:
+	if not _pending_ability.is_empty() and int(_pending_ability.unit) != id:
+		_pending_ability = {}  # a different unit was picked: call the attack off
 	selected_id = id
 	mode = Mode.NONE
 	ability_slot = -1
@@ -937,6 +1008,7 @@ func _cancel() -> void:
 	mode = Mode.NONE
 	sprinting = false
 	ability_slot = -1
+	_pending_ability = {}
 	_refresh()
 
 
@@ -1354,6 +1426,17 @@ func _update_targeting() -> void:
 			_show_aim_shape(sel, ab, aim)
 		if aim.ok:
 			hud.set_hover(_forecast(sel, ability_slot, aim.point, aim.follow))
+		elif aim.why == "Out of range." and not sel.moved:
+			# It can be used from somewhere the unit can walk to: say so, and
+			# show the walk, rather than simply refusing.
+			var spot := _closest_spot_in_range(sel, ability_slot, aim.point)
+			if spot == NO_POINT:
+				hud.set_hover("%s: out of range, and nowhere in reach to use it from." % ab.name)
+			else:
+				board.show_path(state.path_to(sel, state.node_of(spot)), true)
+				hud.set_hover("%s: out of range. Click to walk %.1f m and use it where %s is standing now." % [
+					ab.name, reachable.get(state.node_of(spot), 0.0),
+					"the target" if aim.follow == -1 else state.get_unit(aim.follow).job_name()])
 		else:
 			hud.set_hover("%s: %s" % [ab.name, aim.why if aim.why != "" else ab.desc])
 		return

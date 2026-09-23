@@ -28,7 +28,7 @@ battle vs the computer. Its log is in `%APPDATA%\Godot\app_userdata\Tactical Mas
 | Select one of your READY units | Click it, click its chip in the turn order bar, or press Tab |
 | Move | Space (on by default), then click inside the blue area. Dots show the path. |
 | Sprint | Shift, then click: walks 125% of the unit's Move, but counts as its action, so no ability that turn. |
-| Use ability 1-4 | 1-4, then click a unit **or the ground**. Orange rings show the range, the red circle shows the area hit. |
+| Use ability 1-4 | 1-4, then click a unit **or the ground**. Orange rings show the range, the red circle shows the area hit. Clicking something **out of range** walks the unit as far as it needs to and uses the ability on arrival, at the spot the target was standing on: if it has moved on by then, the blow misses. |
 | End the unit's turn | Enter |
 | Cancel | Esc |
 | Pause (not online) | P |
