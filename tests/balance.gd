@@ -2,8 +2,16 @@ extends SceneTree
 ## Balance check: each class plays in a mixed team ([class, Knight, Archer,
 ## White Mage]) against a fixed team ([Black Mage, Knight, Archer, White
 ## Mage]), computer vs computer (medium), sides alternating. Prints each
-## class's win rate and its average damage dealt. Each pair of games (one per
-## side) uses its own seed, so more games means a wider sample.
+## class's win rate, the health it finished ahead by, and its average damage
+## dealt. Each pair of games (one per side) uses its own seed, so more games
+## means a wider sample.
+##
+## "margin" is the number to compare classes by: how much more of its health
+## the class's team had left than the other side, averaged over the games
+## (+100 = untouched against a wiped-out enemy, -100 = the reverse). A won or
+## lost battle is one coin flip, so win rates jump around by 25 points between
+## runs at 8 games; the margin moves smoothly with a class's strength and
+## shows a small change that the win rate buries in noise.
 ##   godot --headless --script res://tests/balance.gd -- [games per class] [class ids...]
 
 const GameState = preload("res://scripts/core/game_state.gd")
@@ -22,6 +30,7 @@ func _initialize() -> void:
 	var ai := AIPlayer.new("medium")
 	for id in ids:
 		var wins := 0.0
+		var margin := 0.0
 		var dealt := 0
 		var uses := [0, 0, 0, 0]
 		var illegal := 0
@@ -58,10 +67,12 @@ func _initialize() -> void:
 								dealt += r.amounts[i]
 			var me = state.get_unit(class_unit_id)
 			alive_ticks += state.tick if me != null and me.is_alive() else state.get_meta("ko_at_%d" % class_unit_id, state.tick)
+			margin += 100.0 * (state.health_share(side) - state.health_share(1 - side))
 			if state.winner == side:
 				wins += 1.0
 			elif state.winner == -1:
 				wins += 0.5
-		print("%-18s win %3d%%   avg dealt %4d   uses %s   lives %3ds of the battle%s   (%d ms)" % [id, roundi(100.0 * wins / games), dealt / games,
+		print("%-18s win %3d%%   margin %+6.1f   avg dealt %4d   uses %s   lives %3ds of the battle%s   (%d ms)" % [id,
+			roundi(100.0 * wins / games), margin / games, dealt / games,
 			uses, alive_ticks / games / 10, "   ILLEGAL ORDERS %d" % illegal if illegal > 0 else "", Time.get_ticks_msec() - ms])
 	quit()
