@@ -126,6 +126,7 @@ func _test_rules() -> void:
 	_test_roles_and_icons()
 	_test_victory_conditions()
 	_test_ground_and_capture()
+	_test_saved_teams()
 	_test_new_statuses()
 	_test_ko_and_raise()
 	_test_line_of_sight()
@@ -628,6 +629,41 @@ func _test_ground_and_capture() -> void:
 	var off := _new_state()
 	off.apply({"type": "advance", "ticks": 40})
 	_check(off.capture_share(0) == 0.0, "with the rule off the middle is just ground")
+
+
+## Teams saved in Battle Setup come back, including ones with an imported
+## class (they are only known after the class files are read), and junk is
+## dropped instead of being handed to a battle.
+func _test_saved_teams() -> void:
+	var config = root.get_node("GameConfig")
+	var kept: Dictionary = config.teams.duplicate(true)
+	config.teams.clear()
+	var imported := ""
+	for id in Jobs.all_jobs():
+		if not Jobs.JOBS.has(id):
+			imported = id
+			break
+	_check(imported != "", "there is an imported class to save a team of")
+	var roster := [imported, "knight", "archer", "white_mage"]
+	config.save_team("  Test team  ", roster)
+	_check(config.teams.has("Test team"), "a saved team is kept under its trimmed name")
+	config.save_team("Test team", ["knight", "knight", "knight", "knight"])
+	_check(config.teams["Test team"].size() == 4 and config.teams["Test team"][0] == "knight", "saving again under the same name replaces it")
+	config.save_team("Half team", ["knight", "archer"])
+	_check(not config.teams.has("Half team"), "a team that isn't four classes isn't saved")
+	config.save_team("", roster)
+	_check(not config.teams.has(""), "a team needs a name")
+
+	# Reading them back: the imported class must survive the round trip.
+	config.save_team("Test team", roster)
+	config.teams.clear()
+	config._load_teams()
+	_check(config.teams.get("Test team", []) == roster, "a saved team with an imported class is read back whole")
+
+	config.delete_team("Test team")
+	_check(not config.teams.has("Test team"), "a team can be deleted")
+	config.teams = kept
+	config._save_teams()
 
 
 func _test_ko_and_raise() -> void:

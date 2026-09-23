@@ -52,10 +52,12 @@ var class_messages: Array[String] = []
 
 func _ready() -> void:
 	_load_tuning()
-	_load_teams()
 	class_messages = AstraImport.load_all()
 	for m in class_messages:
 		print(m)
+	# After the imported classes are registered: a saved team may name one,
+	# and a team naming a class the game doesn't know is dropped.
+	_load_teams()
 	_load_stats()
 
 
