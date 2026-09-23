@@ -33,7 +33,7 @@ battle vs the computer. Its log is in `%APPDATA%\Godot\app_userdata\Tactical Mas
 | Cancel | Esc |
 | Pause (not online) | P |
 | Chat (online) | T, type, Enter to send (Esc closes) |
-| Combat log | L or the Log button shows / hides it. Drag its title bar to move it, its corner to resize it; – collapses it. Each line carries the icon of the unit it is about and is written in the color of what happened: damage, healing, buffs, debuffs, statuses, knock-outs and casting. The cog picks every one of those colors, the text size and the background opacity. It keeps the whole battle's messages (scroll up for older ones) and remembers its place. |
+| Combat log | L or the Log button shows / hides it. Drag its title bar to move it, its corner to resize it; – collapses it. Units appear as their class icons (hover one for its name), and each part of a line takes the color of what it says: damage in red, healing and buffs in green, ability names in gold, and the words joining them in grey. The cog picks every one of those colors, the text size and the background opacity. It keeps the whole battle's messages (scroll up for older ones) and remembers its place. |
 | What an ability does | Hover its button: the description, type, shape, range, cast time and the damage or healing it would do appear above the action bar straight away. |
 | Everyone on the field | The **Field** button lists both teams: icon, health, statuses and whether each unit is ready. Click a row to pick that unit. |
 | What an enemy could do | Click it (or its chip): its stats card opens, and the ground it could walk to plus the reach of its longest attack are drawn in red. |

@@ -1184,10 +1184,18 @@ func _apply_look() -> void:
 func _log_entry(line):
 	if not (line is Dictionary):
 		return line
-	var entry: Dictionary = line.duplicate()
-	var u := state.get_unit(int(entry.get("unit", -1)))
-	if u != null and _is_seen(u):
-		entry["icon"] = Jobs.icon_path(u.job)
+	var entry: Dictionary = line.duplicate(true)
+	for part in entry.get("parts", []):
+		if not part.has("unit"):
+			continue
+		var who := state.get_unit(int(part.unit))
+		if who == null:
+			continue
+		if _is_seen(who):
+			part["icon"] = Jobs.icon_path(who.job)
+			part["name"] = "%s %s" % [GameState.TEAM_NAMES[who.team], who.job_name()]
+		else:
+			part["name"] = "%s ???" % GameState.TEAM_NAMES[who.team]
 	return entry
 
 

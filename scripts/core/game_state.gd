@@ -1134,7 +1134,7 @@ func apply(cmd: Dictionary) -> Dictionary:
 			u.moved = true
 			if sprint:
 				u.acted = true  # a Sprint is the unit's action too
-				_log(result, "%s %s sprints." % [TEAM_NAMES[u.team], u.job_name()], "move", u.id)
+				_log_about(result, u, " sprints.", "filler", [], "move")
 		"ability":
 			_use_ability(get_unit(cmd["unit"]), cmd["slot"], cmd["target"], cmd.get("follow", -1), result)
 		"end_turn":
@@ -1181,7 +1181,7 @@ func _tick(result: Dictionary) -> void:
 			u.ko_ticks -= 1
 			if u.ko_ticks <= 0:
 				result.gone.append(u.id)
-				_log(result, "%s %s is gone." % [TEAM_NAMES[u.team], u.job_name()], "ko", u.id)
+				_log_about(result, u, " is gone.", "ko")
 			continue
 		if not u.is_alive():
 			continue
@@ -1224,7 +1224,8 @@ func _tick_statuses(u: Unit, result: Dictionary) -> void:
 			if per_turn < 0.0:
 				u.hp = maxi(0, u.hp - amount)
 				result.events.append({"pos": u.pos, "text": "-%d" % amount, "color": info.color})
-				_log(result, "%s %s takes %d from %s." % [TEAM_NAMES[u.team], u.job_name(), amount, info.name], "damage", u.id)
+				_log_about(result, u, " takes ", "filler", [{"text": "%d" % amount, "kind": "damage"},
+					{"text": " from %s." % info.name, "kind": "filler"}], "damage")
 				if not u.is_alive():
 					_knock_out(u, "%s %s" % [TEAM_NAMES[u.team], u.job_name()], result)
 					_check_winner()
@@ -1238,7 +1239,7 @@ func _tick_statuses(u: Unit, result: Dictionary) -> void:
 		if s.turns > 0:
 			kept.append(s)
 		else:
-			_log(result, "%s %s: %s wears off." % [TEAM_NAMES[u.team], u.job_name(), info.name], "status", u.id)
+			_log_about(result, u, ": %s wears off." % info.name, "filler", [], "status")
 	u.statuses = kept
 
 
@@ -1252,7 +1253,7 @@ func _ground_effect(u: Unit, result: Dictionary) -> void:
 	if kind < 0:
 		u.hp = maxi(0, u.hp - amount)
 		result.events.append({"pos": u.pos, "text": "-%d" % amount, "color": Color(1.0, 0.5, 0.2)})
-		_log(result, "%s %s is burned by the ground (-%d)." % [TEAM_NAMES[u.team], u.job_name(), amount], "damage", u.id)
+		_log_about(result, u, " is burned by the ground ", "filler", [{"text": "-%d" % amount, "kind": "damage"}], "damage")
 		if not u.is_alive():
 			_knock_out(u, "%s %s" % [TEAM_NAMES[u.team], u.job_name()], result)
 			_check_winner()
@@ -1261,7 +1262,7 @@ func _ground_effect(u: Unit, result: Dictionary) -> void:
 		if healed > 0:
 			u.hp += healed
 			result.events.append({"pos": u.pos, "text": "+%d" % healed, "color": Color(0.4, 1.0, 0.6)})
-			_log(result, "%s %s drinks from the spring (+%d)." % [TEAM_NAMES[u.team], u.job_name(), healed], "heal", u.id)
+			_log_about(result, u, " drinks from the spring ", "filler", [{"text": "+%d" % healed, "kind": "heal"}], "heal")
 
 
 ## Auras of every living unit whose side this one is on (or against) reach it
@@ -1309,7 +1310,7 @@ func _take_from_shield(t: Unit, amount: int, result: Dictionary) -> int:
 			if soaked > 0:
 				result.events.append({"pos": t.pos, "text": "-%d shield" % soaked, "color": Jobs.STATUSES[s.id].color})
 			if int(s.amount) <= 0:
-				_log(result, "%s %s's %s breaks." % [TEAM_NAMES[t.team], t.job_name(), Jobs.STATUSES[s.id].name], "status", t.id)
+				_log_about(result, t, "'s %s breaks." % Jobs.STATUSES[s.id].name, "status")
 				continue
 		kept.append(s)
 	t.statuses = kept
@@ -1324,6 +1325,30 @@ static func _ability_log_kind(ab: Dictionary) -> String:
 		"heal", "revive":
 			return "heal"
 	return "debuff" if ab.get("target", "ally") == "enemy" else "buff"
+
+
+## A log line built from pieces, so the combat log can show each unit as its
+## icon and color what happened to it: {"unit": id} is a unit, and
+## {"text": ..., "kind": ...} a piece of text in that kind's color ("damage",
+## "heal", "buff", "debuff", "status", "ko", "cast", "ability" or "filler").
+## The plain sentence is written out at the same time, for anything that reads
+## the log as text.
+func _log_parts(result: Dictionary, parts: Array, kind := "system", unit := -1) -> void:
+	var text := ""
+	for part in parts:
+		if part.has("unit"):
+			var who := get_unit(int(part.unit))
+			text += "%s %s" % [TEAM_NAMES[who.team], who.job_name()] if who != null else "?"
+		else:
+			text += str(part.get("text", ""))
+	result.logs.append({"text": text, "kind": kind, "unit": unit, "parts": parts})
+
+
+## The commonest shape of line: a unit, then what happened to it.
+func _log_about(result: Dictionary, u: Unit, text: String, kind := "status", tail := [], line_kind := "") -> void:
+	var parts: Array = [{"unit": u.id}, {"text": text, "kind": kind}]
+	parts.append_array(tail)
+	_log_parts(result, parts, line_kind if line_kind != "" else kind, u.id)
 
 
 ## A line for the combat log. `kind` is what happened -- "damage", "heal",
@@ -1362,10 +1387,10 @@ func _knock_out(t: Unit, who: String, result: Dictionary) -> void:
 	t.acted = false
 	t.statuses.clear()
 	if t.is_casting():
-		_log(result, "%s's %s fizzles." % [who, t.casting.name], "status", t.id)
+		_log_about(result, t, "'s %s fizzles." % t.casting.name, "status")
 		t.casting = {}
 	result.knocked_out.append(t.id)
-	_log(result, "%s is knocked out! (%ds to revive)" % [who, roundi(tune("ko_seconds"))], "ko", t.id)
+	_log_about(result, t, " is knocked out!", "ko", [{"text": " (%ds to revive)" % roundi(tune("ko_seconds")), "kind": "filler"}])
 
 
 func _check_winner() -> void:
@@ -1517,14 +1542,14 @@ func _become_ready(u: Unit, result: Dictionary) -> void:
 		result.became_ready.append(u.id)
 		_resolve_ability(u, u.channeling.slot, u.channeling.target, result)
 		if u.channeling.turns <= 0:
-			_log(result, "%s %s finishes channeling." % [TEAM_NAMES[u.team], u.job_name()], "cast", u.id)
+			_log_about(result, u, " finishes channeling.", "cast")
 			u.channeling = {}
 		if u.is_alive():
 			_end_turn(u, false, result)
 		return
 	# Stunned: the turn it just earned is lost (and the Stun counted down).
 	if stunned:
-		_log(result, "%s %s loses its turn: %s." % [TEAM_NAMES[u.team], u.job_name(), Jobs.STATUSES.stun.name], "debuff", u.id)
+		_log_about(result, u, " loses its turn: %s." % Jobs.STATUSES.stun.name, "debuff")
 		result.events.append({"pos": u.pos, "text": Jobs.STATUSES.stun.tag, "color": Jobs.STATUSES.stun.color})
 		_end_turn(u, true, result)
 		return
@@ -1538,7 +1563,7 @@ func _end_turn(u: Unit, timed_out: bool, result: Dictionary) -> void:
 		u.channeling = {}
 	if timed_out:
 		u.tg = 0
-		_log(result, "%s %s ran out of time!" % [TEAM_NAMES[u.team], u.job_name()], "status", u.id)
+		_log_about(result, u, " ran out of time!", "status")
 		result.timed_out.append(u.id)
 	elif u.moved and u.acted:
 		u.tg = 0
@@ -1565,7 +1590,8 @@ func _use_ability(u: Unit, slot: int, target: Vector2, follow: int, result: Dict
 		var on: bool = not u.toggled.get(slot, false)
 		u.toggled[slot] = on
 		u.toggled_turn[slot] = true
-		_log(result, "%s %s switches %s %s." % [TEAM_NAMES[u.team], u.job_name(), ab.name, "on" if on else "off"], "buff", u.id)
+		_log_about(result, u, " switches ", "filler", [{"text": ab.name, "kind": "ability"},
+			{"text": " %s." % ("on" if on else "off"), "kind": "buff" if on else "filler"}], "buff")
 		result.events.append({"pos": u.pos, "text": "%s %s" % [ab.name, "ON" if on else "OFF"],
 			"color": Color(0.6, 0.9, 1.0) if on else Color(0.7, 0.7, 0.75)})
 		return
@@ -1581,8 +1607,8 @@ func _use_ability(u: Unit, slot: int, target: Vector2, follow: int, result: Dict
 	# unit's turn ends at once (it is busy channeling).
 	if ab.get("kind", "active") == "channeled":
 		u.channeling = {"slot": slot, "target": target, "turns": maxi(1, int(ab.get("channel", 2)))}
-		_log(result, "%s %s starts channeling %s (%d more turn%s)." % [TEAM_NAMES[u.team], u.job_name(), ab.name,
-			u.channeling.turns, "" if u.channeling.turns == 1 else "s"], "cast", u.id)
+		_log_about(result, u, " starts channeling ", "filler", [{"text": ab.name, "kind": "ability"},
+			{"text": " (%d more turn%s)." % [u.channeling.turns, "" if u.channeling.turns == 1 else "s"], "kind": "filler"}], "cast")
 		_resolve_ability(u, slot, target, result)
 		if u.is_alive():
 			_end_turn(u, false, result)
@@ -1595,7 +1621,8 @@ func _use_ability(u: Unit, slot: int, target: Vector2, follow: int, result: Dict
 	u.casting = {"slot": slot, "name": ab.name, "target": target, "target_unit": follow,
 		"ticks": cast_ticks, "total": cast_ticks}
 	result.cast_started.append(u.id)
-	_log(result, "%s %s begins casting %s (%.1fs)" % [TEAM_NAMES[u.team], u.job_name(), ab.name, ab.cast], "cast", u.id)
+	_log_about(result, u, " begins casting ", "filler", [{"text": ab.name, "kind": "ability"},
+		{"text": " (%.1fs)" % ab.cast, "kind": "cast"}], "cast")
 
 
 ## The ability takes effect.
@@ -1605,8 +1632,11 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 	# A "vector" ability carries the caster to the far end of the line.
 	if shape_of(ab) == "vector" and node_walkable(node_of(target)) and unit_near(target, UNIT_SPACING) in [null, u]:
 		u.pos = snap(target)
-		_log(result, "%s %s dashes." % [TEAM_NAMES[u.team], u.job_name()], "move", u.id)
+		_log_about(result, u, " dashes.", "filler", [], "move")
 	var parts: Array[String] = []
+	# The same line as pieces: units become icons and the numbers take the
+	# color of what they did (see _log_parts).
+	var pieces: Array = []
 	# "evaded" and "crits" hold the ids this ability missed and crit on, for
 	# the battle's own tally; the rules themselves don't read them back.
 	# "avoided" is the damage that never landed (evaded or soaked by a Shield),
@@ -1638,6 +1668,7 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 			resolved.evaded.append(t.id)
 			resolved.avoided += amount_before_evasion
 			parts.append("%s evades" % who)
+			pieces.append_array([{"unit": t.id}, {"text": " evades", "kind": "filler"}])
 			result.events.append({"pos": t.pos, "text": "MISS", "color": Color(0.85, 0.88, 1.0), "impact": true})
 			continue
 		resolved.hits.append(t.id)
@@ -1658,10 +1689,17 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 				if critical:
 					parts.append("%s takes %d (critical!)" % [who, amount])
 				parts.append("%s -%d%s" % [who, amount, " (defeated!)" if not t.is_alive() else ""])
+				pieces.append({"unit": t.id})
+				pieces.append({"text": " -%d" % amount, "kind": "damage"})
+				if critical:
+					pieces.append({"text": " critical!", "kind": "damage"})
+				if not t.is_alive():
+					pieces.append({"text": " (defeated!)", "kind": "ko"})
 			"heal":
 				t.hp += amount
 				result.events.append({"pos": t.pos, "text": "+%d" % amount, "color": Color(0.45, 1, 0.5), "impact": true})
 				parts.append("%s +%d" % [who, amount])
+				pieces.append_array([{"unit": t.id}, {"text": " +%d" % amount, "kind": "heal"}])
 			"revive":
 				t.hp = amount
 				t.ko_ticks = 0
@@ -1670,6 +1708,7 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 				result.revived.append(t.id)
 				result.events.append({"pos": t.pos, "text": "Revived!", "color": Color(1, 0.95, 0.6), "impact": true})
 				parts.append("%s revived with %d HP" % [who, amount])
+				pieces.append_array([{"unit": t.id}, {"text": " revived with %d HP" % amount, "kind": "heal"}])
 		if not t.is_alive():
 			if not t.is_ko():
 				_knock_out(t, who, result)
@@ -1694,7 +1733,19 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 			result.events.append({"pos": t.pos, "text": ab.name, "color": Color(0.5, 0.8, 1), "impact": true})
 			if ab.effect == "support":
 				parts.append(who)
+				pieces.append({"unit": t.id})
 
-	_log(result, "%s %s uses %s%s" % [TEAM_NAMES[u.team], u.job_name(), ab.name,
-		": " + ", ".join(parts) if not parts.is_empty() else " (no effect)"], _ability_log_kind(ab), u.id)
+	# Head of the line, then each unit it touched, separated by commas.
+	var line: Array = [{"unit": u.id}, {"text": " uses ", "kind": "filler"}, {"text": ab.name, "kind": "ability"}]
+	if pieces.is_empty():
+		line.append({"text": " (no effect)", "kind": "filler"})
+	else:
+		var first := true
+		for piece in pieces:
+			# A unit piece starts a new clause; the rest follow their unit.
+			if piece.has("unit"):
+				line.append({"text": ": " if first else ", ", "kind": "filler"})
+				first = false
+			line.append(piece)
+	_log_parts(result, line, _ability_log_kind(ab), u.id)
 	_check_winner()

@@ -754,6 +754,30 @@ func _test_log_entries() -> void:
 		kinds[line.kind] = true
 	_check(kinds.has("damage"), "an attack is logged as damage (%s)" % kinds.keys())
 
+	# The pieces a line is drawn from: units to show as icons, and text in the
+	# color of what it says.
+	var attack := {}
+	for line in result.logs:
+		if line.kind == "damage" and line.has("parts"):
+			attack = line
+	_check(not attack.is_empty(), "the attack line is built from pieces")
+	var units_named := 0
+	var damage_pieces := 0
+	var filler_pieces := 0
+	for part in attack.get("parts", []):
+		if part.has("unit"):
+			units_named += 1
+		elif part.get("kind", "") == "damage":
+			damage_pieces += 1
+		elif part.get("kind", "") == "filler":
+			filler_pieces += 1
+	_check(units_named >= 2, "both the attacker and its target are pieces of their own (%d)" % units_named)
+	_check(damage_pieces >= 1, "the damage itself is a piece colored as damage")
+	_check(filler_pieces >= 1, "the words joining them are plain text")
+	# The written-out sentence still reads the same as before.
+	_check(attack.text.contains("uses") and attack.text.contains(hitter.job_name()),
+		"the line still spells itself out for anything reading text (%s)" % attack.text)
+
 	# A healer's line is healing, and it knows which unit it was about.
 	var heal := _new_state()
 	var mage = heal.units[3]

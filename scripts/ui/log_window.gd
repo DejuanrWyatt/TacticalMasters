@@ -28,16 +28,20 @@ const DIM := Color(0.92, 0.94, 1.0, 0.55)
 const KIND_NAMES := {
 	"damage": "Damage", "heal": "Healing", "buff": "Buffs", "debuff": "Debuffs",
 	"status": "Statuses", "ko": "Knock-outs", "cast": "Casting",
+	"ability": "Ability names", "filler": "Plain text",
 }
 const DEFAULT_KIND_COLORS := {
-	"damage": Color(1.0, 0.45, 0.38),
+	"damage": Color(1.0, 0.42, 0.36),
 	"heal": Color(0.45, 0.95, 0.5),
-	"buff": Color(0.45, 0.75, 1.0),
-	"debuff": Color(0.82, 0.55, 1.0),
+	"buff": Color(0.45, 0.95, 0.5),
+	"debuff": Color(0.85, 0.55, 1.0),
 	"status": Color(1.0, 0.85, 0.35),
 	"ko": Color(1.0, 0.3, 0.25),
 	"cast": Color(0.75, 0.5, 1.0),
-	"move": Color(0.75, 0.8, 0.9),
+	"ability": Color(0.95, 0.9, 0.7),
+	"filler": Color(0.66, 0.69, 0.75),
+	"move": Color(0.66, 0.69, 0.75),
+	"system": Color(0.66, 0.69, 0.75),
 }
 
 var _scroll: ScrollContainer
@@ -136,32 +140,23 @@ func _ready() -> void:
 func add_message(entry) -> void:
 	var text: String = entry.get("text", "") if entry is Dictionary else str(entry)
 	var kind: String = entry.get("kind", "system") if entry is Dictionary else "system"
-	var icon_path: String = entry.get("icon", "") if entry is Dictionary else ""
+	var parts: Array = entry.get("parts", []) if entry is Dictionary else []
 	var at_bottom := _scroll.scroll_vertical >= int(_scroll.get_v_scroll_bar().max_value - _scroll.size.y) - 4
-	# A row so the unit's icon can sit beside its line.
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 4)
+	# A line is laid out as its pieces: a unit shows as its icon (its name is
+	# in the tooltip) and each piece of text takes the color of what it says.
+	# Pieces flow onto the next line when the window is narrow.
+	var row := HFlowContainer.new()
+	row.add_theme_constant_override("h_separation", 0)
+	row.add_theme_constant_override("v_separation", 0)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.set_meta("kind", kind)
-	var icon := TextureRect.new()
-	icon.name = "Icon"
-	icon.custom_minimum_size = Vector2(font_size + 2, font_size + 2)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	if icon_path != "" and ResourceLoader.exists(icon_path):
-		icon.texture = load(icon_path)
-	else:
-		icon.visible = false
-	row.add_child(icon)
-	var line := Label.new()
-	line.name = "Text"
-	line.text = text
-	line.add_theme_font_size_override("font_size", font_size)
-	line.add_theme_color_override("font_color", color_for(kind))
-	line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(line)
+	if parts.is_empty():
+		parts = [{"text": text, "kind": kind}]
+	for part in parts:
+		if part.has("unit"):
+			row.add_child(_unit_piece(part))
+		else:
+			_add_words(row, str(part.get("text", "")), str(part.get("kind", kind)))
 	_lines.add_child(row)
 	while _lines.get_child_count() > MAX_LINES:
 		var oldest := _lines.get_child(0)
@@ -173,6 +168,48 @@ func add_message(entry) -> void:
 		(_lines.get_child(i) as Control).modulate.a = 1.0 if i >= count - 3 else 0.7
 	if at_bottom:
 		_scroll_to_bottom.call_deferred()
+
+
+## A unit in a line: its icon, with its name to hover over.
+func _unit_piece(part: Dictionary) -> Control:
+	var who := TextureRect.new()
+	who.name = "Unit"
+	who.custom_minimum_size = Vector2(font_size + 4, font_size + 4)
+	who.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	who.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	who.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	who.tooltip_text = str(part.get("name", ""))
+	who.mouse_filter = Control.MOUSE_FILTER_STOP
+	var path: String = str(part.get("icon", ""))
+	if path != "" and ResourceLoader.exists(path):
+		who.texture = load(path)
+	else:
+		# Nothing to show it with (a unit out of sight): its name does instead.
+		return _text_piece(str(part.get("name", "?")), "filler")
+	return who
+
+
+## One word of a line, in the color of what that part of the line says.
+func _text_piece(text: String, kind: String) -> Label:
+	var piece := Label.new()
+	piece.name = "Text"
+	piece.text = text
+	piece.set_meta("kind", kind)
+	piece.add_theme_font_size_override("font_size", font_size)
+	piece.add_theme_color_override("font_color", color_for(kind))
+	return piece
+
+
+## Adds a piece of text to a line as one label per word, so the line can wrap
+## between words while every word keeps its own color.
+func _add_words(row: Control, text: String, kind: String) -> void:
+	if text == "":
+		return
+	var words := text.split(" ", true)
+	for i in words.size():
+		var word: String = words[i] if i == 0 else " " + words[i]
+		if word != "":
+			row.add_child(_text_piece(word, kind))
 
 
 ## The options row (shown by the cog): text size, text color, opacity.
@@ -279,14 +316,12 @@ func color_for(kind: String) -> Color:
 func _apply_options() -> void:
 	_style.bg_color.a = opacity
 	for row in _lines.get_children():
-		var line := row.get_node_or_null("Text") as Label
-		if line == null:
-			continue
-		line.add_theme_font_size_override("font_size", font_size)
-		line.add_theme_color_override("font_color", color_for(row.get_meta("kind", "system")))
-		var icon := row.get_node_or_null("Icon") as TextureRect
-		if icon != null:
-			icon.custom_minimum_size = Vector2(font_size + 2, font_size + 2)
+		for piece in row.get_children():
+			if piece is Label:
+				piece.add_theme_font_size_override("font_size", font_size)
+				piece.add_theme_color_override("font_color", color_for(piece.get_meta("kind", "filler")))
+			elif piece is TextureRect:
+				piece.custom_minimum_size = Vector2(font_size + 4, font_size + 4)
 	# Show the values without re-triggering their change signals.
 	_size_box.set_value_no_signal(font_size)
 	_color_button.color = text_color
