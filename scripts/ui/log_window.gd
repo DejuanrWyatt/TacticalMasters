@@ -61,6 +61,9 @@ var opacity := DEFAULT_OPACITY
 ## The color each kind of message is written in.
 var kind_colors := DEFAULT_KIND_COLORS.duplicate()
 var _kind_buttons := {}
+## Set when a new message should bring the view back to the bottom, done on
+## the next frame (see _process).
+var _want_bottom := false
 var _style: StyleBoxFlat
 var _options: HFlowContainer
 var _size_box: SpinBox
@@ -70,6 +73,9 @@ var _opacity_slider: HSlider
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	# Only runs for the frame after a message asks the view back to the
+	# bottom; _scroll_to_bottom turns it on.
+	set_process(false)
 	_style = StyleBoxFlat.new()
 	_style.bg_color = Color(0.03, 0.04, 0.07, DEFAULT_OPACITY)
 	_style.border_color = Color(1, 1, 1, 0.08)
@@ -167,7 +173,7 @@ func add_message(entry) -> void:
 	for i in count:
 		(_lines.get_child(i) as Control).modulate.a = 1.0 if i >= count - 3 else 0.7
 	if at_bottom:
-		_scroll_to_bottom.call_deferred()
+		_scroll_to_bottom()
 
 
 ## A unit in a line: its icon, with its name to hover over.
@@ -333,7 +339,18 @@ func line_count() -> int:
 
 
 func _scroll_to_bottom() -> void:
-	await get_tree().process_frame  # after the new line is laid out
+	# Asked for while a message is being added; done on the next frame, once
+	# the new line has been laid out and its height is known.
+	_want_bottom = true
+	set_process(true)
+
+
+func _process(_delta: float) -> void:
+	# One frame's work, then back to sleep until the next message.
+	set_process(false)
+	if not _want_bottom:
+		return
+	_want_bottom = false
 	_scroll.scroll_vertical = int(_scroll.get_v_scroll_bar().max_value)
 
 

@@ -1066,6 +1066,28 @@ func _test_online_housekeeping() -> void:
 	_check(net.game_started.get_connections().size() <= before,
 		"a battle that is gone stops listening for a rematch (%d -> %d)" % [before, net.game_started.get_connections().size()])
 
+	# The combat log scrolls itself a frame after a message arrives, by which
+	# time the battle may have ended and taken the log with it. Scrolling must
+	# note what it wants and wait, not reach for the tree it has left.
+	var log_window: Node = load("res://scripts/ui/log_window.gd").new()
+	root.add_child(log_window)
+	await process_frame
+	log_window.add_message("A line, and then the battle ends")
+	root.remove_child(log_window)
+	# A last message lands after the battle took the log out of the tree.
+	log_window.add_message("and one more on the way out")
+	log_window._scroll_to_bottom()  # once needed the tree; now just a flag
+	await process_frame
+	_check(log_window.line_count() == 2 and log_window._want_bottom,
+		"a log out of the tree still takes lines, and remembers it owes a scroll")
+	# Back in the tree it pays that off on the next frame, and goes quiet again.
+	root.add_child(log_window)
+	await process_frame
+	_check(not log_window._want_bottom and not log_window.is_processing(),
+		"the waiting scroll happens once it is back in the tree, then stops")
+	root.remove_child(log_window)
+	log_window.free()
+
 	# A menu that has been replaced doesn't try to open a battle.
 	var menu: Node = load("res://scenes/main_menu.tscn").instantiate()
 	root.add_child(menu)
@@ -1544,11 +1566,11 @@ func _test_log_window() -> void:
 	log.toggle_options()
 	_check(log._options.visible, "the cog opens the combat log options")
 	log.set_options(18, Color(1, 0.8, 0.2), 0.4)
-	var line: Label = log._lines.get_child(0)
-	_check(line.get_theme_font_size("font_size") == 18 and line.get_theme_color("font_color") == Color(1, 0.8, 0.2)
+	var line: Label = log._lines.get_child(0).get_child(0)
+	_check(line.get_theme_font_size("font_size") == 18 and line.get_theme_color("font_color") == log.color_for("system")
 		and is_equal_approx(log._style.bg_color.a, 0.4), "log options change every line's size and color and the background")
 	log.add_message("new line")
-	var newest: Label = log._lines.get_child(log.line_count() - 1)
+	var newest: Label = log._lines.get_child(log.line_count() - 1).get_child(0)
 	_check(newest.get_theme_font_size("font_size") == 18, "new log lines use the chosen size")
 	log.set_options(99, Color.WHITE, 0.4)
 	_check(log.font_size == LogWindow.FONT_SIZES.y, "log text size stays within its limits")
