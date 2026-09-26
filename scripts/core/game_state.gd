@@ -167,6 +167,9 @@ const TUNING := {
 	"engage_cost": [1.0, 0.0, 6.0, 0.5, "Breaking away costs (m)", "Movement spent to step out of an enemy's engagement radius."],
 	"hustle_bonus": [25.0, 0.0, 100.0, 5.0, "Held-back turn bonus (%)", "How much faster the Turn Gauge fills for a unit that ended its turn without using an ability."],
 	"hazard_percent": [8.0, 0.0, 40.0, 1.0, "Hazard ground (% max HP)", "Health lost on burning ground, or gained on a spring, when a unit's turn comes round."],
+	"stun_tg_percent": [75.0, 0.0, 100.0, 5.0, "Stun gauge kept (%)", "Turn Gauge a unit is left with after a Stun takes its turn. Higher is a weaker Stun."],
+	"regen_percent": [5.0, 0.0, 25.0, 1.0, "Undamaged regen (% max HP)", "0 = off. Health a unit regains at the start of each of its turns once it has gone long enough without being hurt."],
+	"regen_after_turns": [2.0, 1.0, 10.0, 1.0, "Regen after (turns)", "How many of its own turns a unit must go through without taking damage before it starts mending."],
 	"battle_seconds": [0.0, 0.0, 600.0, 15.0, "Battle time limit (s)", "0 = no limit. When it runs out, the side with more of its health left wins; level shares draw."],
 }
 
@@ -1222,7 +1225,7 @@ func _tick_statuses(u: Unit, result: Dictionary) -> void:
 		if per_turn != 0.0 and u.is_alive():
 			var amount := maxi(1, roundi(u.max_hp() * absf(per_turn)))
 			if per_turn < 0.0:
-				u.hp = maxi(0, u.hp - amount)
+				_hurt(u, amount)
 				result.events.append({"pos": u.pos, "text": "-%d" % amount, "color": info.color})
 				_log_about(result, u, " takes ", "filler", [{"text": "%d" % amount, "kind": "damage"},
 					{"text": " from %s." % info.name, "kind": "filler"}], "damage")
@@ -1251,7 +1254,7 @@ func _ground_effect(u: Unit, result: Dictionary) -> void:
 		return
 	var amount := maxi(1, roundi(u.max_hp() * tune("hazard_percent") * 0.01))
 	if kind < 0:
-		u.hp = maxi(0, u.hp - amount)
+		_hurt(u, amount)
 		result.events.append({"pos": u.pos, "text": "-%d" % amount, "color": Color(1.0, 0.5, 0.2)})
 		_log_about(result, u, " is burned by the ground ", "filler", [{"text": "-%d" % amount, "kind": "damage"}], "damage")
 		if not u.is_alive():
@@ -1297,6 +1300,13 @@ func _apply_auras(u: Unit, result: Dictionary) -> void:
 			_apply_aura_buffs(u, source, ab)
 			if ab.has("status"):
 				_add_status(u, ab.status.id, ab.status.turns)
+
+
+## Takes health off a unit and remembers it was hurt, which is what the
+## undamaged regen watches. Every path that deals damage goes through here.
+func _hurt(u: Unit, amount: int) -> void:
+	u.hp = maxi(0, u.hp - amount)
+	u.unharmed_turns = 0
 
 
 ## A Shield soaks up damage first; returns what is left to take off its HP.
@@ -1511,13 +1521,15 @@ func _finish_on_time() -> void:
 func _become_ready(u: Unit, result: Dictionary) -> void:
 	# Statuses act on the unit's own turn, then count down (Burn can knock it
 	# out before it acts).
-	var stunned := u.is_stunned()
+	var blocked_by := u.no_orders_status()
+	var stunned := blocked_by != ""
 	_tick_statuses(u, result)
 	if not u.is_alive():
 		return
 	_ground_effect(u, result)
 	if not u.is_alive():
 		return
+	_undamaged_regen(u, result)
 	u.ready = true
 	u.tg = TG_MAX
 	u.serial += 1
@@ -1547,14 +1559,45 @@ func _become_ready(u: Unit, result: Dictionary) -> void:
 		if u.is_alive():
 			_end_turn(u, false, result)
 		return
-	# Stunned: the turn it just earned is lost (and the Stun counted down).
+	# A status that takes orders away: the turn it just earned is lost, and that
+	# status has counted down. Stun is not one of these - it interrupts the turn
+	# a unit is already in instead (see _stun_interrupt).
 	if stunned:
-		_log_about(result, u, " loses its turn: %s." % Jobs.STATUSES.stun.name, "debuff")
-		result.events.append({"pos": u.pos, "text": Jobs.STATUSES.stun.tag, "color": Jobs.STATUSES.stun.color})
+		var info: Dictionary = Jobs.STATUSES.get(blocked_by, Jobs.STATUSES.stun)
+		_log_about(result, u, " loses its turn: %s." % info.name, "debuff")
+		result.events.append({"pos": u.pos, "text": info.tag, "color": info.color})
 		_end_turn(u, true, result)
 		return
 	result.became_ready.append(u.id)
 	result.events.append({"pos": u.pos, "text": "READY", "color": Color(1, 0.85, 0.3)})
+
+
+## Left alone long enough, a unit mends itself at the start of each of its
+## turns. Anything that hurt it since its last turn puts the count back to
+## nothing, so it has to be given the room.
+func _undamaged_regen(u: Unit, result: Dictionary) -> void:
+	u.unharmed_turns += 1
+	var percent := tune("regen_percent")
+	if percent <= 0.0 or u.unharmed_turns < maxi(1, roundi(tune("regen_after_turns"))):
+		return
+	var amount := mini(maxi(1, roundi(u.max_hp() * percent * 0.01)), u.max_hp() - u.hp)
+	if amount <= 0:
+		return
+	u.hp += amount
+	result.events.append({"pos": u.pos, "text": "+%d" % amount, "color": Jobs.STATUSES.regen.color})
+	_log_about(result, u, " mends ", "filler", [{"text": "%d" % amount, "kind": "heal"},
+		{"text": " after %d turns unhurt." % u.unharmed_turns, "kind": "filler"}], "heal")
+
+
+## A Stun lands. A unit caught in its own turn loses it, and is left partway to
+## its next one rather than starting the gauge over, so it is back soon.
+func _stun_interrupt(t: Unit, result: Dictionary) -> void:
+	var info: Dictionary = Jobs.STATUSES.stun
+	if t.ready:
+		_log_about(result, t, " loses its turn: %s." % info.name, "debuff")
+		result.events.append({"pos": t.pos, "text": info.tag, "color": info.color})
+		_end_turn(t, false, result)
+	t.tg = maxi(t.tg, TG_MAX * clampi(roundi(tune("stun_tg_percent")), 0, 100) / 100)
 
 
 func _end_turn(u: Unit, timed_out: bool, result: Dictionary) -> void:
@@ -1683,7 +1726,7 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 				amount = _take_from_shield(t, amount, result)
 				resolved.avoided += before_shield - amount
 				resolved.amounts[-1] = amount
-				t.hp = maxi(0, t.hp - amount)
+				_hurt(t, amount)
 				t.ult = mini(ULT_MAX, t.ult + roundi(amount * 100.0 / t.max_hp() * ULT_FROM_DAMAGE))
 				result.events.append({"pos": t.pos, "text": "-%d" % amount, "color": Color(1, 0.45, 0.35), "impact": true})
 				if critical:
@@ -1723,6 +1766,8 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 			resolved.applied.append({"unit": t.id, "hostile": t.team != u.team})
 			var info: Dictionary = Jobs.STATUSES[ab.status.id]
 			result.events.append({"pos": t.pos, "text": info.name, "color": info.color, "impact": true})
+			if info.get("interrupt", false):
+				_stun_interrupt(t, result)
 		# TG changes only affect units still filling their gauge.
 		if ab.has("tg") and not t.ready:
 			t.tg = clampi(t.tg + ab.tg * TG_MAX / 100, 0, TG_MAX)

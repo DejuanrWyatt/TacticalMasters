@@ -224,11 +224,18 @@ func _score(u, slot: int, ab: Dictionary, hits: Array, state = null) -> float:
 				if ab.has("buffs"):
 					score += 8.0
 		# A fresh status is worth more the longer it lasts, and most of all on a
-		# fast enemy that is about to act.
+		# fast enemy that is about to act. An interrupt is the exception: it takes
+		# the turn a unit is in, so it is worth a lot against one that is mid-turn
+		# and next to nothing against one still filling its gauge, however long
+		# the status itself would sit there.
 		if ab.has("status") and t.is_alive() and not t.has_status(ab.status.id):
-			var worth: float = {"stun": 20.0, "silence": 16.0, "root": 12.0, "shield": 14.0, "taunt": 10.0}.get(ab.status.id, 10.0)
+			var info: Dictionary = Jobs.STATUSES[ab.status.id]
+			var worth: float = {"silence": 16.0, "shield": 14.0, "root": 12.0, "stun": 12.0, "taunt": 10.0}.get(ab.status.id, 10.0)
 			if smart:
-				worth *= 0.6 + 0.4 * int(ab.status.turns)
+				if info.get("interrupt", false):
+					worth *= 2.5 if (t.ready or t.is_casting()) else 0.2
+				else:
+					worth *= 0.6 + 0.4 * int(ab.status.turns)
 				if t.team != u.team:
 					worth *= 1.0 + t.stat("speed") / 20.0
 					if t.ready or t.is_casting():
@@ -261,8 +268,9 @@ func _target_worth(u, t, smart: bool) -> float:
 			worth = maxf(worth, 1.45)
 		elif role == "special":
 			worth = maxf(worth, 1.25)
-	# The more hurt it is, the more finishing it off is worth.
-	worth += 0.5 * (1.0 - float(t.hp) / t.max_hp())
+	# Deliberately no bonus for a target that is merely hurt. A finishing blow is
+	# already worth +30 on its own, and since chip damage now mends itself,
+	# chasing whoever is wounded spread damage around instead of killing.
 	return worth
 
 

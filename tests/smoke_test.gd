@@ -15,7 +15,9 @@ var failures := 0
 
 func _initialize() -> void:
 	await process_frame  # let autoloads enter the tree
-	_test_rules()
+	# Awaited: _test_rules waits on frames of its own, and without the await its
+	# tail ran interleaved with the tests below, stepping on shared settings.
+	await _test_rules()
 	_test_ai_battle()
 	_test_maps()
 	var replay_log := _test_replay_determinism()
@@ -197,7 +199,8 @@ func _test_statuses() -> void:
 	_wait_for_turn(sr, hurt)
 	_check(hurt.hp == 10 + maxi(1, roundi(hurt.max_hp() * 0.1)), "Regen heals on the unit's turn")
 
-	# Slow halves Turn Gauge filling; Stun freezes it and blocks orders.
+	# Slow halves Turn Gauge filling. Stun is not a lockout any more: it takes the
+	# turn a unit is caught in, and on its own it leaves orders alone.
 	var s2 := _new_state()
 	var u = s2.units[0]
 	u.tg = 0
@@ -208,25 +211,52 @@ func _test_statuses() -> void:
 	var tg_before: int = u.tg
 	s2._add_status(u, "stun", 1)
 	s2.apply({"type": "advance", "ticks": 5})
-	_check(u.tg > tg_before, "a stunned unit's Turn Gauge keeps filling (its turn is what it loses)")
+	_check(u.tg > tg_before, "a stunned unit's Turn Gauge keeps filling")
 	u.statuses.clear()
 	_force_ready(s2, u)
 	s2._add_status(u, "stun", 2)
-	_check(s2.validate({"type": "end_turn", "unit": u.id, "serial": u.serial}) != "", "a stunned unit can't take orders")
+	_check(s2.validate({"type": "end_turn", "unit": u.id, "serial": u.serial}) == "",
+		"Stun by itself no longer takes a unit's orders away")
 
-	# A status counts down once per turn: a lost turn to Stun still counts.
+	# Caught in its own turn: the turn goes, and the gauge is left most of the way
+	# to the next one instead of starting over.
 	var s4 := _new_state()
-	var stunned = s4.units[3]
-	s4._add_status(stunned, "stun", 2)
-	var lost_turns := 0
-	for i in 4000:
-		var r := s4.apply({"type": "advance", "ticks": 1})
-		for line in r.logs:
-			if String(line.text).contains("loses its turn"):
-				lost_turns += 1
-		if not stunned.has_status("stun"):
-			break
-	_check(lost_turns == 2 and not stunned.ready, "Stun takes away exactly its number of turns")
+	var caught = s4.units[3]
+	_force_ready(s4, caught)
+	var kept := GameState.TG_MAX * roundi(s4.tune("stun_tg_percent")) / 100
+	var r4 := {"logs": [], "events": [], "turn_ended": []}
+	s4._add_status(caught, "stun", 1)
+	s4._stun_interrupt(caught, r4)
+	_check(not caught.ready and caught.tg == kept and r4.turn_ended.has(caught.id),
+		"a Stun in a unit's own turn takes the turn and leaves the gauge at %d%%" % roundi(s4.tune("stun_tg_percent")))
+
+	# Landing on a unit whose gauge is already fuller never drags it back.
+	var waiting = s4.units[2]
+	waiting.ready = false
+	waiting.tg = GameState.TG_MAX - 1
+	var fuller: int = waiting.tg
+	s4._stun_interrupt(waiting, r4)
+	_check(waiting.tg == fuller, "a Stun never sets a fuller gauge back")
+
+	# Left alone, a unit mends itself at the start of each of its turns. Its own
+	# state, so burning ground can't muddy the count.
+	var s5 := GameState.new()
+	s5.setup(MapData.highlands(), {"evade_multiplier": 0.0, "crit_chance_multiplier": 0.0, "hazard_percent": 0.0})
+	var calm = s5.units[0]
+	calm.hp = calm.max_hp() / 2
+	var step := maxi(1, roundi(calm.max_hp() * s5.tune("regen_percent") * 0.01))
+	for i in maxi(1, roundi(s5.tune("regen_after_turns"))):
+		_wait_for_turn(s5, calm)
+	var mended_from: int = calm.hp
+	_wait_for_turn(s5, calm)
+	_check(calm.hp == mended_from + step, "a unit left unhurt mends %d at the start of its turn" % step)
+
+	# Being hurt puts the count back to nothing, so the mending stops.
+	var hurt_from: int = calm.hp
+	s5._hurt(calm, 1)
+	_check(calm.unharmed_turns == 0, "taking damage forgets how long it had been left alone")
+	_wait_for_turn(s5, calm)
+	_check(calm.hp == hurt_from - 1, "damage stops the mending until it has been left alone again")
 
 	# Re-applying a status keeps the longer of the two.
 	var again := _new_state()

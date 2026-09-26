@@ -46,6 +46,9 @@ var facing := Vector2(0, 1)
 ## While knocked out (hp 0): ticks left before the unit is gone for good.
 ## It can be revived until then.
 var ko_ticks := 0
+## How many of its own turns have begun since it last took damage. A unit left
+## alone long enough starts mending itself (GameState._undamaged_regen).
+var unharmed_turns := 0
 
 
 func _init(p_id: int, p_job: String, p_team: int, p_pos: Vector2) -> void:
@@ -123,6 +126,7 @@ func copy():
 	c.channeling = channeling.duplicate(true)
 	c.facing = facing
 	c.ko_ticks = ko_ticks
+	c.unharmed_turns = unharmed_turns
 	return c
 
 
@@ -160,7 +164,6 @@ func is_hustling() -> bool:
 	return hustling
 
 
-## Whether a status stops this unit from taking orders (stun).
 ## Can't walk (Root).
 func is_rooted() -> bool:
 	return _status_flag("no_move")
@@ -195,8 +198,14 @@ func shield_left() -> int:
 	return left
 
 
+## Whether a status stops this unit from taking orders at all (Sleep, Freeze).
 func is_stunned() -> bool:
+	return no_orders_status() != ""
+
+
+## The status taking this unit's orders away, or "" if it can act.
+func no_orders_status() -> String:
 	for s in statuses:
 		if Jobs.STATUSES[s.id].get("no_orders", false):
-			return true
-	return false
+			return str(s.id)
+	return ""

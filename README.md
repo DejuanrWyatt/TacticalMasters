@@ -114,9 +114,13 @@ the end.
   "No line of sight" when a hill is in the way.
 - **Status effects** (tags over the unit's head) last a number of the affected unit's **own turns**: they act and count
   down when its turn comes. **Burn** (−10% max HP a turn), **Regen** (+10% a turn), **Slow** (Turn Gauge fills at
-  half speed), **Stun** (the turn it just earned is lost), **Shield** (soaks damage before HP and breaks when it is
-  used up), **Root** (can't walk, can still act), **Silence** (can't use abilities, can still walk) and **Taunt**
+  half speed), **Stun** (takes the turn a unit is caught in and leaves its gauge 75% full, so it is back soon),
+  **Shield** (soaks damage before HP and breaks when it is used up), **Root** (can't walk, can still act),
+  **Silence** (can't use abilities, can still walk) and **Taunt**
   (its damaging abilities must include whoever taunted it, while that one is in reach).
+- **Mending:** a unit that goes **2 of its own turns without taking damage** regains **5% of its max HP** at the
+  start of each turn after that, until something hurts it again. Breaking off to let a unit recover is a real option.
+  All three numbers are in Developer Tools.
 - **The ground itself:** **embers** burn a unit that starts its turn on them and **springs** heal one, both by 8% of
   its max HP (Developer Tools), and **rocks** can't be walked through and hide whatever is behind them. The
   **Ashfields** map is built around them.
