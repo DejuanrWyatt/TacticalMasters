@@ -159,7 +159,10 @@ the end.
 - **Knock-outs:** a unit at 0 HP is **knocked out** for 12 s (it lies on the field with a `KO` countdown). The White
   Mage's **Raise** (replaces Staff Strike) revives it with 30% HP; otherwise it's gone. KO'd units don't count as alive.
 
-Damage = ((the ability's own **Power** + the class's **Power** stat) × height bonus − AttDef (physical) or MagDef
+There is no Power stat: what an ability does is the ability's own number and nothing else. What the stat used
+to add was folded into each ability, so the numbers are what they always were.
+
+Damage = (the ability's own **Power** × height bonus − AttDef (physical) or MagDef
 (magic)) × 0.5, minimum 1. The final × 0.5 is the damage multiplier in Developer Tools, the quickest dial for overall damage.
 
 Two rolls decide the rest: the target's **A-Eva** (physical) or **M-Eva** (magic) is its chance to evade the ability
@@ -229,18 +232,18 @@ Maps are 24 × 24 m and point-symmetric (fair for both sides). They're defined a
 The default team is Knight, Archer, Black Mage and White Mage (`Jobs.DEFAULT_ROSTER`); Squire and Monk are also
 available in Battle Setup. Move and Sight are in meters.
 
-| Class | Role | HP | Power | AttDef | MagDef | A-Eva | M-Eva | Crit | Speed | Move | Patience | Sight |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Squire | Damage | 75 | 14 | 8 | 6 | 8% | 5% | 8% | 10 | 7 | 6 | 9 |
-| Knight | Tank / Damage | 105 | 16 | 12 | 6 | 5% | 5% | 5% | 6 | 6 | 7 | 8 |
-| Archer | Damage | 60 | 15 | 6 | 7 | 15% | 8% | 15% | 12 | 7 | 6 | 13 |
-| Monk | Damage / Support | 80 | 17 | 8 | 5 | 18% | 8% | 12% | 12 | 8 | 5 | 9 |
-| Black Mage | Damage | 60 | 18 | 4 | 12 | 5% | 12% | 10% | 8 | 6 | 8 | 10 |
-| White Mage | Support | 65 | 15 | 5 | 13 | 5% | 15% | 5% | 8 | 6 | 8 | 10 |
+| Class | Role | HP | AttDef | MagDef | A-Eva | M-Eva | Crit | Speed | Move | Patience | Sight |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Squire | Damage | 75 | 8 | 6 | 8% | 5% | 8% | 10 | 7 | 6 | 9 |
+| Knight | Tank / Damage | 105 | 12 | 6 | 5% | 5% | 5% | 6 | 6 | 7 | 8 |
+| Archer | Damage | 60 | 6 | 7 | 15% | 8% | 15% | 12 | 7 | 6 | 13 |
+| Monk | Damage / Support | 80 | 8 | 5 | 18% | 8% | 12% | 12 | 8 | 5 | 9 |
+| Black Mage | Damage | 60 | 4 | 12 | 5% | 12% | 10% | 8 | 6 | 8 | 10 |
+| White Mage | Support | 65 | 5 | 13 | 5% | 15% | 5% | 8 | 6 | 8 | 10 |
 
 | Job | 1 | 2 | 3 | 4 (Ultimate) |
 |---|---|---|---|---|
-| Squire | Attack | Throw Stone | Focus (Power up) | Brave Slash |
+| Squire | Attack | Throw Stone | Focus (Crit up) | Brave Slash |
 | Knight | Attack | Shield Bash (TG −30%, Stun) | Guard (defense up) | Holy Blade (area, 1 s) |
 | Archer | Bow Shot | Aimed Shot (1 s) | Pin Shot (TG −40%) | Arrow Rain (area, 2 s) |
 | Monk | Punch | Wave Fist | Chakra (area heal + Regen) | Earth Slash (area around self, 1 s) |
@@ -270,33 +273,33 @@ All numbers are in `scripts/core/jobs.gd` (jobs and abilities) and at the top of
 101 more classes were designed in **Astra Ability Creator** (`E:\Astra-Ability Creator`). Each lives there as five
 library entries tagged `class:<id>`, and the game reads Astra's JSON exports in `data/classes/`.
 
-| Class | Role | HP | Power | AttDef | MagDef | A-Eva | M-Eva | Crit | Speed | Move | Patience | Sight | Plays like |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Time Mage | Special | 58 | 16 | 5 | 11 | 10% | 16% | 10% | 16 | 6 | 7 | 10 | Turn Gauge control |
-| Dragoon | Damage | 95 | 17 | 11 | 5 | 12% | 6% | 12% | 8 | 7 | 6 | 9 | Leaps onto distant targets |
-| Ninja | Damage | 80 | 16 | 10 | 7 | 26% | 10% | 22% | 14 | 8 | 5 | 10 | Fast melee assassin |
-| Summoner | Damage | 63 | 19 | 4 | 12 | 5% | 14% | 10% | 6 | 6 | 9 | 10 | Slow, huge area magic |
-| Paladin | Tank / Support | 105 | 14 | 13 | 9 | 6% | 10% | 5% | 8 | 6 | 8 | 8 | Tank, heals and shields |
-| Bard | Support | 60 | 13 | 6 | 10 | 10% | 12% | 8% | 12 | 6 | 7 | 11 | Speeds allies, slows enemies |
-| Berserker | Damage | 115 | 19 | 7 | 4 | 8% | 5% | 18% | 8 | 7 | 4 | 8 | Heavy damage, weak defense |
-| Chemist | Support | 70 | 12 | 7 | 8 | 10% | 10% | 8% | 10 | 6 | 7 | 9 | Bombs, potions, revives |
-| Geomancer | Damage / Support | 78 | 15 | 9 | 10 | 8% | 12% | 8% | 8 | 6 | 7 | 9 | Earth magic, stuns |
-| Oracle | Special | 65 | 17 | 5 | 14 | 6% | 20% | 8% | 10 | 6 | 9 | 11 | Debuffs and sleep |
-| Samurai | Damage / Support | 85 | 16 | 9 | 8 | 14% | 10% | 16% | 10 | 7 | 6 | 9 | Area sword, team Regen |
+| Class | Role | HP | AttDef | MagDef | A-Eva | M-Eva | Crit | Speed | Move | Patience | Sight | Plays like |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Time Mage | Special | 58 | 5 | 11 | 10% | 16% | 10% | 16 | 6 | 7 | 10 | Turn Gauge control |
+| Dragoon | Damage | 95 | 11 | 5 | 12% | 6% | 12% | 8 | 7 | 6 | 9 | Leaps onto distant targets |
+| Ninja | Damage | 80 | 10 | 7 | 26% | 10% | 22% | 14 | 8 | 5 | 10 | Fast melee assassin |
+| Summoner | Damage | 63 | 4 | 12 | 5% | 14% | 10% | 6 | 6 | 9 | 10 | Slow, huge area magic |
+| Paladin | Tank / Support | 105 | 13 | 9 | 6% | 10% | 5% | 8 | 6 | 8 | 8 | Tank, heals and shields |
+| Bard | Support | 60 | 6 | 10 | 10% | 12% | 8% | 12 | 6 | 7 | 11 | Speeds allies, slows enemies |
+| Berserker | Damage | 115 | 7 | 4 | 8% | 5% | 18% | 8 | 7 | 4 | 8 | Heavy damage, weak defense |
+| Chemist | Support | 70 | 7 | 8 | 10% | 10% | 8% | 10 | 6 | 7 | 9 | Bombs, potions, revives |
+| Geomancer | Damage / Support | 78 | 9 | 10 | 8% | 12% | 8% | 8 | 6 | 7 | 9 | Earth magic, stuns |
+| Oracle | Special | 65 | 5 | 14 | 6% | 20% | 8% | 10 | 6 | 9 | 11 | Debuffs and sleep |
+| Samurai | Damage / Support | 85 | 9 | 8 | 14% | 10% | 16% | 10 | 7 | 6 | 9 | Area sword, team Regen |
 
 | Class | 1 | 2 | 3 | 4 (Ultimate) |
 |---|---|---|---|---|
 | Time Mage | Chrono Bolt (TG −10%) | Slowga (area Slow, 1.5 s) | Quicken (ally TG +40%, 1 s) | Time Stop (area + Stun, 2.5 s) |
-| Dragoon | Lance (2.2 m reach) | Jump (dashes onto a target 3-7 m away) | Dragon Spirit (Power up) | Highwind (area, 2 s) |
+| Dragoon | Lance (2.2 m reach) | Jump (dashes onto a target 3-7 m away) | Dragon Spirit (Crit up) | Highwind (area, 2 s) |
 | Ninja | Twin Strike | Shuriken (2-8 m) | Smoke Bomb (area Slow) | Assassinate |
 | Summoner | Rod | Ifrit (area + Burn, 2 s) | Carbuncle (area MagDef up, 1 s) | Bahamut (huge area, 4 s) |
 | Paladin | Holy Strike | Aegis (ally AttDef up) | Lay on Hands (heal, 1 s) | Judgment (area around self, 1.5 s) |
 | Bard | Dissonance (1-7 m) | Song of Haste (area TG +25%, 1.5 s) | Lullaby (area Slow, 1.5 s) | Hymn of Life (heal + Regen around self, 2 s) |
-| Berserker | Cleave (90° cone) | Rage (toggle: Power +8, AttDef −4) | Leap Smash (area + Stun, 1 s) | Rampage (area around self) |
+| Berserker | Cleave (90° cone) | Rage (toggle: Crit +16%, AttDef −4) | Leap Smash (area + Stun, 1 s) | Rampage (area around self) |
 | Chemist | Fire Bomb (area + Burn) | Potion (heal) | Phoenix Down (revive, 1 s) | Elixir Mist (area heal) |
 | Geomancer | Rock Toss (1-6 m) | Quake (area + Stun, 2 s) | Stone Skin (ally AttDef up, 1 s) | Tectonic Rift (area + Slow, 3 s) |
 | Oracle | Hex (1-7 m) | Curse (AttDef/MagDef −6, 1 s) | Sleep (Stun a turn, 2 s) | Divination (everyone on the field + Slow, 2.5 s) |
-| Samurai | Iaido Slash | Draw Out (area around self, 1 s) | Meditate (Power/MagDef up) | Masamune (heal + Regen around self) |
+| Samurai | Iaido Slash | Draw Out (area around self, 1 s) | Meditate (Crit/MagDef up) | Masamune (heal + Regen around self) |
 
 #### The 90-class pack: 10 roles × 9 elements
 
@@ -307,14 +310,18 @@ The icon is the role's emblem in the element's colors, with an element badge.
 |---|---|---|---|---|---|---|---|---|---|
 | Brawler (fast melee) | Ember Pugilist | Frost Brawler | Thunder Fist | Stone Fist | Gale Dancer | Tide Brawler | Temple Fist | Shade Brawler | Thorn Brawler |
 | Guardian (tank) | Flame Warden | Glacier Guard | Storm Bulwark | Mountain Sentinel | Sky Warden | Reef Guardian | Templar | Dread Knight | Oakheart |
-| Assassin (melee killer) | Cinder Blade | Frost Stalker | Volt Striker | Sand Viper | Wind Dancer | Tidecutter | Inquisitor | Shadow Stalker | Venom Fang |
-| Ranger (long range) | Flame Archer | Frost Ranger | Storm Archer | Stone Slinger | Wind Archer | Harpooner | Sun Archer | Night Hunter | Beast Hunter |
-| Sorcerer (area magic) | Pyromancer | Cryomancer | Stormcaller | Terramancer | Aeromancer | Hydromancer | Lumimancer | Necromancer | Druid |
-| Cleric (healer) | Phoenix Priest | Frost Mender | Spark Medic | Earthmother | Wind Shaman | Tide Priest | Saint | Blood Cleric | Herbalist |
+| Assassin (melee killer) | Cinder Blade | Frost Stalker | — | Sand Viper | Wind Dancer | — | Inquisitor | Shadow Stalker | — |
+| Ranger (long range) | — | Frost Ranger | — | Stone Slinger | Wind Archer | — | Sun Archer | Night Hunter | Beast Hunter |
+| Sorcerer (area magic) | — | Cryomancer | Stormcaller | — | Aeromancer | — | Lumimancer | Necromancer | Druid |
+| Cleric (healer) | — | — | — | — | — | — | — | Blood Cleric | Herbalist |
 | Minstrel (buffs, TG) | War Drummer | Winter Skald | Thunder Herald | Stone Chanter | Piper | Siren | Cantor | Dirge Singer | Sylvan Muse |
-| Hexer (debuffs, sleep) | Ash Witch | Frost Witch | Arc Warlock | Dust Hexer | Tempest Hexer | Sea Witch | Exorcist | Warlock | Plague Doctor |
+| Hexer (debuffs, sleep) | Ash Witch | Frost Witch | Arc Warlock | Dust Hexer | Tempest Hexer | Sea Witch | Exorcist | Warlock | — |
 | Summoner (huge summons) | Salamander Caller | Yeti Caller | Thunderbird Caller | Golem Master | Roc Caller | Leviathan Caller | Seraph Caller | Lich Caller | Treant Caller |
-| Spellblade (magic melee) | Blazeblade | Frostblade | Stormblade | Earthshaker | Windblade | Tideblade | Crusader | Hexblade | Thornblade |
+| Spellblade (magic melee) | Blazeblade | Frostblade | — | Earthshaker | Windblade | — | Crusader | Hexblade | — |
+
+A dash is a combination that no longer exists: where an element made no difference to a role's kit, those
+classes had the same four abilities as each other and only one of each set was kept. Clerics lost the most,
+since healing abilities take no elemental effect at all.
 
 - **Role:** sets the base stats and the four-ability kit, sized against the built-in jobs.
 - **Element:** nudges the stats and adds its own effect to the role's key abilities:

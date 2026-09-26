@@ -59,7 +59,10 @@ const Jobs = preload("res://scripts/core/jobs.gd")
 const STAT_KEYS := Jobs.STAT_KEYS
 ## A class profile must give these; the rest fall back to DEFAULT_STATS.
 const REQUIRED_STATS := ["hp", "attdef", "magdef", "speed", "move", "patience", "sight"]
-const DEFAULT_STATS := {"power": 0, "aeva": 5, "meva": 5, "crit": 5}
+const DEFAULT_STATS := {"aeva": 5, "meva": 5, "crit": 5}
+## Power is gone. A profile that still raises it raises Crit instead, by this
+## much per point, so the ability keeps multiplying the skill's own damage.
+const POWER_TO_CRIT := 2
 ## Stat parameters that have been renamed. A profile written before the change
 ## is read as the stat it now is rather than turned away for a missing one.
 const LEGACY_STATS := {"wits": "speed"}
@@ -186,6 +189,11 @@ static func _import_class(id: String, entries: Array, out: Dictionary) -> String
 			job[key] = DEFAULT_STATS[key]
 			continue
 		job[key] = clampi(roundi(values[key]), STAT_LIMITS[key][0], STAT_LIMITS[key][1])
+	# Power used to be a stat added to everything the class did. It is gone, so
+	# what it was worth is folded into each of the class's own abilities and the
+	# skill carries its whole number. A profile that still declares it is read
+	# for this and nothing else.
+	var folded: float = clampf(float(values.get("power", 0.0)), 0.0, 40.0)
 	var abilities := {}
 	for i in 4:
 		if slots[i] == null:
@@ -193,6 +201,8 @@ static func _import_class(id: String, entries: Array, out: Dictionary) -> String
 		var ab := _ability(slots[i], i == 3)
 		if ab.has("error"):
 			return "%s: %s" % [slots[i].get("name", "slot %d" % (i + 1)), ab.error]
+		if ab.effect == "damage" or ab.effect == "heal":
+			ab["power"] = clampf(float(ab.power) + folded, 0.0, 400.0)
 		var ab_id := "%s_%s" % [id, _slug(ab.name)]
 		abilities[ab_id] = ab
 		job.abilities.append(ab_id)
@@ -246,8 +256,15 @@ static func _ability(a: Dictionary, ultimate: bool) -> Dictionary:
 		ab["tg"] = clampi(roundi(v.tg_change), -100, 100)
 	var buffs := []
 	for key in v:
-		if key.begins_with("buff_") and key != "buff_turns" and STAT_KEYS.has(key.substr(5)):
-			buffs.append({"stat": key.substr(5), "amount": roundi(v[key]), "turns": clampi(roundi(v.get("buff_turns", 2.0)), 1, 5)})
+		if not key.begins_with("buff_") or key == "buff_turns":
+			continue
+		var stat: String = str(key).substr(5)
+		var amount: int = roundi(v[key])
+		if stat == "power":
+			stat = "crit"
+			amount *= POWER_TO_CRIT
+		if STAT_KEYS.has(stat):
+			buffs.append({"stat": stat, "amount": amount, "turns": clampi(roundi(v.get("buff_turns", 2.0)), 1, 5)})
 	if not buffs.is_empty():
 		ab["buffs"] = buffs
 	# Timed status from the effects (the first one found wins).

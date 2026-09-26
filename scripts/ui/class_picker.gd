@@ -12,7 +12,7 @@ const ClassList = preload("res://scripts/ui/class_list.gd")
 const UiTheme = preload("res://scripts/ui/ui_theme.gd")
 
 ## Stats worth seeing while picking; the Unit Guide has the rest.
-const SHOWN_STATS := [["hp", "HP"], ["power", "Power"], ["attdef", "AttDef"], ["magdef", "MagDef"],
+const SHOWN_STATS := [["hp", "HP"], ["attdef", "AttDef"], ["magdef", "MagDef"],
 	["speed", "Speed"], ["move", "Move"], ["sight", "Sight"]]
 
 var _search := ""
@@ -172,7 +172,7 @@ func _row(id: String) -> Button:
 	box.add_child(name_label)
 	box.add_child(ClassList.role_icons(id))
 	var numbers := Label.new()
-	numbers.text = "HP %d   POW %d   SPD %d" % [job.hp, job.power, job.speed]
+	numbers.text = "HP %d   SPD %d" % [job.hp, job.speed]
 	numbers.add_theme_font_size_override("font_size", 11)
 	numbers.add_theme_color_override("font_color", UiTheme.DIM)
 	numbers.size_flags_horizontal = Control.SIZE_EXPAND_FILL

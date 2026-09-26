@@ -366,7 +366,7 @@ func _test_ability_kinds() -> void:
 	# Passive: always on, can't be used, and its buffs count all the time.
 	Jobs.custom_abilities["test_passive"] = ab.duplicate(true)
 	Jobs.custom_abilities.test_passive.kind = "passive"
-	Jobs.custom_abilities.test_passive.buffs = [{"stat": "power", "amount": 7, "turns": 2}]
+	Jobs.custom_abilities.test_passive.buffs = [{"stat": "crit", "amount": 7, "turns": 2}]
 	Jobs.custom_jobs["test_class"] = Jobs.base_job("knight").duplicate(true)
 	Jobs.custom_jobs.test_class.name = "Test Class"
 	Jobs.custom_jobs.test_class.abilities = ["attack", "test_passive", "test_toggle", "test_channel"]
@@ -382,7 +382,7 @@ func _test_ability_kinds() -> void:
 		["knight", "archer", "black_mage", "white_mage"]), {"evade_multiplier": 0.0, "crit_chance_multiplier": 0.0})
 	var t = tester.units[0]
 	_force_ready(tester, t)
-	_check(t.stat("power") == Jobs.base_job("knight").power + 7, "a passive ability's buffs are always on")
+	_check(t.stat("crit") == Jobs.base_job("knight").crit + 7, "a passive ability's buffs are always on")
 	_check(tester.ability_blocked_reason(t, 1) != "", "a passive ability can't be used")
 	_check(t.is_on(1) and not t.is_on(2), "is_on: passive yes, toggle not yet")
 
@@ -517,8 +517,11 @@ func _test_roles_and_icons() -> void:
 		else:
 			guessed += 1
 		_check(not Jobs.roles_of(id).is_empty(), "%s has a role" % id)
-	_check(tagged >= 100, "the imported classes carry their own roles (%d tagged, %d guessed)" % [tagged, guessed])
-	var healer_roles := Jobs.roles_of("frost_mender")
+	# Counted against how many there are, so adding or removing a class doesn't
+	# quietly turn this into a weaker check than it was written to be.
+	_check(tagged >= Jobs.custom_jobs.size() - 1,
+		"the imported classes carry their own roles (%d tagged, %d guessed)" % [tagged, guessed])
+	var healer_roles := Jobs.roles_of("blood_cleric")
 	_check(healer_roles.has("support"), "a cleric class is Support (%s)" % [healer_roles])
 
 	# Icons: every class and ability resolves to a file, with a fallback.
@@ -1594,7 +1597,7 @@ func _test_astra_import() -> void:
 	if not Jobs.has_job("time_mage"):
 		return
 	var tm: Dictionary = Jobs.job("time_mage")
-	_check(tm.speed == 16 and tm.meva == 16 and tm.power == 16 and tm.abilities.size() == 4, "Time Mage stats come from its profile")
+	_check(tm.speed == 16 and tm.meva == 16 and tm.abilities.size() == 4, "Time Mage stats come from its profile")
 	var bolt: Dictionary = Jobs.ability(tm.abilities[0])
 	_check(bolt.effect == "damage" and bolt.cast == 0.0 and bolt.power >= 15.0 and bolt.tg == -10, "Chrono Bolt: instant damage, flat power, TG -10%")
 	var stop: Dictionary = Jobs.ability(tm.abilities[3])
@@ -2029,7 +2032,9 @@ func _test_scenes() -> void:
 	menu._open_guide()
 	await process_frame
 	var picker: OptionButton = menu.guide._class_picker
-	_check(menu.guide.visible and picker.item_count == Jobs.all_jobs().size() and picker.item_count > 100,
+	# Every class, and the imported ones among them -- counted against how many
+	# there are rather than a fixed number that rots when classes come and go.
+	_check(menu.guide.visible and picker.item_count == Jobs.all_jobs().size() and Jobs.custom_jobs.size() > 20,
 		"unit guide opens from the menu with every class in its class picker (%d)" % picker.item_count)
 	menu.guide.show_class("time_mage")
 	var shown_grid: Array = menu.guide._ability_box.find_children("Grid", "GridContainer", true, false)

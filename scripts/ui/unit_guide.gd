@@ -16,7 +16,7 @@ const GameState = preload("res://scripts/core/game_state.gd")
 
 const SORTS := [["name", "Name (A-Z)"], ["role", "Role, then name"], ["hp", "HP"], ["speed", "Speed (fastest first)"]]
 const STAT_COLUMNS := [
-	["hp", "HP"], ["power", "Power"], ["attdef", "AttDef"], ["magdef", "MagDef"],
+	["hp", "HP"], ["attdef", "AttDef"], ["magdef", "MagDef"],
 	["aeva", "A-Eva"], ["meva", "M-Eva"], ["crit", "Crit"],
 	["speed", "Speed"], ["move", "Move (m)"], ["patience", "Patience"], ["sight", "Sight (m)"],
 ]
@@ -156,7 +156,7 @@ func _ready() -> void:
 	var notes := Label.new()
 	notes.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	notes.modulate = Color(1, 1, 1, 0.65)
-	notes.text = ("Base = the ability's own power (+ the class's Power stat); healing is × %s%s. "
+	notes.text = ("Base = the ability's own power; healing is × %s%s. "
 		+ "Damage = (Base × height bonus − the target's AttDef (physical) or MagDef (magic)) × %s, minimum 1. "
 		+ "A-Eva and M-Eva are the chances to evade a physical or magical ability entirely; Crit is the chance to hit for × %s. "
 		+ "The height bonus is +%d%% per level above the target (−%d%% per level below), up to 3 levels. "
@@ -275,8 +275,6 @@ func _stat_tip(job: Dictionary, key: String) -> String:
 				_num(_t("clock_base")), job.patience, _num(_t("patience_multiplier")), _num(_t("clock_base") + job.patience * _t("patience_multiplier"))]
 		"speed":
 			return "TG per tick = Speed %d x %d x Speed multiplier %s" % [job.speed, GameState.TG_PER_SPEED, _num(_t("speed_multiplier"))]
-		"power":
-			return "Power: added to the damage and healing of every ability it uses (+%d)" % job[key]
 		"aeva":
 			return "A-Eva: %d%% chance to evade a physical ability entirely" % job[key]
 		"meva":
@@ -585,7 +583,7 @@ func _ability_row(grid: GridContainer, job: Dictionary, slot: int, target: Dicti
 		"" if ab.cast == 0.0 else "Cast %s s x cast time multiplier %s = %s s" % [_num(ab.cast), _num(_t("cast_time_multiplier")), _num(cast)])
 	_cell(grid, "—" if ab.cooldown == 0 else "%d turn%s" % [ab.cooldown, "" if ab.cooldown == 1 else "s"])
 
-	var power: int = roundi(ab.power) + int(job.power)
+	var power: int = roundi(ab.power)
 	var base := ""
 	var versus := ""
 	var base_tip := ""
@@ -598,7 +596,7 @@ func _ability_row(grid: GridContainer, job: Dictionary, slot: int, target: Dicti
 			var dealt := maxi(1, roundi((power - def) * _t("damage_multiplier")))
 			base = str(power)
 			versus = "%d  (%d%% of %s HP)" % [dealt, roundi(100.0 * dealt / target.hp), target.name]
-			base_tip = "Power %s%s, resisted by %s" % [_num(ab.power), " + %d from the class" % job.power if job.power > 0 else "", resisted]
+			base_tip = "Power %s, resisted by %s" % [_num(ab.power), resisted]
 			versus_tip = "(%d - %s's %s %d) x damage multiplier %s = %d%s\nLevel ground, from the front. From the side x %s, from behind x %s, +%d%% per level above.\n%s evades it %d%% of the time; a critical hit (x %s) does %d." % [
 				power, target.name, "AttDef" if ab.scale == "att" else "MagDef", def, _num(_t("damage_multiplier")), dealt,
 				" (minimum 1)" if dealt == 1 else "", _num(_t("side_bonus")), _num(_t("back_bonus")), roundi(_t("height_bonus") * 100),
@@ -607,9 +605,8 @@ func _ability_row(grid: GridContainer, job: Dictionary, slot: int, target: Dicti
 			var healed := roundi(power * GameState.HEAL_SCALE * _t("heal_multiplier"))
 			base = "+%d" % healed
 			versus = "heals"
-			base_tip = "Power %s%s x %s x heal multiplier %s = %d (up to the missing HP)" % [
-				_num(ab.power), " + %d from the class" % job.power if job.power > 0 else "",
-				_num(GameState.HEAL_SCALE), _num(_t("heal_multiplier")), healed]
+			base_tip = "Power %s x %s x heal multiplier %s = %d (up to the missing HP)" % [
+				_num(ab.power), _num(GameState.HEAL_SCALE), _num(_t("heal_multiplier")), healed]
 		"revive":
 			base = "%d%% HP" % roundi(ab.power * 100)
 			versus = "revives"

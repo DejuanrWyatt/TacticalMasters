@@ -4,7 +4,7 @@ extends RefCounted
 ##
 ## Stats:
 ##   hp        hit points
-##   power     Power: flat bonus to the damage and healing its abilities do
+##   (Power was removed: what an ability does comes from the ability alone)
 ##             (0 for most classes; buffs and stances raise it)
 ##   aeva      A-Eva: chance in % to evade a physical ability (5-30)
 ##   meva      M-Eva: chance in % to evade a harmful magical ability (5-30)
@@ -61,7 +61,7 @@ const SHAPES := {
 ##   scale      "att" (physical: AttDef and A-Eva resist it) or "mag" (magical:
 ##              MagDef and M-Eva)
 ##   power      how much damage it does (or healing, or % of max HP to revive
-##              with); the user's Power stat is added to it
+##              with). This is the whole of it: no unit stat is added
 ##   min_range / max_range   meters to the target point; max_range 0 = centered on yourself
 ##   aoe        radius in meters around the target point; 0 = a single unit
 ##   cooldown   your turns to wait before using it again
@@ -155,42 +155,42 @@ const ROLES := {
 const JOBS := {
 	"squire": {
 		"name": "Squire", "color": Color(0.85, 0.65, 0.35), "role": "damage",
-		"hp": 75, "power": 14, "attdef": 8, "magdef": 6,
+		"hp": 75, "attdef": 8, "magdef": 6,
 		"aeva": 8, "meva": 5, "crit": 8,
 		"speed": 10, "move": 7, "patience": 6, "sight": 9,
 		"abilities": ["attack", "throw_stone", "focus", "brave_slash"],
 	},
 	"knight": {
 		"name": "Knight", "color": Color(0.75, 0.78, 0.85), "role": "tank/damage",
-		"hp": 105, "power": 16, "attdef": 12, "magdef": 6,
+		"hp": 105, "attdef": 12, "magdef": 6,
 		"aeva": 5, "meva": 5, "crit": 5,
 		"speed": 6, "move": 6, "patience": 7, "sight": 8,
 		"abilities": ["attack", "shield_bash", "guard", "holy_blade"],
 	},
 	"archer": {
 		"name": "Archer", "color": Color(0.35, 0.7, 0.35), "role": "damage",
-		"hp": 60, "power": 15, "attdef": 6, "magdef": 7,
+		"hp": 60, "attdef": 6, "magdef": 7,
 		"aeva": 15, "meva": 8, "crit": 15,
 		"speed": 12, "move": 7, "patience": 6, "sight": 13,
 		"abilities": ["bow_shot", "aimed_shot", "pin_shot", "arrow_rain"],
 	},
 	"monk": {
 		"name": "Monk", "color": Color(0.9, 0.5, 0.2), "role": "damage/support",
-		"hp": 80, "power": 17, "attdef": 8, "magdef": 5,
+		"hp": 80, "attdef": 8, "magdef": 5,
 		"aeva": 18, "meva": 8, "crit": 12,
 		"speed": 12, "move": 8, "patience": 5, "sight": 9,
 		"abilities": ["punch", "wave_fist", "chakra", "earth_slash"],
 	},
 	"black_mage": {
 		"name": "Black Mage", "color": Color(0.25, 0.2, 0.45), "role": "damage",
-		"hp": 60, "power": 18, "attdef": 4, "magdef": 12,
+		"hp": 60, "attdef": 4, "magdef": 12,
 		"aeva": 5, "meva": 12, "crit": 10,
 		"speed": 8, "move": 6, "patience": 8, "sight": 10,
 		"abilities": ["staff", "fire", "blizzard", "meteor"],
 	},
 	"white_mage": {
 		"name": "White Mage", "color": Color(0.95, 0.95, 0.95), "role": "support",
-		"hp": 65, "power": 15, "attdef": 5, "magdef": 13,
+		"hp": 65, "attdef": 5, "magdef": 13,
 		"aeva": 5, "meva": 15, "crit": 5,
 		"speed": 8, "move": 6, "patience": 8, "sight": 10,
 		"abilities": ["raise", "cure", "haste", "sanctuary"],
@@ -200,59 +200,59 @@ const JOBS := {
 const ABILITIES := {
 	# Squire
 	"attack": {"name": "Attack", "desc": "Strike an enemy within reach.",
-		"effect": "damage", "scale": "att", "power": 16, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "enemy"},
+		"effect": "damage", "scale": "att", "power": 31, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "enemy"},
 	"throw_stone": {"name": "Throw Stone", "desc": "Hurl a stone at an enemy 2-7 m away.",
-		"effect": "damage", "scale": "att", "power": 6, "min_range": 2.0, "max_range": 7.0, "aoe": 0.0, "cooldown": 1, "cast": 0.0, "target": "enemy"},
-	"focus": {"name": "Focus", "desc": "Raise your Power by 6 for 2 turns (its abilities hit harder).",
+		"effect": "damage", "scale": "att", "power": 20, "min_range": 2.0, "max_range": 7.0, "aoe": 0.0, "cooldown": 1, "cast": 0.0, "target": "enemy"},
+	"focus": {"name": "Focus", "desc": "Raise your Crit chance by 12% for 2 turns (its abilities hit harder).",
 		"effect": "support", "scale": "att", "power": 0, "min_range": 0.0, "max_range": 0.0, "aoe": 0.0, "cooldown": 3, "cast": 0.0, "target": "ally",
-		"buffs": [{"stat": "power", "amount": 6, "turns": 2}]},
+		"buffs": [{"stat": "crit", "amount": 12, "turns": 2}]},
 	"brave_slash": {"name": "Brave Slash", "desc": "ULTIMATE: a devastating blow.",
-		"effect": "damage", "scale": "att", "power": 59, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "enemy"},
+		"effect": "damage", "scale": "att", "power": 73, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "enemy"},
 	# Knight
 	"shield_bash": {"name": "Shield Bash", "desc": "Hit an enemy, lowering its TG by 30% and Stunning it for a turn.",
-		"effect": "damage", "scale": "att", "power": 26, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 2, "cast": 0.0, "target": "enemy", "tg": -30,
+		"effect": "damage", "scale": "att", "power": 42, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 2, "cast": 0.0, "target": "enemy", "tg": -30,
 		"status": {"id": "stun", "turns": 1}},
 	"guard": {"name": "Guard", "desc": "Raise your AttDef by 8 and MagDef by 6 for 2 turns.",
 		"effect": "support", "scale": "att", "power": 0.0, "min_range": 0.0, "max_range": 0.0, "aoe": 0.0, "cooldown": 3, "cast": 0.0, "target": "ally",
 		"buffs": [{"stat": "attdef", "amount": 8, "turns": 2}, {"stat": "magdef", "amount": 6, "turns": 2}]},
 	"holy_blade": {"name": "Holy Blade", "desc": "ULTIMATE: a pillar of light hits every enemy within 1.5 m of the target.",
-		"effect": "damage", "scale": "att", "power": 48, "min_range": 0.0, "max_range": 3.0, "aoe": 1.5, "cooldown": 0, "cast": 1.0, "target": "enemy"},
+		"effect": "damage", "scale": "att", "power": 64, "min_range": 0.0, "max_range": 3.0, "aoe": 1.5, "cooldown": 0, "cast": 1.0, "target": "enemy"},
 	# Archer
 	"bow_shot": {"name": "Bow Shot", "desc": "Shoot an enemy 3-10 m away.",
-		"effect": "damage", "scale": "att", "power": 15, "min_range": 3.0, "max_range": 10.0, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "enemy"},
+		"effect": "damage", "scale": "att", "power": 30, "min_range": 3.0, "max_range": 10.0, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "enemy"},
 	"aimed_shot": {"name": "Aimed Shot", "desc": "A careful, powerful shot 4-12 m away.",
-		"effect": "damage", "scale": "att", "power": 33, "min_range": 4.0, "max_range": 12.0, "aoe": 0.0, "cooldown": 2, "cast": 1.0, "target": "enemy"},
+		"effect": "damage", "scale": "att", "power": 48, "min_range": 4.0, "max_range": 12.0, "aoe": 0.0, "cooldown": 2, "cast": 1.0, "target": "enemy"},
 	"pin_shot": {"name": "Pin Shot", "desc": "Pin an enemy down, lowering its TG by 40%.",
-		"effect": "damage", "scale": "att", "power": 6, "min_range": 3.0, "max_range": 10.0, "aoe": 0.0, "cooldown": 2, "cast": 0.0, "target": "enemy", "tg": -40},
+		"effect": "damage", "scale": "att", "power": 21, "min_range": 3.0, "max_range": 10.0, "aoe": 0.0, "cooldown": 2, "cast": 0.0, "target": "enemy", "tg": -40},
 	"arrow_rain": {"name": "Arrow Rain", "desc": "ULTIMATE: arrows fall on every enemy within 2.5 m of a point 4-13 m away.",
-		"effect": "damage", "scale": "att", "power": 24, "min_range": 4.0, "max_range": 13.0, "aoe": 2.5, "cooldown": 0, "cast": 2.0, "target": "enemy"},
+		"effect": "damage", "scale": "att", "power": 39, "min_range": 4.0, "max_range": 13.0, "aoe": 2.5, "cooldown": 0, "cast": 2.0, "target": "enemy"},
 	# Monk
 	"punch": {"name": "Punch", "desc": "A hard blow to an enemy within reach.",
-		"effect": "damage", "scale": "att", "power": 24, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "enemy"},
+		"effect": "damage", "scale": "att", "power": 41, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "enemy"},
 	"wave_fist": {"name": "Wave Fist", "desc": "A shockwave that hits an enemy 2-5 m away.",
-		"effect": "damage", "scale": "att", "power": 17, "min_range": 2.0, "max_range": 5.0, "aoe": 0.0, "cooldown": 1, "cast": 0.0, "target": "enemy"},
+		"effect": "damage", "scale": "att", "power": 34, "min_range": 2.0, "max_range": 5.0, "aoe": 0.0, "cooldown": 1, "cast": 0.0, "target": "enemy"},
 	"chakra": {"name": "Chakra", "desc": "Heal yourself and allies within 2.5 m, and give them Regen for 2 turns.",
-		"effect": "heal", "scale": "att", "power": 8, "min_range": 0.0, "max_range": 0.0, "aoe": 2.5, "cooldown": 3, "cast": 0.0, "target": "ally",
+		"effect": "heal", "scale": "att", "power": 25, "min_range": 0.0, "max_range": 0.0, "aoe": 2.5, "cooldown": 3, "cast": 0.0, "target": "ally",
 		"status": {"id": "regen", "turns": 2}},
 	"earth_slash": {"name": "Earth Slash", "desc": "ULTIMATE: shatter the ground, hitting every enemy within 3.5 m.",
-		"effect": "damage", "scale": "att", "power": 44, "min_range": 0.0, "max_range": 0.0, "aoe": 3.5, "cooldown": 0, "cast": 1.0, "target": "enemy"},
+		"effect": "damage", "scale": "att", "power": 61, "min_range": 0.0, "max_range": 0.0, "aoe": 3.5, "cooldown": 0, "cast": 1.0, "target": "enemy"},
 	# Mages
 	"staff": {"name": "Staff Strike", "desc": "A weak strike to an enemy within reach.",
-		"effect": "damage", "scale": "att", "power": 5, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "enemy"},
+		"effect": "damage", "scale": "att", "power": 23, "min_range": 0.0, "max_range": 1.8, "aoe": 0.0, "cooldown": 0, "cast": 0.0, "target": "enemy"},
 	"fire": {"name": "Fire", "desc": "Hurl a fireball at an enemy 2-8 m away; it Burns for 3 turns.",
-		"effect": "damage", "scale": "mag", "power": 32, "min_range": 2.0, "max_range": 8.0, "aoe": 0.0, "cooldown": 0, "cast": 1.0, "target": "enemy",
+		"effect": "damage", "scale": "mag", "power": 50, "min_range": 2.0, "max_range": 8.0, "aoe": 0.0, "cooldown": 0, "cast": 1.0, "target": "enemy",
 		"status": {"id": "burn", "turns": 3}},
 	"blizzard": {"name": "Blizzard", "desc": "Freeze every enemy within 2 m of a point 2-8 m away, Slowing them for 2 turns.",
-		"effect": "damage", "scale": "mag", "power": 18, "min_range": 2.0, "max_range": 8.0, "aoe": 2.0, "cooldown": 2, "cast": 2.0, "target": "enemy",
+		"effect": "damage", "scale": "mag", "power": 36, "min_range": 2.0, "max_range": 8.0, "aoe": 2.0, "cooldown": 2, "cast": 2.0, "target": "enemy",
 		"status": {"id": "slow", "turns": 2}},
 	"meteor": {"name": "Meteor", "desc": "ULTIMATE: a meteor strikes every enemy within 3.5 m of a point 3-10 m away.",
-		"effect": "damage", "scale": "mag", "power": 61, "min_range": 3.0, "max_range": 10.0, "aoe": 3.5, "cooldown": 0, "cast": 4.0, "target": "enemy"},
+		"effect": "damage", "scale": "mag", "power": 79, "min_range": 3.0, "max_range": 10.0, "aoe": 3.5, "cooldown": 0, "cast": 4.0, "target": "enemy"},
 	"cure": {"name": "Cure", "desc": "Heal an ally (or yourself) up to 6 m away.",
-		"effect": "heal", "scale": "mag", "power": 9, "min_range": 0.0, "max_range": 6.0, "aoe": 0.0, "cooldown": 0, "cast": 1.0, "target": "ally"},
+		"effect": "heal", "scale": "mag", "power": 24, "min_range": 0.0, "max_range": 6.0, "aoe": 0.0, "cooldown": 0, "cast": 1.0, "target": "ally"},
 	"haste": {"name": "Haste", "desc": "Raise an ally's TG by 50% so it acts sooner.",
 		"effect": "support", "scale": "mag", "power": 0, "min_range": 0.0, "max_range": 6.0, "aoe": 0.0, "cooldown": 3, "cast": 1.5, "target": "ally", "tg": 50},
 	"sanctuary": {"name": "Sanctuary", "desc": "ULTIMATE: heal every ally within 3.5 m of a point up to 8 m away, with Regen for 3 turns.",
-		"effect": "heal", "scale": "mag", "power": 15, "min_range": 0.0, "max_range": 8.0, "aoe": 3.5, "cooldown": 0, "cast": 3.0, "target": "ally",
+		"effect": "heal", "scale": "mag", "power": 30, "min_range": 0.0, "max_range": 8.0, "aoe": 3.5, "cooldown": 0, "cast": 3.0, "target": "ally",
 		"status": {"id": "regen", "turns": 3}},
 	"raise": {"name": "Raise", "desc": "Revive a knocked-out ally up to 5 m away with 30% HP.",
 		"effect": "revive", "scale": "mag", "power": 0.3, "min_range": 0.0, "max_range": 5.0, "aoe": 0.0, "cooldown": 4, "cast": 2.0, "target": "ko_ally"},
@@ -277,8 +277,8 @@ static var _roles := {}
 static var _with_overrides := {}
 
 ## The stats a class has, and the values the Unit Guide allows for each.
-const STAT_KEYS := ["hp", "power", "attdef", "magdef", "aeva", "meva", "crit", "speed", "move", "patience", "sight"]
-const STAT_LIMITS := {"hp": [10, 300], "power": [0, 40], "attdef": [0, 30], "magdef": [0, 30],
+const STAT_KEYS := ["hp", "attdef", "magdef", "aeva", "meva", "crit", "speed", "move", "patience", "sight"]
+const STAT_LIMITS := {"hp": [10, 300], "attdef": [0, 30], "magdef": [0, 30],
 	"aeva": [0, 60], "meva": [0, 60], "crit": [0, 60], "speed": [1, 20], "move": [1, 15], "patience": [0, 15], "sight": [3, 25]}
 
 
@@ -403,7 +403,7 @@ static func _guess_roles(id: String) -> Array:
 	var hit := 0.0
 	for ab_id in job.abilities:
 		hit = maxf(hit, float(ability(ab_id).power) if ability(ab_id).effect == "damage" else 0.0)
-	score.damage = (hit + job.power - 30.0) / 8.0
+	score.damage = (hit - 30.0) / 8.0
 	for ab_id in job.abilities:
 		var ab := ability(ab_id)
 		match ab.effect:

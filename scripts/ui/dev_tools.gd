@@ -327,8 +327,8 @@ func _list_classes() -> void:
 		var names: Array[String] = []
 		for ab_id in job.abilities:
 			names.append(Jobs.ability(ab_id).name)
-		l.text = "%s  (%s)   HP %d  Power %d  AttDef %d  MagDef %d  A-Eva %d%%  M-Eva %d%%  Crit %d%%  Speed %d  Move %d  Patience %d  Sight %d   ·   %s" % [
-			job.name, id, job.hp, job.power, job.attdef, job.magdef, job.aeva, job.meva, job.crit,
+		l.text = "%s  (%s)   HP %d  AttDef %d  MagDef %d  A-Eva %d%%  M-Eva %d%%  Crit %d%%  Speed %d  Move %d  Patience %d  Sight %d   ·   %s" % [
+			job.name, id, job.hp, job.attdef, job.magdef, job.aeva, job.meva, job.crit,
 			job.speed, job.move, job.patience, job.sight, ", ".join(names)]
 		l.add_theme_color_override("font_color", job.color.lightened(0.3))
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

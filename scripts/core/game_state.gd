@@ -881,9 +881,9 @@ func _amount(u: Unit, ab: Dictionary, from: Vector2, t: Unit, t_pos: Vector2) ->
 ## step-by-step calculation as text (for tooltips), using the same numbers.
 ## Returns {"value": int, "text": String}.
 func _calc(u: Unit, ab: Dictionary, from: Vector2, t: Unit, t_pos: Vector2, explain: bool) -> Dictionary:
-	# An ability's own power is the damage (or healing) it does; the user's
-	# Power stat is added to it.
-	var power: float = ab.power + (u.stat("power") if ab.effect != "revive" else 0)
+	# What an ability does is the ability's own power, and nothing else: no stat
+	# of the user's is added to it.
+	var power: float = ab.power
 	match ab.effect:
 		"damage":
 			var def_name := "AttDef" if ab.scale == "att" else "MagDef"
@@ -895,7 +895,7 @@ func _calc(u: Unit, ab: Dictionary, from: Vector2, t: Unit, t_pos: Vector2, expl
 			var value := maxi(1, roundi((raw - def) * tune("damage_multiplier")))
 			if not explain:
 				return {"value": value}
-			var lines := ["Power %s%s" % [_n(ab.power), " + %d from %s" % [u.stat("power"), u.job_name()] if u.stat("power") > 0 else ""]]
+			var lines := ["Power %s" % _n(ab.power)]
 			if levels != 0:
 				lines.append("x height %s (%+d level%s)" % [_n(height), levels, "" if absi(levels) == 1 else "s"])
 			if flank != 1.0:
@@ -911,8 +911,8 @@ func _calc(u: Unit, ab: Dictionary, from: Vector2, t: Unit, t_pos: Vector2, expl
 			var value := mini(full, missing)
 			if not explain:
 				return {"value": value}
-			var text := "Power %s%s x %s x heal multiplier %s = %d" % [_n(ab.power),
-				" + %d" % u.stat("power") if u.stat("power") > 0 else "", _n(HEAL_SCALE), _n(tune("heal_multiplier")), full]
+			var text := "Power %s x %s x heal multiplier %s = %d" % [_n(ab.power),
+				_n(HEAL_SCALE), _n(tune("heal_multiplier")), full]
 			if value < full:
 				text += "\ncapped at missing HP %d" % missing
 			return {"value": value, "text": text}
@@ -975,15 +975,15 @@ func explain_ability(u: Unit, slot: int) -> String:
 	var lines: Array[String] = []
 	match ab.effect:
 		"damage":
-			lines.append("Damage = power %s%s" % [_n(ab.power), " + Power %d" % u.stat("power") if u.stat("power") > 0 else ""])
+			lines.append("Damage = power %s" % _n(ab.power))
 			lines.append("  x height (%s per level) x side %s / back %s" % [_n(tune("height_bonus")), _n(tune("side_bonus")), _n(tune("back_bonus"))])
 			lines.append("  - target's %s, x damage multiplier %s (at least 1)" % ["AttDef" if ab.scale == "att" else "MagDef", _n(tune("damage_multiplier"))])
 			lines.append("  target's %s evades it; %d%% chance of a critical hit (x %s)" % [
 				"A-Eva" if ab.scale == "att" else "M-Eva", crit_chance(u), _n(tune("crit_multiplier"))])
 		"heal":
-			lines.append("Heal = power %s%s x %s x heal multiplier %s = %d" % [_n(ab.power),
-				" + Power %d" % u.stat("power") if u.stat("power") > 0 else "", _n(HEAL_SCALE), _n(tune("heal_multiplier")),
-				roundi((ab.power + u.stat("power")) * HEAL_SCALE * tune("heal_multiplier"))])
+			lines.append("Heal = power %s x %s x heal multiplier %s = %d" % [_n(ab.power),
+				_n(HEAL_SCALE), _n(tune("heal_multiplier")),
+				roundi(ab.power * HEAL_SCALE * tune("heal_multiplier"))])
 		"revive":
 			lines.append("Revives with %d%% of max HP" % roundi(ab.power * 100))
 	if ab.has("tg"):
@@ -1827,7 +1827,7 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 			if Jobs.STATUSES[ab.status.id].get("taunt", false):
 				extra["by"] = u.id
 			if Jobs.STATUSES[ab.status.id].get("absorbs", false):
-				extra["amount"] = maxi(1, roundi(ab.power + u.stat("power")))
+				extra["amount"] = maxi(1, roundi(ab.power))
 			_add_status(t, ab.status.id, ab.status.turns, extra)
 			resolved.applied.append({"unit": t.id, "hostile": t.team != u.team})
 			var info: Dictionary = Jobs.STATUSES[ab.status.id]

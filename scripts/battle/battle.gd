@@ -1505,8 +1505,8 @@ func _describe_hover() -> String:
 			status += "   %s %d turn%s" % [Jobs.STATUSES[s.id].name, s.turns, "" if s.turns == 1 else "s"]
 		var sel := _selected()
 		var dist := "   ·   %.1f m away" % sel.pos.distance_to(t.pos) if sel != null and sel != t else ""
-		return "%s %s   HP %d/%d   %s   Ultimate %d%%   Power %d  AttDef %d  MagDef %d  A-Eva %d%%  M-Eva %d%%  Crit %d%%  Speed %d  Move %s m  Sight %s m%s" % [
-			GameState.TEAM_NAMES[t.team], t.job_name(), t.hp, t.max_hp(), status, t.ult, t.stat("power"),
+		return "%s %s   HP %d/%d   %s   Ultimate %d%%   AttDef %d  MagDef %d  A-Eva %d%%  M-Eva %d%%  Crit %d%%  Speed %d  Move %s m  Sight %s m%s" % [
+			GameState.TEAM_NAMES[t.team], t.job_name(), t.hp, t.max_hp(), status, t.ult,
 			t.stat("attdef"), t.stat("magdef"), t.stat("aeva"), t.stat("meva"), t.stat("crit"), t.stat("speed"),
 			GameState._n(state.move_of(t)), GameState._n(state.sight_of(t)), dist]
 	if not _point_seen(hover_point):
