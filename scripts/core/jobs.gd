@@ -11,7 +11,7 @@ extends RefCounted
 ##   crit      Crit: chance in % that an ability lands a critical hit (5-30)
 ##   attdef    AttDef: reduces physical damage
 ##   magdef    MagDef: reduces magical damage
-##   wits      how fast the Turn Gauge (TG) fills; higher = more turns
+##   speed      how fast the Turn Gauge (TG) fills; higher = more turns
 ##   move      meters the unit can walk per turn
 ##   patience  length of the countdown while ready (see GameState.clock_ticks)
 ##   sight     vision radius in meters through the fog of war
@@ -128,42 +128,42 @@ const JOBS := {
 		"name": "Squire", "color": Color(0.85, 0.65, 0.35), "role": "damage",
 		"hp": 75, "power": 14, "attdef": 8, "magdef": 6,
 		"aeva": 8, "meva": 5, "crit": 8,
-		"wits": 10, "move": 7, "patience": 6, "sight": 9,
+		"speed": 10, "move": 7, "patience": 6, "sight": 9,
 		"abilities": ["attack", "throw_stone", "focus", "brave_slash"],
 	},
 	"knight": {
 		"name": "Knight", "color": Color(0.75, 0.78, 0.85), "role": "tank/damage",
 		"hp": 105, "power": 16, "attdef": 12, "magdef": 6,
 		"aeva": 5, "meva": 5, "crit": 5,
-		"wits": 6, "move": 6, "patience": 7, "sight": 8,
+		"speed": 6, "move": 6, "patience": 7, "sight": 8,
 		"abilities": ["attack", "shield_bash", "guard", "holy_blade"],
 	},
 	"archer": {
 		"name": "Archer", "color": Color(0.35, 0.7, 0.35), "role": "damage",
 		"hp": 60, "power": 15, "attdef": 6, "magdef": 7,
 		"aeva": 15, "meva": 8, "crit": 15,
-		"wits": 12, "move": 7, "patience": 6, "sight": 13,
+		"speed": 12, "move": 7, "patience": 6, "sight": 13,
 		"abilities": ["bow_shot", "aimed_shot", "pin_shot", "arrow_rain"],
 	},
 	"monk": {
 		"name": "Monk", "color": Color(0.9, 0.5, 0.2), "role": "damage/support",
 		"hp": 80, "power": 17, "attdef": 8, "magdef": 5,
 		"aeva": 18, "meva": 8, "crit": 12,
-		"wits": 12, "move": 8, "patience": 5, "sight": 9,
+		"speed": 12, "move": 8, "patience": 5, "sight": 9,
 		"abilities": ["punch", "wave_fist", "chakra", "earth_slash"],
 	},
 	"black_mage": {
 		"name": "Black Mage", "color": Color(0.25, 0.2, 0.45), "role": "damage",
 		"hp": 60, "power": 18, "attdef": 4, "magdef": 12,
 		"aeva": 5, "meva": 12, "crit": 10,
-		"wits": 8, "move": 6, "patience": 8, "sight": 10,
+		"speed": 8, "move": 6, "patience": 8, "sight": 10,
 		"abilities": ["staff", "fire", "blizzard", "meteor"],
 	},
 	"white_mage": {
 		"name": "White Mage", "color": Color(0.95, 0.95, 0.95), "role": "support",
 		"hp": 65, "power": 15, "attdef": 5, "magdef": 13,
 		"aeva": 5, "meva": 15, "crit": 5,
-		"wits": 8, "move": 6, "patience": 8, "sight": 10,
+		"speed": 8, "move": 6, "patience": 8, "sight": 10,
 		"abilities": ["raise", "cure", "haste", "sanctuary"],
 	},
 }
@@ -248,9 +248,9 @@ static var _roles := {}
 static var _with_overrides := {}
 
 ## The stats a class has, and the values the Unit Guide allows for each.
-const STAT_KEYS := ["hp", "power", "attdef", "magdef", "aeva", "meva", "crit", "wits", "move", "patience", "sight"]
+const STAT_KEYS := ["hp", "power", "attdef", "magdef", "aeva", "meva", "crit", "speed", "move", "patience", "sight"]
 const STAT_LIMITS := {"hp": [10, 300], "power": [0, 40], "attdef": [0, 30], "magdef": [0, 30],
-	"aeva": [0, 60], "meva": [0, 60], "crit": [0, 60], "wits": [1, 20], "move": [1, 15], "patience": [0, 15], "sight": [3, 25]}
+	"aeva": [0, 60], "meva": [0, 60], "crit": [0, 60], "speed": [1, 20], "move": [1, 15], "patience": [0, 15], "sight": [3, 25]}
 
 
 ## Every job id -> data, built-in first.

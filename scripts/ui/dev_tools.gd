@@ -1,6 +1,6 @@
 extends Control
 ## Developer Tools: sliders for the main rule numbers (GameState.TUNING), such
-## as the Wits and Patience multipliers, plus the classes imported from Astra
+## as the Speed and Patience multipliers, plus the classes imported from Astra
 ## Ability Creator. Hovering a slider shows the formula it feeds, worked out
 ## for example units with the current values.
 ##
@@ -100,7 +100,7 @@ func _ready() -> void:
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.modulate = Color(1, 1, 1, 0.7)
 	help.text = ("Design a class in Astra: tag every ability \"class:<id>\", give one Passive ability the tag \"profile\" with "
-		+ "parameters hp, attdef, magdef, wits, move, patience and sight (power, aeva, meva and crit are optional), tag it \"role:tank\" "
+		+ "parameters hp, attdef, magdef, speed, move, patience and sight (power, aeva, meva and crit are optional), tag it \"role:tank\" "
 		+ "(or damage / support / special, or a pair like tank/support), and tag the 4 abilities \"slot:1\" to \"slot:4\" "
 		+ "(4 = ultimate). Export the library as JSON into the classes folder, then Reload. See README for every parameter.")
 	content.add_child(help)
@@ -256,7 +256,7 @@ func _formula(key: String) -> String:
 	var mage = _unit(1, "black_mage")
 	var white = _unit(0, "white_mage")
 	match key:
-		"wits_multiplier":
+		"speed_multiplier":
 			return "Knight: %s\nArcher: %s" % [_example.explain_turn(knight), _example.explain_turn(archer)]
 		"clock_base", "patience_multiplier":
 			return "Knight: %s\nBlack Mage: %s" % [_example.explain_countdown(knight), _example.explain_countdown(mage)]
@@ -327,9 +327,9 @@ func _list_classes() -> void:
 		var names: Array[String] = []
 		for ab_id in job.abilities:
 			names.append(Jobs.ability(ab_id).name)
-		l.text = "%s  (%s)   HP %d  Power %d  AttDef %d  MagDef %d  A-Eva %d%%  M-Eva %d%%  Crit %d%%  Wits %d  Move %d  Patience %d  Sight %d   ·   %s" % [
+		l.text = "%s  (%s)   HP %d  Power %d  AttDef %d  MagDef %d  A-Eva %d%%  M-Eva %d%%  Crit %d%%  Speed %d  Move %d  Patience %d  Sight %d   ·   %s" % [
 			job.name, id, job.hp, job.power, job.attdef, job.magdef, job.aeva, job.meva, job.crit,
-			job.wits, job.move, job.patience, job.sight, ", ".join(names)]
+			job.speed, job.move, job.patience, job.sight, ", ".join(names)]
 		l.add_theme_color_override("font_color", job.color.lightened(0.3))
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_classes.add_child(l)

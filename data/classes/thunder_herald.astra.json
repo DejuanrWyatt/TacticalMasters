@@ -776,8 +776,8 @@
         },
         {
           "id": "34d79c1d-9387-4936-bd44-05362fae731e",
-          "key": "wits",
-          "name": "Wits",
+          "key": "speed",
+          "name": "Speed",
           "base": 14,
           "step": 0,
           "unit": "",
@@ -1103,7 +1103,7 @@
     {
       "id": "4abd720f-350b-4317-9493-0db20b3cfed3",
       "name": "Thunder Ballad",
-      "description": "Every ally within 4 m is inspired; Wits +2 for 2 turns. Always on, for allies nearby.",
+      "description": "Every ally within 4 m is inspired; Speed +2 for 2 turns. Always on, for allies nearby.",
       "kind": "Aura",
       "resource": "None",
       "damageType": "None",
@@ -1151,8 +1151,8 @@
         },
         {
           "id": "36d23b81-1c6a-497a-8191-016733aa6fc1",
-          "key": "buff_wits",
-          "name": "Buff Wits",
+          "key": "buff_speed",
+          "name": "Buff Speed",
           "base": 2,
           "step": 0,
           "unit": "",

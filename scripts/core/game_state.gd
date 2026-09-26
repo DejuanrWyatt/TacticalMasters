@@ -11,7 +11,7 @@ extends RefCounted
 ## turns: they act and count down when its turn comes (see _tick_statuses).
 ##
 ## Time: runs in ticks (TICKS_PER_SECOND per second). Every tick, each unit
-## that isn't ready fills its Turn Gauge (TG) by its Wits. At TG_MAX it
+## that isn't ready fills its Turn Gauge (TG) by its Speed. At TG_MAX it
 ## becomes READY and its countdown starts (length set by Patience). A ready
 ## unit may move once and use one ability, in either order, then end its
 ## turn. If the countdown runs out first, the turn is lost. Any number of
@@ -44,7 +44,7 @@ extends RefCounted
 ## can't act and doesn't count as alive, but Raise can revive it until then;
 ## afterwards it is gone. A team with no living units loses.
 ##
-## Tuning: the main rule numbers (Wits and Patience multipliers, damage and
+## Tuning: the main rule numbers (Speed and Patience multipliers, damage and
 ## healing multipliers, height/flank bonuses, KO time, Ultimate gains, move,
 ## sight and cast-time multipliers) live in `tuning` (defaults in
 ## DEFAULT_TUNING) so Developer Tools can adjust them. A "tune" command changes
@@ -105,12 +105,12 @@ const MELEE_RANGE := 1.8
 # Time
 const TICKS_PER_SECOND := 10
 ## A full Turn Gauge. Shown to players as a percentage (see tg_percent).
-## (Fine-grained so that Slow's half speed stays a whole number for any Wits.)
+## (Fine-grained so that Slow's half speed stays a whole number for any Speed.)
 const TG_MAX := 4000
-## TG gained per tick per point of Wits (Wits 10 fills the gauge in 20 seconds).
-const TG_PER_WITS := 2
-## Head start at the beginning of a battle, per point of Wits (Wits 10 starts 80% full).
-const START_TG_PER_WITS := 320
+## TG gained per tick per point of Speed (Speed 10 fills the gauge in 20 seconds).
+const TG_PER_SPEED := 2
+## Head start at the beginning of a battle, per point of Speed (Speed 10 starts 80% full).
+const START_TG_PER_SPEED := 320
 ## TG kept after a turn where the unit only moved or only acted (20%) / did neither (40%).
 const TG_KEEP_ONE := 800
 const TG_KEEP_NONE := 1600
@@ -143,7 +143,7 @@ const KO_SECONDS := 12.0
 ## Adjustable rule numbers (Developer Tools). Each: default, min, max, step,
 ## label and what it does. The defaults are the constants above.
 const TUNING := {
-	"wits_multiplier": [1.0, 0.25, 3.0, 0.05, "Wits multiplier", "How fast Turn Gauges fill (x Wits)."],
+	"speed_multiplier": [1.0, 0.25, 3.0, 0.05, "Speed multiplier", "How fast Turn Gauges fill (x Speed)."],
 	"clock_base": [CLOCK_BASE, 2.0, 30.0, 0.5, "Countdown base (s)", "Seconds every READY unit gets, before Patience."],
 	"patience_multiplier": [CLOCK_PER_PATIENCE, 0.0, 6.0, 0.25, "Patience multiplier (s)", "Extra countdown seconds per point of Patience."],
 	"damage_multiplier": [DAMAGE_MULTIPLIER, 0.1, 2.0, 0.05, "Damage multiplier", "Final multiplier on all damage (after defense)."],
@@ -280,7 +280,7 @@ func setup(map: Dictionary, p_tuning := {}, p_seed := 0) -> void:
 	units.clear()
 	for entry in map["units"]:
 		var u := Unit.new(units.size(), entry[0], entry[1], entry[2])
-		u.tg = mini(TG_MAX - 1, u.stat("wits") * START_TG_PER_WITS)
+		u.tg = mini(TG_MAX - 1, u.stat("speed") * START_TG_PER_SPEED)
 		u.facing = (size_meters() * 0.5 - u.pos).normalized()
 		units.append(u)
 	spawn_points.assign(map["spawn_points"])
@@ -721,9 +721,9 @@ func hustle_factor(u: Unit) -> float:
 	return 1.0 + tune("hustle_bonus") * 0.01 if u.is_hustling() else 1.0
 
 
-## Turn Gauge per tick before statuses: Wits x TG_PER_WITS x Wits multiplier.
+## Turn Gauge per tick before statuses: Speed x TG_PER_SPEED x Speed multiplier.
 func _base_tg_gain(u: Unit) -> int:
-	return maxi(1, roundi(u.stat("wits") * TG_PER_WITS * tune("wits_multiplier")))
+	return maxi(1, roundi(u.stat("speed") * TG_PER_SPEED * tune("speed_multiplier")))
 
 
 ## Seconds left to act if ready, seconds until the spell goes off if
@@ -936,7 +936,7 @@ func explain_hit(u: Unit, slot: int, from: Vector2, t: Unit) -> String:
 ## How the unit's Turn Gauge timing is worked out.
 func explain_turn(u: Unit) -> String:
 	var gain := _base_tg_gain(u)
-	var text := "TG per tick = Wits %d x %d x Wits multiplier %s = %d\n" % [u.stat("wits"), TG_PER_WITS, _n(tune("wits_multiplier")), gain]
+	var text := "TG per tick = Speed %d x %d x Speed multiplier %s = %d\n" % [u.stat("speed"), TG_PER_SPEED, _n(tune("speed_multiplier")), gain]
 	text += "Full gauge %d / %d = %d ticks = %s s between turns" % [TG_MAX, gain, ceili(float(TG_MAX) / gain), _n(ceili(float(TG_MAX) / gain) / float(TICKS_PER_SECOND))]
 	if u.tg_factor() != 1.0:
 		text += "\nStatuses: x %s" % _n(u.tg_factor())

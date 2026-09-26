@@ -776,8 +776,8 @@
         },
         {
           "id": "b4d344ad-28a9-47a7-b8fa-bed61a4ec691",
-          "key": "wits",
-          "name": "Wits",
+          "key": "speed",
+          "name": "Speed",
           "base": 8,
           "step": 0,
           "unit": "",
@@ -974,7 +974,7 @@
     {
       "id": "18cfd7a9-03c7-4644-9ae0-46b40e0f2ce7",
       "name": "Frost Curse",
-      "description": "Weaken an enemy 2-8 m away for 2 turns; Wits -3. (1 s)",
+      "description": "Weaken an enemy 2-8 m away for 2 turns; Speed -3. (1 s)",
       "kind": "Active",
       "resource": "None",
       "damageType": "None",
@@ -1058,8 +1058,8 @@
         },
         {
           "id": "7e323eec-43e2-41af-adf2-f3e675cb5ffe",
-          "key": "buff_wits",
-          "name": "Buff Wits",
+          "key": "buff_speed",
+          "name": "Buff Speed",
           "base": -3,
           "step": 0,
           "unit": "",

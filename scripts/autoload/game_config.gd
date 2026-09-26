@@ -6,6 +6,10 @@ const MapData = preload("res://scripts/core/map_data.gd")
 const GameState = preload("res://scripts/core/game_state.gd")
 const AstraImport = preload("res://scripts/core/astra_import.gd")
 const TUNING_PATH := "user://tuning.cfg"
+## Names that have changed, old to new. Saved files are read through these so
+## a player's own numbers survive a rename instead of being quietly dropped.
+const RENAMED_STATS := {"wits": "speed"}
+const RENAMED_TUNING := {"wits_multiplier": "speed_multiplier"}
 ## Teams the player saved in Battle Setup, by the name they gave them.
 const TEAMS_PATH := "user://teams.cfg"
 const STATS_PATH := "user://class_stats.cfg"
@@ -119,7 +123,10 @@ func _load_stats() -> void:
 		for id in cfg.get_sections():
 			changes[id] = {}
 			for stat in cfg.get_section_keys(id):
-				changes[id][stat] = cfg.get_value(id, stat)
+				var name: String = RENAMED_STATS.get(stat, stat)
+				if name != stat and cfg.has_section_key(id, name):
+					continue  # saved under both names: the one in use now wins
+				changes[id][name] = cfg.get_value(id, stat)
 	stat_overrides = Jobs.clean_overrides(changes)
 	Jobs.set_overrides(stat_overrides)
 
@@ -201,7 +208,10 @@ func _load_tuning() -> void:
 		return
 	var values := {}
 	for key in cfg.get_section_keys("tuning"):
-		values[key] = cfg.get_value("tuning", key)
+		var name: String = RENAMED_TUNING.get(key, key)
+		if name != key and cfg.has_section_key("tuning", name):
+			continue  # saved under both names: the one in use now wins
+		values[name] = cfg.get_value("tuning", key)
 	tuning = GameState.clean_tuning(values)
 
 

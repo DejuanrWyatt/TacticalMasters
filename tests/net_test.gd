@@ -51,7 +51,7 @@ func _initialize() -> void:
 		# The host's Battle Setup choices must reach the client.
 		config.map_id = "river"
 		config.rosters = [["monk", "archer", "time_mage", "white_mage"], ["knight", "black_mage", "archer", "monk"]]
-		config.tuning = {"wits_multiplier": 1.3, "damage_multiplier": 0.7}  # in memory only
+		config.tuning = {"speed_multiplier": 1.3, "damage_multiplier": 0.7}  # in memory only
 		config.stat_overrides = {"monk": {"hp": 140}}  # in memory only
 	else:
 		# The client must get the class and the rule numbers from the host.
@@ -69,7 +69,7 @@ func _initialize() -> void:
 	if config.map_id != "river" or config.rosters[0][0] != "monk":
 		_finish(role, "host settings didn't arrive (map %s)" % config.map_id)
 		return
-	if config.online_tuning.get("wits_multiplier") != 1.3 or not Jobs.has_job("time_mage"):
+	if config.online_tuning.get("speed_multiplier") != 1.3 or not Jobs.has_job("time_mage"):
 		_finish(role, "host tuning or class didn't arrive (%s, time_mage=%s)" % [config.online_tuning, Jobs.has_job("time_mage")])
 		return
 	Jobs.set_overrides(config.battle_overrides())
@@ -171,7 +171,7 @@ func _summary(role: String) -> String:
 	var sums := []
 	for u in state.units:
 		sums.append("%d:%s:%d:%d" % [u.id, u.pos, u.hp, u.tg])
-	return "%s team=%d winner=%d tick=%d tuning=%s checksum=%d" % [role, config.local_team, state.winner, state.tick, state.tune("wits_multiplier"), str(sums).hash()]
+	return "%s team=%d winner=%d tick=%d tuning=%s checksum=%d" % [role, config.local_team, state.winner, state.tick, state.tune("speed_multiplier"), str(sums).hash()]
 
 
 func _finish(role: String, error: String, summary := "") -> void:

@@ -65,7 +65,7 @@ the end.
 
 ## How it plays
 
-- **Time keeps running.** Every unit's **Turn Gauge (TG)** fills at a rate set by its **Wits**: a Wits-10 unit gets a
+- **Time keeps running.** Every unit's **Turn Gauge (TG)** fills at a rate set by its **Speed**: a Speed-10 unit gets a
   turn every 20 s, and slower units less often. A unit with a full gauge is
   **READY** and can act right away. Several units, from both sides, can be ready at the same time, and both players act at once.
 - **Each ready unit has its own countdown**: 8 s + 2 s × **Patience** (18-24 s). It appears on the unit's chip in the turn order bar
@@ -200,7 +200,7 @@ Maps are 24 × 24 m and point-symmetric (fair for both sides). They're defined a
 The default team is Knight, Archer, Black Mage and White Mage (`Jobs.DEFAULT_ROSTER`); Squire and Monk are also
 available in Battle Setup. Move and Sight are in meters.
 
-| Class | Role | HP | Power | AttDef | MagDef | A-Eva | M-Eva | Crit | Wits | Move | Patience | Sight |
+| Class | Role | HP | Power | AttDef | MagDef | A-Eva | M-Eva | Crit | Speed | Move | Patience | Sight |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Squire | Damage | 75 | 14 | 8 | 6 | 8% | 5% | 8% | 10 | 7 | 6 | 9 |
 | Knight | Tank / Damage | 105 | 16 | 12 | 6 | 5% | 5% | 5% | 6 | 6 | 7 | 8 |
@@ -224,8 +224,8 @@ stats table), every ability's numbers, including its damage against any class yo
 Each ability has its own animation (`scripts/battle/fx.gd`). Melee abilities lunge, arrows and fireballs fly in arcs,
 Arrow Rain and Blizzard fall on the area, Meteor drops from the sky, Holy Blade brings down a pillar of light, and heals sparkle.
 
-**Wits makes a big difference:** from 4 (a turn about every 50 s) to 16 (about every 12.5 s). Faster classes
-trade some HP for it: 3 HP per point of Wits above the middle, and slower ones gain it.
+**Speed makes a big difference:** from 4 (a turn about every 50 s) to 16 (about every 12.5 s). Faster classes
+trade some HP for it: 3 HP per point of Speed above the middle, and slower ones gain it.
 
 **Changing class stats:** in the **Unit Guide** on the main menu, click any stat to change it; changed stats are gold.
 The number box goes up to each stat's limit, **Default** puts back the class's own value, and **Reset class** / **Reset
@@ -241,7 +241,7 @@ All numbers are in `scripts/core/jobs.gd` (jobs and abilities) and at the top of
 101 more classes were designed in **Astra Ability Creator** (`E:\Astra-Ability Creator`). Each lives there as five
 library entries tagged `class:<id>`, and the game reads Astra's JSON exports in `data/classes/`.
 
-| Class | Role | HP | Power | AttDef | MagDef | A-Eva | M-Eva | Crit | Wits | Move | Patience | Sight | Plays like |
+| Class | Role | HP | Power | AttDef | MagDef | A-Eva | M-Eva | Crit | Speed | Move | Patience | Sight | Plays like |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | Time Mage | Special | 58 | 16 | 5 | 11 | 10% | 16% | 10% | 16 | 6 | 7 | 10 | Turn Gauge control |
 | Dragoon | Damage | 95 | 17 | 11 | 5 | 12% | 6% | 12% | 8 | 7 | 6 | 9 | Leaps onto distant targets |
@@ -320,7 +320,7 @@ mistakes, so two runs of the same classes give the same numbers and a change can
 
 | Slider | Default | What it changes |
 |---|---|---|
-| Wits multiplier | 1 | TG per tick = Wits × 2 × this. Higher means more turns for everyone. |
+| Speed multiplier | 1 | TG per tick = Speed × 2 × this. Higher means more turns for everyone. |
 | Countdown base | 8 s | READY countdown = base + Patience × Patience multiplier |
 | Patience multiplier | 2 s | extra countdown seconds per point of Patience |
 | Damage / Healing multiplier | 0.5 / 1 | the final multiplier on all damage / healing |
@@ -346,10 +346,10 @@ host sends the class to the other player. The rules, in `scripts/core/astra_impo
 
 - Tag every ability of the class `class:<id>` (lowercase id).
 - One **Passive** entry tagged `profile` holds the class stats as parameters with formula keys `hp`, `att`, `mag`,
-  `attdef`, `magdef`, `wits`, `move`, `patience`, `sight`. Its name and color are the class name and color.
+  `attdef`, `magdef`, `speed`, `move`, `patience`, `sight`. Its name and color are the class name and color.
   Tag it `look:<job>` to choose a built-in character model (tinted with the class color), and `role:tank`
   (or `damage`, `support`, `special`, or a pair like `tank/support`) to say what the class is for.
-  The profile needs hp, attdef, magdef, wits, move, patience and sight; power, aeva, meva and crit are optional
+  The profile needs hp, attdef, magdef, speed, move, patience and sight; power, aeva, meva and crit are optional
   (0, 5, 5, 5).
   The class icon is `assets/icons/<id>.svg`. Tag the profile `icon:<name>` to use another icon from that folder.
   Without one, the class gets a generic star in its color.

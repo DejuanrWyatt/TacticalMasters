@@ -776,8 +776,8 @@
         },
         {
           "id": "5fd72a59-ee9c-4f73-a0c7-d812fb26a0ac",
-          "key": "wits",
-          "name": "Wits",
+          "key": "speed",
+          "name": "Speed",
           "base": 10,
           "step": 0,
           "unit": "",

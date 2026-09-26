@@ -1,7 +1,7 @@
 extends Node3D
 ## Battle scene controller.
 ##
-## Time runs continuously: every unit's Turn Gauge fills by its Wits, and a
+## Time runs continuously: every unit's Turn Gauge fills by its Speed, and a
 ## unit with a full gauge is READY and can act at once, whatever else is
 ## happening. Several units, from both teams, can be ready together, each
 ## with its own countdown. The player picks one of their ready units (click
@@ -1505,9 +1505,9 @@ func _describe_hover() -> String:
 			status += "   %s %d turn%s" % [Jobs.STATUSES[s.id].name, s.turns, "" if s.turns == 1 else "s"]
 		var sel := _selected()
 		var dist := "   ·   %.1f m away" % sel.pos.distance_to(t.pos) if sel != null and sel != t else ""
-		return "%s %s   HP %d/%d   %s   Ultimate %d%%   Power %d  AttDef %d  MagDef %d  A-Eva %d%%  M-Eva %d%%  Crit %d%%  Wits %d  Move %s m  Sight %s m%s" % [
+		return "%s %s   HP %d/%d   %s   Ultimate %d%%   Power %d  AttDef %d  MagDef %d  A-Eva %d%%  M-Eva %d%%  Crit %d%%  Speed %d  Move %s m  Sight %s m%s" % [
 			GameState.TEAM_NAMES[t.team], t.job_name(), t.hp, t.max_hp(), status, t.ult, t.stat("power"),
-			t.stat("attdef"), t.stat("magdef"), t.stat("aeva"), t.stat("meva"), t.stat("crit"), t.stat("wits"),
+			t.stat("attdef"), t.stat("magdef"), t.stat("aeva"), t.stat("meva"), t.stat("crit"), t.stat("speed"),
 			GameState._n(state.move_of(t)), GameState._n(state.sight_of(t)), dist]
 	if not _point_seen(hover_point):
 		return "%s   ·   hidden by fog of war" % ground

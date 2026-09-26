@@ -13,8 +13,8 @@ const OUT_DIR = new URL('../data/classes/', import.meta.url);
 // Parameter names (their formula keys are what the game reads).
 const NAMES = {power: 'Power', min_range: 'Min range', cast_range: 'Cast range', radius: 'Radius', cast_time: 'Cast time',
   cooldown_turns: 'Cooldown turns', tg_change: 'TG change', buff_turns: 'Buff turns', cone_angle: 'Cone angle', channel_turns: 'Channel turns', status_duration: 'Status turns',
-  buff_power: 'Buff Power', buff_aeva: 'Buff A-Eva', buff_meva: 'Buff M-Eva', buff_crit: 'Buff Crit', buff_attdef: 'Buff AttDef', buff_magdef: 'Buff MagDef', buff_wits: 'Buff Wits',
-  hp: 'HP', power: 'Power', aeva: 'A-Eva', meva: 'M-Eva', crit: 'Crit', attdef: 'AttDef', magdef: 'MagDef', wits: 'Wits', move: 'Move', patience: 'Patience', sight: 'Sight'};
+  buff_power: 'Buff Power', buff_aeva: 'Buff A-Eva', buff_meva: 'Buff M-Eva', buff_crit: 'Buff Crit', buff_attdef: 'Buff AttDef', buff_magdef: 'Buff MagDef', buff_speed: 'Buff Speed',
+  hp: 'HP', power: 'Power', aeva: 'A-Eva', meva: 'M-Eva', crit: 'Crit', attdef: 'AttDef', magdef: 'MagDef', speed: 'Speed', move: 'Move', patience: 'Patience', sight: 'Sight'};
 const UNITS = {min_range: 'm', cast_range: 'm', radius: 'm', cast_time: 's', status_duration: 'turns', cooldown_turns: 'turns', cone_angle: 'degrees', channel_turns: 'turns',
   tg_change: '%', power: 'x stat', move: 'm', sight: 'm', buff_turns: 'turns'};
 
@@ -26,12 +26,12 @@ function params(values) {
   });
 }
 
-// Wits differences are pronounced: each class's Wits is spread twice as far
-// from 8.5 (limited to 4-16), and a faster class trades 5 HP per Wits gained
+// Speed differences are pronounced: each class's Speed is spread twice as far
+// from 8.5 (limited to 4-16), and a faster class trades 5 HP per Speed gained
 // (a slower one gains them), so turns and toughness balance out.
-function spreadWits(stats) {
-  const wits = Math.min(16, Math.max(4, Math.round(8.5 + (stats.wits - 8.5) * 2)));
-  return {...stats, wits, hp: stats.hp - (wits - stats.wits) * 5};
+function spreadSpeed(stats) {
+  const speed = Math.min(16, Math.max(4, Math.round(8.5 + (stats.speed - 8.5) * 2)));
+  return {...stats, speed, hp: stats.hp - (speed - stats.speed) * 5};
 }
 
 const E = (type, fields = {}) => ({...effect(type), damageType: 'None', amount: '0', ...fields});
@@ -54,7 +54,7 @@ function cls(id, name, color, look, icon, role, description, stats, abilities, p
     return a;
   };
   const list = [entry({name, kind: 'Passive', targeting: 'Self', targetTeam: 'Self', damageType: 'None', element: 'None', description},
-    params(spreadWits(stats)), [E('Buff', {name: 'Class stats', trigger: 'Always', target: 'Self', notes: 'Profile only.'})],
+    params(spreadSpeed(stats)), [E('Buff', {name: 'Class stats', trigger: 'Always', target: 'Self', notes: 'Profile only.'})],
     ['profile', `look:${look}`, `icon:${icon}`, `role:${role}`])];
   abilities.forEach((ab, i) => {
     const {p, effects, tags = [], ...fields} = ab;
@@ -66,7 +66,7 @@ function cls(id, name, color, look, icon, role, description, stats, abilities, p
 
 const CLASSES = [
   cls('dragoon', 'Dragoon', '#4f7fd9', 'knight', 'dragoon', 'damage', 'Lance fighter who leaps onto distant targets.',
-    {hp: 95, power: 17, aeva: 12, meva: 6, crit: 12, attdef: 11, magdef: 5, wits: 8, move: 7, patience: 6, sight: 9}, [
+    {hp: 95, power: 17, aeva: 12, meva: 6, crit: 12, attdef: 11, magdef: 5, speed: 8, move: 7, patience: 6, sight: 9}, [
       {name: 'Lance', description: 'Thrust at an enemy up to 2.2 m away.', damageType: 'Physical',
         p: {power: 17, cast_range: 2.2}, effects: [damage('Physical')], tags: ['fx:attack']},
       {name: 'Jump', description: 'Leap onto an enemy 3-7 m away, landing there and hitting everyone on the way.', targeting: 'Vector', damageType: 'Physical',
@@ -78,7 +78,7 @@ const CLASSES = [
     ], 'Cobalt, steel, sky blue', 'Dragon-crested lance, wind trails'),
 
   cls('ninja', 'Ninja', '#8a90b8', 'squire', 'ninja', 'damage', 'Fast, fragile assassin who strikes before anyone else.',
-    {hp: 95, power: 16, aeva: 26, meva: 10, crit: 22, attdef: 10, magdef: 7, wits: 11, move: 8, patience: 5, sight: 10}, [
+    {hp: 95, power: 16, aeva: 26, meva: 10, crit: 22, attdef: 10, magdef: 7, speed: 11, move: 8, patience: 5, sight: 10}, [
       {name: 'Twin Strike', description: 'Two quick blades on an adjacent enemy.', damageType: 'Physical',
         p: {power: 24}, effects: [damage('Physical')], tags: ['fx:attack']},
       {name: 'Shuriken', description: 'Throw a star at an enemy 2-8 m away.', damageType: 'Physical',
@@ -90,7 +90,7 @@ const CLASSES = [
     ], 'Charcoal, crimson, silver', 'Shadows, smoke, thrown stars'),
 
   cls('summoner', 'Summoner', '#d98a3b', 'black_mage', 'summoner', 'damage', 'Slow caster who calls enormous beasts.',
-    {hp: 58, power: 19, aeva: 5, meva: 14, crit: 10, attdef: 4, magdef: 12, wits: 7, move: 6, patience: 9, sight: 10}, [
+    {hp: 58, power: 19, aeva: 5, meva: 14, crit: 10, attdef: 4, magdef: 12, speed: 7, move: 6, patience: 9, sight: 10}, [
       {name: 'Rod', description: 'Strike an adjacent enemy.', damageType: 'Physical',
         p: {power: 15}, effects: [damage('Physical')], tags: ['fx:attack']},
       {name: 'Ifrit', description: 'Hellfire on every enemy within 2 m of a point 3-9 m away; Burns for 5 s.', targeting: 'Circle', damageType: 'Magic',
@@ -103,7 +103,7 @@ const CLASSES = [
     ], 'Amber, flame orange, gold', 'Summoning circles, beast silhouettes'),
 
   cls('paladin', 'Paladin', '#f0d27a', 'knight', 'paladin', 'tank/support', 'Holy knight: sturdy, heals and shields allies.',
-    {hp: 105, power: 14, aeva: 6, meva: 10, crit: 5, attdef: 13, magdef: 9, wits: 8, move: 6, patience: 8, sight: 8}, [
+    {hp: 105, power: 14, aeva: 6, meva: 10, crit: 5, attdef: 13, magdef: 9, speed: 8, move: 6, patience: 8, sight: 8}, [
       {name: 'Holy Strike', description: 'Strike an adjacent enemy.', damageType: 'Physical',
         p: {power: 17}, effects: [damage('Physical')], tags: ['fx:attack']},
       {name: 'Aegis', description: "Raise an ally's AttDef by 8 for 2 turns (up to 5 m).", targetTeam: 'Allies',
@@ -115,7 +115,7 @@ const CLASSES = [
     ], 'White, gold, sky', 'Radiant halos, winged shields'),
 
   cls('bard', 'Bard', '#6fcf97', 'archer', 'bard', 'support', 'Support who speeds allies up and lulls enemies.',
-    {hp: 70, power: 13, aeva: 10, meva: 12, crit: 8, attdef: 6, magdef: 10, wits: 10, move: 6, patience: 7, sight: 11}, [
+    {hp: 70, power: 13, aeva: 10, meva: 12, crit: 8, attdef: 6, magdef: 10, speed: 10, move: 6, patience: 7, sight: 11}, [
       {name: 'Dissonance', description: 'A jarring chord at an enemy 1-7 m away.', damageType: 'Magic',
         p: {power: 8, min_range: 1, cast_range: 7}, effects: [damage()], tags: ['fx:pin_shot']},
       {name: 'Song of Haste', description: 'Every ally within 3 m of a point up to 6 m away gains 25% TG (1.5 s).', targeting: 'Circle', targetTeam: 'Allies',
@@ -127,7 +127,7 @@ const CLASSES = [
     ], 'Emerald, cream, gold', 'Music notes, lute strings'),
 
   cls('berserker', 'Berserker', '#c0392b', 'monk', 'berserker', 'damage', 'Huge HP and damage, poor defenses.',
-    {hp: 115, power: 19, aeva: 8, meva: 5, crit: 18, attdef: 7, magdef: 4, wits: 8, move: 7, patience: 4, sight: 8}, [
+    {hp: 115, power: 19, aeva: 8, meva: 5, crit: 18, attdef: 7, magdef: 4, speed: 8, move: 7, patience: 4, sight: 8}, [
       {name: 'Cleave', description: 'Axe sweep through everyone in a 90° arc up to 3 m away.', targeting: 'Cone', damageType: 'Physical',
         p: {power: 15, cast_range: 3, cone_angle: 90}, effects: [damage('Physical')], tags: ['fx:brave_slash']},
       {name: 'Rage', description: 'Switched on: AttPwr +8 but AttDef -4 while it lasts.', kind: 'Toggle', targeting: 'Self', targetTeam: 'Self',
@@ -140,7 +140,7 @@ const CLASSES = [
     ], 'Blood red, iron, bone', 'Twin axes, war paint'),
 
   cls('chemist', 'Chemist', '#8e7cc3', 'squire', 'chemist', 'support', 'Item expert: bombs, potions and Phoenix Downs.',
-    {hp: 75, power: 12, aeva: 10, meva: 10, crit: 8, attdef: 7, magdef: 8, wits: 9, move: 6, patience: 7, sight: 9}, [
+    {hp: 75, power: 12, aeva: 10, meva: 10, crit: 8, attdef: 7, magdef: 8, speed: 9, move: 6, patience: 7, sight: 9}, [
       {name: 'Fire Bomb', description: 'Throw a bomb hitting enemies within 1.2 m of a point 2-6 m away; Burns for 4 s.', targeting: 'Circle', damageType: 'Physical',
         p: {power: 7, min_range: 2, cast_range: 6, radius: 1.2, status_duration: 2}, effects: [damage('Physical'), periodic('Damage')], tags: ['fx:throw_stone']},
       {name: 'Potion', description: 'Heal an ally up to 4 m away.', targetTeam: 'Allies', damageType: 'Magic',
@@ -152,7 +152,7 @@ const CLASSES = [
     ], 'Violet, glass, copper', 'Flasks, bubbling potions'),
 
   cls('geomancer', 'Geomancer', '#8d6e3f', 'black_mage', 'geomancer', 'damage/support', 'Earth caster who shakes the ground and hardens allies.',
-    {hp: 78, power: 15, aeva: 8, meva: 12, crit: 8, attdef: 9, magdef: 10, wits: 8, move: 6, patience: 7, sight: 9}, [
+    {hp: 78, power: 15, aeva: 8, meva: 12, crit: 8, attdef: 9, magdef: 10, speed: 8, move: 6, patience: 7, sight: 9}, [
       {name: 'Rock Toss', description: 'Hurl a stone at an enemy 1-6 m away.', damageType: 'Magic',
         p: {power: 12, min_range: 1, cast_range: 6}, effects: [damage()], tags: ['fx:throw_stone']},
       {name: 'Quake', description: 'Shake every enemy within 3 m of a point 2-7 m away, Stunning for 1 s (2 s).', targeting: 'Circle', damageType: 'Magic',
@@ -166,7 +166,7 @@ const CLASSES = [
     ], 'Umber, moss, slate', 'Floating rocks, fissures'),
 
   cls('oracle', 'Oracle', '#b55db3', 'white_mage', 'oracle', 'special', 'Hexer who weakens and puts enemies to sleep.',
-    {hp: 70, power: 17, aeva: 6, meva: 20, crit: 8, attdef: 5, magdef: 14, wits: 9, move: 6, patience: 9, sight: 11}, [
+    {hp: 70, power: 17, aeva: 6, meva: 20, crit: 8, attdef: 5, magdef: 14, speed: 9, move: 6, patience: 9, sight: 11}, [
       {name: 'Hex', description: 'Dark bolt at an enemy 1-7 m away.', damageType: 'Magic',
         p: {power: 19, min_range: 1, cast_range: 7}, effects: [damage()], tags: ['fx:pin_shot']},
       {name: 'Curse', description: 'Lower an enemy\'s AttDef and MagDef by 6 for 2 turns (2-8 m, 1 s).',
@@ -179,7 +179,7 @@ const CLASSES = [
     ], 'Plum, silver, starlight', 'All-seeing eyes, tarot cards'),
 
   cls('samurai', 'Samurai', '#e25b4a', 'knight', 'samurai', 'damage/support', 'Swordmaster with a spirit blade that hits all around.',
-    {hp: 90, power: 16, aeva: 14, meva: 10, crit: 16, attdef: 9, magdef: 8, wits: 9, move: 7, patience: 6, sight: 9}, [
+    {hp: 90, power: 16, aeva: 14, meva: 10, crit: 16, attdef: 9, magdef: 8, speed: 9, move: 7, patience: 6, sight: 9}, [
       {name: 'Iaido Slash', description: 'Quick-draw strike on an adjacent enemy.', damageType: 'Physical',
         p: {power: 21}, effects: [damage('Physical')], tags: ['fx:attack']},
       {name: 'Draw Out', description: 'Spirit blade hits every enemy within 2 m of you (1 s).', targeting: 'Self', damageType: 'Physical',

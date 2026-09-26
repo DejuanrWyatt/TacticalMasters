@@ -687,7 +687,7 @@
       "template": false,
       "color": "#8a6cff",
       "icon": "orb",
-      "notes": "Tactical Masters class profile. hp, att, mag, attdef, magdef, wits, move, patience, sight.",
+      "notes": "Tactical Masters class profile. hp, att, mag, attdef, magdef, speed, move, patience, sight.",
       "parameters": [
         {
           "id": "1043a0cd-7565-42e1-afa8-5c2cd0ae9edf",
@@ -775,8 +775,8 @@
         },
         {
           "id": "65f7ac09-4bd6-4c80-a179-cf0ea8ffecfe",
-          "key": "wits",
-          "name": "Wits",
+          "key": "speed",
+          "name": "Speed",
           "base": 16,
           "step": 0,
           "unit": "",

@@ -7,7 +7,7 @@ extends RefCounted
 ## How an Astra library describes a class (all through tags):
 ##   "class:<id>"   every ability of the class carries it (id: letters, digits, _)
 ##   "profile"      one Passive ability per class holding its stats as
-##                  parameters: hp, attdef, magdef, wits, move, patience and
+##                  parameters: hp, attdef, magdef, speed, move, patience and
 ##                  sight, plus the optional power (flat damage bonus, 0),
 ##                  aeva, meva and crit (chances in %, 5 each). Its name is the class name and its color
 ##                  the class color. Optional tag "look:<job>" picks which
@@ -58,8 +58,11 @@ const Jobs = preload("res://scripts/core/jobs.gd")
 
 const STAT_KEYS := Jobs.STAT_KEYS
 ## A class profile must give these; the rest fall back to DEFAULT_STATS.
-const REQUIRED_STATS := ["hp", "attdef", "magdef", "wits", "move", "patience", "sight"]
+const REQUIRED_STATS := ["hp", "attdef", "magdef", "speed", "move", "patience", "sight"]
 const DEFAULT_STATS := {"power": 0, "aeva": 5, "meva": 5, "crit": 5}
+## Stat parameters that have been renamed. A profile written before the change
+## is read as the stat it now is rather than turned away for a missing one.
+const LEGACY_STATS := {"wits": "speed"}
 ## The ability parameters the game reads (everything else is Astra's own).
 const READ_KEYS := ["power", "min_range", "cast_range", "radius", "cast_time", "cooldown_turns", "cooldown",
 	"tg_change", "status_duration", "channel_turns", "cone_angle"]
@@ -173,6 +176,9 @@ static func _import_class(id: String, entries: Array, out: Dictionary) -> String
 	var values := _values(profile)
 	if values.has("error"):
 		return "profile: " + values.error
+	for old in LEGACY_STATS:
+		if values.has(old) and not values.has(LEGACY_STATS[old]):
+			values[LEGACY_STATS[old]] = values[old]
 	for key in STAT_KEYS:
 		if not values.has(key):
 			if REQUIRED_STATS.has(key):

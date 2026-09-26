@@ -52,9 +52,9 @@ func _initialize() -> void:
 			menu._open_options()
 		if args.has("devtools"):
 			menu._open_dev_tools()
-			menu.dev_tools._sliders.wits_multiplier.set_value_no_signal(1.5)
+			menu.dev_tools._sliders.speed_multiplier.set_value_no_signal(1.5)
 			menu.dev_tools._refresh()
-			for key in ["wits_multiplier", "patience_multiplier", "damage_multiplier", "back_bonus", "cast_time_multiplier"]:
+			for key in ["speed_multiplier", "patience_multiplier", "damage_multiplier", "back_bonus", "cast_time_multiplier"]:
 				print("--- tooltip ", key, "\n", menu.dev_tools._sliders[key].tooltip_text)
 		if args.has("editstats"):
 			# The main menu's Unit Guide with a stat changed and its editor open.
@@ -62,7 +62,7 @@ func _initialize() -> void:
 			await process_frame
 			var grid: GridContainer = menu.guide._stats_holder.get_child(0)
 			var row: int = menu.guide._job_ids.find("knight")
-			menu.guide._edit_stat("knight", "wits", grid.get_child((row + 1) * grid.columns + 6))
+			menu.guide._edit_stat("knight", "speed", grid.get_child((row + 1) * grid.columns + 6))
 		if args.has("picker"):
 			# Battle Setup with the class picker open on Blue's first slot.
 			menu._open_setup("ai")

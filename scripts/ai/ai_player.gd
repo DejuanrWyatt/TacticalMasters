@@ -230,7 +230,7 @@ func _score(u, slot: int, ab: Dictionary, hits: Array, state = null) -> float:
 			if smart:
 				worth *= 0.6 + 0.4 * int(ab.status.turns)
 				if t.team != u.team:
-					worth *= 1.0 + t.stat("wits") / 20.0
+					worth *= 1.0 + t.stat("speed") / 20.0
 					if t.ready or t.is_casting():
 						worth *= 1.5
 			score += worth

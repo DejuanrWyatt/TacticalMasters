@@ -14,11 +14,11 @@ signal closed
 const Jobs = preload("res://scripts/core/jobs.gd")
 const GameState = preload("res://scripts/core/game_state.gd")
 
-const SORTS := [["name", "Name (A-Z)"], ["role", "Role, then name"], ["hp", "HP"], ["wits", "Wits (fastest first)"]]
+const SORTS := [["name", "Name (A-Z)"], ["role", "Role, then name"], ["hp", "HP"], ["speed", "Speed (fastest first)"]]
 const STAT_COLUMNS := [
 	["hp", "HP"], ["power", "Power"], ["attdef", "AttDef"], ["magdef", "MagDef"],
 	["aeva", "A-Eva"], ["meva", "M-Eva"], ["crit", "Crit"],
-	["wits", "Wits"], ["move", "Move (m)"], ["patience", "Patience"], ["sight", "Sight (m)"],
+	["speed", "Speed"], ["move", "Move (m)"], ["patience", "Patience"], ["sight", "Sight (m)"],
 ]
 const ABILITY_COLUMNS := ["", "Ability", "Type", "Shape", "Effect", "Range", "Area", "Cast", "Cooldown", "Base", "vs target", "Description"]
 const HEADER_COLOR := Color(1.0, 0.85, 0.45)
@@ -255,10 +255,10 @@ func _stats_table() -> GridContainer:
 						_edit_stat(id, stat, cell)
 				cell.gui_input.connect(on_edit)
 		# Time to fill the Turn Gauge from empty.
-		var gain := maxi(1, roundi(job.wits * GameState.TG_PER_WITS * _t("wits_multiplier")))
+		var gain := maxi(1, roundi(job.speed * GameState.TG_PER_SPEED * _t("speed_multiplier")))
 		var seconds: float = float(GameState.TG_MAX) / gain / GameState.TICKS_PER_SECOND
-		_cell(grid, "%.1fs" % seconds, Color.WHITE, 0.0, "TG per tick = Wits %d x %d x Wits multiplier %s = %d\n%d / %d = %d ticks (%d per second) = %.1f s" % [
-			job.wits, GameState.TG_PER_WITS, _num(_t("wits_multiplier")), gain, GameState.TG_MAX, gain,
+		_cell(grid, "%.1fs" % seconds, Color.WHITE, 0.0, "TG per tick = Speed %d x %d x Speed multiplier %s = %d\n%d / %d = %d ticks (%d per second) = %.1f s" % [
+			job.speed, GameState.TG_PER_SPEED, _num(_t("speed_multiplier")), gain, GameState.TG_MAX, gain,
 			ceili(float(GameState.TG_MAX) / gain), GameState.TICKS_PER_SECOND, seconds])
 	return grid
 
@@ -273,8 +273,8 @@ func _stat_tip(job: Dictionary, key: String) -> String:
 		"patience":
 			return "READY countdown = base %s s + Patience %d x %s s = %s s" % [
 				_num(_t("clock_base")), job.patience, _num(_t("patience_multiplier")), _num(_t("clock_base") + job.patience * _t("patience_multiplier"))]
-		"wits":
-			return "TG per tick = Wits %d x %d x Wits multiplier %s" % [job.wits, GameState.TG_PER_WITS, _num(_t("wits_multiplier"))]
+		"speed":
+			return "TG per tick = Speed %d x %d x Speed multiplier %s" % [job.speed, GameState.TG_PER_SPEED, _num(_t("speed_multiplier"))]
 		"power":
 			return "Power: added to the damage and healing of every ability it uses (+%d)" % job[key]
 		"aeva":
@@ -366,8 +366,8 @@ func _listed_ids() -> Array:
 			ids.sort_custom(by_role)
 		"hp":
 			ids.sort_custom(func(a, b): return Jobs.job(a).hp > Jobs.job(b).hp)
-		"wits":
-			ids.sort_custom(func(a, b): return Jobs.job(a).wits > Jobs.job(b).wits)
+		"speed":
+			ids.sort_custom(func(a, b): return Jobs.job(a).speed > Jobs.job(b).speed)
 		_:
 			ids.sort_custom(by_name)
 	return ids

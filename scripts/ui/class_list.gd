@@ -6,7 +6,7 @@ extends RefCounted
 const Jobs = preload("res://scripts/core/jobs.gd")
 
 ## The ways a list can be ordered: id, and what the picker calls it.
-const SORTS := [["name", "Name (A-Z)"], ["role", "Role, then name"], ["hp", "HP"], ["wits", "Wits (fastest first)"]]
+const SORTS := [["name", "Name (A-Z)"], ["role", "Role, then name"], ["hp", "HP"], ["speed", "Speed (fastest first)"]]
 
 
 ## Class ids that match a search (part of a name, case doesn't matter) and a
@@ -33,8 +33,8 @@ static func listed_ids(search: String, role_filter: String, sort: String) -> Arr
 			ids.sort_custom(by_role)
 		"hp":
 			ids.sort_custom(func(a, b): return Jobs.job(a).hp > Jobs.job(b).hp)
-		"wits":
-			ids.sort_custom(func(a, b): return Jobs.job(a).wits > Jobs.job(b).wits)
+		"speed":
+			ids.sort_custom(func(a, b): return Jobs.job(a).speed > Jobs.job(b).speed)
 		_:
 			ids.sort_custom(by_name)
 	return ids

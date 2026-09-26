@@ -36,13 +36,13 @@ const ELEMENTS = {
   fire: {adj: 'Flame', burst: 'Fireburst', ult: 'Inferno', beast: 'Salamander', hue: 16, sat: 80, light: 55,
     perk: {status: 'burn', turns: 2}, ally: {buff_power: 5}, curse: {buff_attdef: -6}, stats: {magdef: -1}, fx: 'fire', bigfx: 'meteor'},
   ice: {adj: 'Frost', burst: 'Hailstorm', ult: 'Absolute Zero', beast: 'Yeti', hue: 195, sat: 70, light: 62,
-    perk: {status: 'slow', turns: 2}, ally: {buff_magdef: 6}, curse: {buff_wits: -3}, stats: {magdef: 2, wits: -1}, fx: 'blizzard', bigfx: 'blizzard'},
+    perk: {status: 'slow', turns: 2}, ally: {buff_magdef: 6}, curse: {buff_speed: -3}, stats: {magdef: 2, speed: -1}, fx: 'blizzard', bigfx: 'blizzard'},
   lightning: {adj: 'Thunder', burst: 'Chain Lightning', ult: 'Tempest', beast: 'Thunderbird', hue: 52, sat: 90, light: 58,
-    perk: {status: 'stun', turns: 1}, ally: {buff_wits: 2}, curse: {buff_magdef: -6}, stats: {wits: 1, hp: -2}, fx: 'holy_blade', bigfx: 'holy_blade'},
+    perk: {status: 'stun', turns: 1}, ally: {buff_speed: 2}, curse: {buff_magdef: -6}, stats: {speed: 1, hp: -2}, fx: 'holy_blade', bigfx: 'holy_blade'},
   earth: {adj: 'Stone', burst: 'Rockslide', ult: 'Cataclysm', beast: 'Golem', hue: 30, sat: 40, light: 48,
     perk: {status: 'stun', turns: 1}, ally: {buff_attdef: 6}, curse: {buff_move: -2}, stats: {hp: 8, attdef: 2, move: -1}, fx: 'earth_slash', bigfx: 'earth_slash'},
   wind: {adj: 'Gale', burst: 'Cyclone', ult: 'Hurricane', beast: 'Roc', hue: 150, sat: 55, light: 58,
-    perk: {tg: -25}, ally: {tg_change: 20}, curse: {buff_wits: -3}, stats: {move: 1, wits: 1, hp: -2}, fx: 'haste', bigfx: 'blizzard'},
+    perk: {tg: -25}, ally: {tg_change: 20}, curse: {buff_speed: -3}, stats: {move: 1, speed: 1, hp: -2}, fx: 'haste', bigfx: 'blizzard'},
   water: {adj: 'Tide', burst: 'Riptide', ult: 'Tsunami', beast: 'Leviathan', hue: 212, sat: 75, light: 55,
     perk: {status: 'slow', turns: 2}, ally: {buff_magdef: 5}, curse: {buff_power: -6}, stats: {hp: 10, magdef: 1}, fx: 'blizzard', bigfx: 'blizzard', regen: true},
   holy: {adj: 'Holy', burst: 'Radiance', ult: 'Divine Wrath', beast: 'Seraph', hue: 46, sat: 85, light: 72,
@@ -58,25 +58,25 @@ const ELEMENTS = {
 // a blurb for the class description, and its base stats.
 const ROLES = {
   brawler: {role: 'damage', look: 'monk', physical: true, names: ['Ember Pugilist', 'Frost Brawler', 'Thunder Fist', 'Stone Fist', 'Gale Dancer', 'Tide Brawler', 'Temple Fist', 'Shade Brawler', 'Thorn Brawler'],
-    blurb: 'Fast melee fighter', stats: {hp: 92, power: 17, aeva: 18, meva: 8, crit: 12, attdef: 8, magdef: 6, wits: 10, move: 8, patience: 5, sight: 9}},
+    blurb: 'Fast melee fighter', stats: {hp: 92, power: 17, aeva: 18, meva: 8, crit: 12, attdef: 8, magdef: 6, speed: 10, move: 8, patience: 5, sight: 9}},
   guardian: {role: 'tank/support', look: 'knight', physical: true, names: ['Flame Warden', 'Glacier Guard', 'Storm Bulwark', 'Mountain Sentinel', 'Sky Warden', 'Reef Guardian', 'Templar', 'Dread Knight', 'Oakheart'],
-    blurb: 'Tank who shields allies', stats: {hp: 108, power: 14, aeva: 6, meva: 8, crit: 5, attdef: 13, magdef: 9, wits: 7, move: 6, patience: 8, sight: 8}},
+    blurb: 'Tank who shields allies', stats: {hp: 108, power: 14, aeva: 6, meva: 8, crit: 5, attdef: 13, magdef: 9, speed: 7, move: 6, patience: 8, sight: 8}},
   assassin: {role: 'damage', look: 'squire', physical: true, names: ['Cinder Blade', 'Frost Stalker', 'Volt Striker', 'Sand Viper', 'Wind Dancer', 'Tidecutter', 'Inquisitor', 'Shadow Stalker', 'Venom Fang'],
-    blurb: 'Quick melee killer', stats: {hp: 84, power: 16, aeva: 24, meva: 10, crit: 20, attdef: 8, magdef: 7, wits: 11, move: 8, patience: 5, sight: 10}},
+    blurb: 'Quick melee killer', stats: {hp: 84, power: 16, aeva: 24, meva: 10, crit: 20, attdef: 8, magdef: 7, speed: 11, move: 8, patience: 5, sight: 10}},
   ranger: {role: 'damage', look: 'archer', physical: true, names: ['Flame Archer', 'Frost Ranger', 'Storm Archer', 'Stone Slinger', 'Wind Archer', 'Harpooner', 'Sun Archer', 'Night Hunter', 'Beast Hunter'],
-    blurb: 'Long-range physical damage', stats: {hp: 72, power: 15, aeva: 15, meva: 8, crit: 18, attdef: 6, magdef: 7, wits: 10, move: 7, patience: 6, sight: 13}},
+    blurb: 'Long-range physical damage', stats: {hp: 72, power: 15, aeva: 15, meva: 8, crit: 18, attdef: 6, magdef: 7, speed: 10, move: 7, patience: 6, sight: 13}},
   sorcerer: {role: 'damage', look: 'black_mage', physical: false, names: ['Pyromancer', 'Cryomancer', 'Stormcaller', 'Terramancer', 'Aeromancer', 'Hydromancer', 'Lumimancer', 'Necromancer', 'Druid'],
-    blurb: 'Area magic damage', stats: {hp: 64, power: 18, aeva: 5, meva: 14, crit: 12, attdef: 4, magdef: 12, wits: 8, move: 6, patience: 8, sight: 10}},
+    blurb: 'Area magic damage', stats: {hp: 64, power: 18, aeva: 5, meva: 14, crit: 12, attdef: 4, magdef: 12, speed: 8, move: 6, patience: 8, sight: 10}},
   cleric: {role: 'support', look: 'white_mage', physical: false, names: ['Phoenix Priest', 'Frost Mender', 'Spark Medic', 'Earthmother', 'Wind Shaman', 'Tide Priest', 'Saint', 'Blood Cleric', 'Herbalist'],
-    blurb: 'Healer who revives', stats: {hp: 66, power: 15, aeva: 5, meva: 16, crit: 5, attdef: 5, magdef: 13, wits: 8, move: 6, patience: 8, sight: 10}},
+    blurb: 'Healer who revives', stats: {hp: 66, power: 15, aeva: 5, meva: 16, crit: 5, attdef: 5, magdef: 13, speed: 8, move: 6, patience: 8, sight: 10}},
   minstrel: {role: 'support', look: 'squire', physical: false, names: ['War Drummer', 'Winter Skald', 'Thunder Herald', 'Stone Chanter', 'Piper', 'Siren', 'Cantor', 'Dirge Singer', 'Sylvan Muse'],
-    blurb: 'Speeds up and buffs allies', stats: {hp: 74, power: 13, aeva: 10, meva: 12, crit: 8, attdef: 6, magdef: 10, wits: 10, move: 6, patience: 7, sight: 11}},
+    blurb: 'Speeds up and buffs allies', stats: {hp: 74, power: 13, aeva: 10, meva: 12, crit: 8, attdef: 6, magdef: 10, speed: 10, move: 6, patience: 7, sight: 11}},
   hexer: {role: 'special', look: 'black_mage', physical: false, names: ['Ash Witch', 'Frost Witch', 'Arc Warlock', 'Dust Hexer', 'Tempest Hexer', 'Sea Witch', 'Exorcist', 'Warlock', 'Plague Doctor'],
-    blurb: 'Weakens and puts enemies to sleep', stats: {hp: 72, power: 17, aeva: 6, meva: 18, crit: 10, attdef: 5, magdef: 13, wits: 9, move: 6, patience: 9, sight: 11}},
+    blurb: 'Weakens and puts enemies to sleep', stats: {hp: 72, power: 17, aeva: 6, meva: 18, crit: 10, attdef: 5, magdef: 13, speed: 9, move: 6, patience: 9, sight: 11}},
   summoner: {role: 'damage/support', look: 'black_mage', physical: false, names: ['Salamander Caller', 'Yeti Caller', 'Thunderbird Caller', 'Golem Master', 'Roc Caller', 'Leviathan Caller', 'Seraph Caller', 'Lich Caller', 'Treant Caller'],
-    blurb: 'Slow caster of huge summons', stats: {hp: 62, power: 19, aeva: 5, meva: 14, crit: 10, attdef: 4, magdef: 12, wits: 7, move: 6, patience: 9, sight: 10}},
+    blurb: 'Slow caster of huge summons', stats: {hp: 62, power: 19, aeva: 5, meva: 14, crit: 10, attdef: 4, magdef: 12, speed: 7, move: 6, patience: 9, sight: 10}},
   spellblade: {role: 'tank/damage', look: 'knight', physical: false, names: ['Blazeblade', 'Frostblade', 'Stormblade', 'Earthshaker', 'Windblade', 'Tideblade', 'Crusader', 'Hexblade', 'Thornblade'],
-    blurb: 'Melee fighter with blade magic', stats: {hp: 95, power: 13, aeva: 10, meva: 10, crit: 12, attdef: 10, magdef: 9, wits: 9, move: 7, patience: 6, sight: 9}},
+    blurb: 'Melee fighter with blade magic', stats: {hp: 95, power: 13, aeva: 10, meva: 10, crit: 12, attdef: 10, magdef: 9, speed: 9, move: 7, patience: 6, sight: 9}},
 };
 const ELEMENT_ORDER = ['fire', 'ice', 'lightning', 'earth', 'wind', 'water', 'holy', 'shadow', 'nature'];
 
@@ -153,10 +153,10 @@ const KITS = {
 // --- Building the Astra entries ----------------------------------------------
 const NAMES = {power: 'Power', min_range: 'Min range', cast_range: 'Cast range', radius: 'Radius', cast_time: 'Cast time',
   cooldown_turns: 'Cooldown turns', tg_change: 'TG change', buff_turns: 'Buff turns', cone_angle: 'Cone angle', channel_turns: 'Channel turns', status_duration: 'Status turns',
-  buff_power: 'Buff Power', buff_aeva: 'Buff A-Eva', buff_meva: 'Buff M-Eva', buff_crit: 'Buff Crit', buff_attdef: 'Buff AttDef', buff_magdef: 'Buff MagDef', buff_wits: 'Buff Wits', buff_move: 'Buff Move',
-  hp: 'HP', power: 'Power', aeva: 'A-Eva', meva: 'M-Eva', crit: 'Crit', attdef: 'AttDef', magdef: 'MagDef', wits: 'Wits', move: 'Move', patience: 'Patience', sight: 'Sight'};
+  buff_power: 'Buff Power', buff_aeva: 'Buff A-Eva', buff_meva: 'Buff M-Eva', buff_crit: 'Buff Crit', buff_attdef: 'Buff AttDef', buff_magdef: 'Buff MagDef', buff_speed: 'Buff Speed', buff_move: 'Buff Move',
+  hp: 'HP', power: 'Power', aeva: 'A-Eva', meva: 'M-Eva', crit: 'Crit', attdef: 'AttDef', magdef: 'MagDef', speed: 'Speed', move: 'Move', patience: 'Patience', sight: 'Sight'};
 const UNITS = {min_range: 'm', cast_range: 'm', radius: 'm', cast_time: 's', status_duration: 'turns', cooldown_turns: 'turns', cone_angle: 'degrees', channel_turns: 'turns', tg_change: '%', move: 'm', sight: 'm', buff_turns: 'turns'};
-const STAT_LABELS = {buff_power: 'Power', buff_aeva: 'A-Eva', buff_meva: 'M-Eva', buff_crit: 'Crit', buff_attdef: 'AttDef', buff_magdef: 'MagDef', buff_wits: 'Wits', buff_move: 'Move'};
+const STAT_LABELS = {buff_power: 'Power', buff_aeva: 'A-Eva', buff_meva: 'M-Eva', buff_crit: 'Crit', buff_attdef: 'AttDef', buff_magdef: 'MagDef', buff_speed: 'Speed', buff_move: 'Move'};
 const STATUS_EFFECT = {burn: 'Damage', slow: 'Slow', stun: 'Stun'};
 const STATUS_WORD = {burn: 'Burns', slow: 'Slows', stun: 'Stuns'};
 
@@ -243,12 +243,12 @@ function buildAbility(ab, e, slot) {
   return {fields: {name: ab.name, description, kind: type, targeting, targetTeam, damageType, element: e.adj}, p, effects, tags};
 }
 
-// Wits differences are pronounced: each class's Wits is spread twice as far
-// from 8.5 (limited to 4-16), and a faster class trades 5 HP per Wits gained
+// Speed differences are pronounced: each class's Speed is spread twice as far
+// from 8.5 (limited to 4-16), and a faster class trades 5 HP per Speed gained
 // (a slower one gains them), so turns and toughness balance out.
-function spreadWits(stats) {
-  const wits = Math.min(16, Math.max(4, Math.round(8.5 + (stats.wits - 8.5) * 2)));
-  return {...stats, wits, hp: stats.hp - (wits - stats.wits) * 5};
+function spreadSpeed(stats) {
+  const speed = Math.min(16, Math.max(4, Math.round(8.5 + (stats.speed - 8.5) * 2)));
+  return {...stats, speed, hp: stats.hp - (speed - stats.speed) * 5};
 }
 
 function hsl(h, s, l) {
@@ -271,7 +271,7 @@ function buildClass(roleId, elementId, index) {
   for (const [k, v] of Object.entries(e.stats)) {
     stats[k] += v;
   }
-  stats = spreadWits(stats);
+  stats = spreadSpeed(stats);
   const entry = (fields, ps, effects, tags) => {
     const a = newAbility(fields.name);
     Object.assign(a, {color, icon: 'orb', status: 'Ready', resource: 'None', levels: fields.kind === 'Passive' ? 1 : 3, hotkey: ''},

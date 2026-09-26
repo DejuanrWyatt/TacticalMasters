@@ -776,8 +776,8 @@
         },
         {
           "id": "d9c4ecab-ae79-4066-9b3c-028c3059bd43",
-          "key": "wits",
-          "name": "Wits",
+          "key": "speed",
+          "name": "Speed",
           "base": 14,
           "step": 0,
           "unit": "",
@@ -1068,7 +1068,7 @@
     {
       "id": "ef82847f-d35c-4fab-b9d4-5a6db0107cb9",
       "name": "Thunder Stance",
-      "description": "Take a fighting stance; Wits +2 for 2 turns. Switched on and off.",
+      "description": "Take a fighting stance; Speed +2 for 2 turns. Switched on and off.",
       "kind": "Toggle",
       "resource": "None",
       "damageType": "None",
@@ -1104,8 +1104,8 @@
         },
         {
           "id": "e05c58a9-f573-49a9-afd8-0c91767ea6f7",
-          "key": "buff_wits",
-          "name": "Buff Wits",
+          "key": "buff_speed",
+          "name": "Buff Speed",
           "base": 2,
           "step": 0,
           "unit": "",

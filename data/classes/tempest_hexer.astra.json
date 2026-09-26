@@ -776,8 +776,8 @@
         },
         {
           "id": "43f40474-6739-4d3b-bff1-8102d05ac9ed",
-          "key": "wits",
-          "name": "Wits",
+          "key": "speed",
+          "name": "Speed",
           "base": 12,
           "step": 0,
           "unit": "",
@@ -974,7 +974,7 @@
     {
       "id": "74e68c65-9b05-456e-a629-f6bf3d857569",
       "name": "Gale Curse",
-      "description": "Weaken an enemy 2-8 m away for 2 turns; Wits -3. (1 s)",
+      "description": "Weaken an enemy 2-8 m away for 2 turns; Speed -3. (1 s)",
       "kind": "Active",
       "resource": "None",
       "damageType": "None",
@@ -1058,8 +1058,8 @@
         },
         {
           "id": "0ee19032-20e0-416a-9871-727d75f62bc4",
-          "key": "buff_wits",
-          "name": "Buff Wits",
+          "key": "buff_speed",
+          "name": "Buff Speed",
           "base": -3,
           "step": 0,
           "unit": "",

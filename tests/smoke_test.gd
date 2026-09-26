@@ -65,7 +65,7 @@ func _test_rules() -> void:
 	_check(state.ready_units().is_empty(), "nobody ready at the start")
 
 	var u = _wait_for_ready(state)
-	_check(u != null and u.job == "archer", "the fastest unit (the Archer, Wits %d) is ready first" % Jobs.job("archer").wits)
+	_check(u != null and u.job == "archer", "the fastest unit (the Archer, Speed %d) is ready first" % Jobs.job("archer").speed)
 	_check(state.validate({"type": "end_turn", "unit": u.id, "serial": u.serial - 1}) != "", "stale serial rejected")
 	_check(state.validate({"type": "ability", "unit": u.id, "serial": u.serial, "slot": 3, "target": u.pos}) != "", "ultimate locked until meter full")
 	_check(state.validate({"type": "move", "unit": u.id, "serial": u.serial, "to": Vector2(20.25, 20.25)}) != "", "can't move beyond Move")
@@ -1367,12 +1367,12 @@ func _test_ai_battle() -> void:
 ## Developer Tools rule numbers ("tuning") and the "tune" command.
 func _test_tuning() -> void:
 	var plain := _new_state()
-	_check(plain.tune("wits_multiplier") == 1.0 and plain.tune("patience_multiplier") == GameState.CLOCK_PER_PATIENCE,
+	_check(plain.tune("speed_multiplier") == 1.0 and plain.tune("patience_multiplier") == GameState.CLOCK_PER_PATIENCE,
 		"default tuning matches the rule constants")
 	var fast := GameState.new()
-	fast.setup(MapData.highlands(), {"wits_multiplier": 2.0, "patience_multiplier": 3.0, "bogus": 5, "move_multiplier": 99.0})
+	fast.setup(MapData.highlands(), {"speed_multiplier": 2.0, "patience_multiplier": 3.0, "bogus": 5, "move_multiplier": 99.0})
 	var u = fast.units[0]
-	_check(fast._tg_gain(u) == 2 * plain._tg_gain(plain.units[0]), "Wits multiplier doubles Turn Gauge speed")
+	_check(fast._tg_gain(u) == 2 * plain._tg_gain(plain.units[0]), "Speed multiplier doubles Turn Gauge speed")
 	_check(fast.clock_ticks(u) == roundi((GameState.CLOCK_BASE + 3.0 * u.stat("patience")) * 10), "Patience multiplier sets the countdown")
 	_check(not fast.tuning.has("bogus") and fast.tune("move_multiplier") == GameState.TUNING.move_multiplier[2],
 		"unknown tuning keys are dropped and values clamped")
@@ -1390,7 +1390,7 @@ func _test_tuning() -> void:
 	plain.apply({"type": "tune", "values": {"damage_multiplier": 1.0}})
 	var doubled: int = plain._amount(a, a.ability(0), from, t, t.pos)
 	_check(doubled > amount and plain.explain_hit(a, 0, from, t).contains("= %d" % doubled), "a tune changes damage and its explanation")
-	_check(plain.explain_turn(a).contains("Wits %d" % a.stat("wits")) and plain.explain_countdown(a).contains("Patience"),
+	_check(plain.explain_turn(a).contains("Speed %d" % a.stat("speed")) and plain.explain_countdown(a).contains("Patience"),
 		"turn and countdown explanations name their stats")
 
 	# A tune in the middle of a battle replays exactly.
@@ -1399,7 +1399,7 @@ func _test_tuning() -> void:
 	var log: Array = []
 	while state.winner == -1 and state.tick < 20000:
 		if state.tick == 300 and log.size() > 0 and log[-1].type != "tune":
-			var tune := {"type": "tune", "values": {"wits_multiplier": 1.5, "damage_multiplier": 0.8, "cast_time_multiplier": 0.5}}
+			var tune := {"type": "tune", "values": {"speed_multiplier": 1.5, "damage_multiplier": 0.8, "cast_time_multiplier": 0.5}}
 			log.append(tune)
 			state.apply(tune)
 		var ready := state.orderable_units()
@@ -1441,7 +1441,7 @@ func _test_astra_import() -> void:
 	if not Jobs.has_job("time_mage"):
 		return
 	var tm: Dictionary = Jobs.job("time_mage")
-	_check(tm.wits == 16 and tm.meva == 16 and tm.power == 16 and tm.abilities.size() == 4, "Time Mage stats come from its profile")
+	_check(tm.speed == 16 and tm.meva == 16 and tm.power == 16 and tm.abilities.size() == 4, "Time Mage stats come from its profile")
 	var bolt: Dictionary = Jobs.ability(tm.abilities[0])
 	_check(bolt.effect == "damage" and bolt.cast == 0.0 and bolt.power >= 15.0 and bolt.tg == -10, "Chrono Bolt: instant damage, flat power, TG -10%")
 	var stop: Dictionary = Jobs.ability(tm.abilities[3])
@@ -1652,13 +1652,13 @@ func _test_stat_changes() -> void:
 	var saved: Dictionary = config.stat_overrides.duplicate(true)
 	config.reset_stats()
 	config.set_stat("knight", "hp", 150)
-	config.set_stat("knight", "wits", 99)
+	config.set_stat("knight", "speed", 99)
 	config.set_stat("archer", "move", Jobs.base_job("archer").move)  # its own value: no change
-	_check(Jobs.job("knight").hp == 150 and Jobs.job("knight").wits == Jobs.STAT_LIMITS.wits[1] and not Jobs.stat_overrides.has("archer"),
+	_check(Jobs.job("knight").hp == 150 and Jobs.job("knight").speed == Jobs.STAT_LIMITS.speed[1] and not Jobs.stat_overrides.has("archer"),
 		"changed stats apply, stay within limits, and a class's own value is no change")
 	var state := GameState.new()
 	state.setup(MapData.build(MapData.DEFAULT_MAP, ["knight", "archer", "monk", "squire"], ["knight", "archer", "monk", "squire"]))
-	_check(state.units[0].hp == 150 and state.units[0].max_hp() == 150 and state.units[0].stat("wits") == Jobs.STAT_LIMITS.wits[1],
+	_check(state.units[0].hp == 150 and state.units[0].max_hp() == 150 and state.units[0].stat("speed") == Jobs.STAT_LIMITS.speed[1],
 		"a new battle's units use the changed stats")
 	_check(Jobs.clean_overrides({"knight": {"bogus": 3, "att": "x"}, "nobody": {"hp": 50}}).is_empty(), "bad stat changes are dropped")
 	var file := ConfigFile.new()
@@ -1676,9 +1676,9 @@ func _test_stat_changes() -> void:
 	var hp_cell: Label = grid.get_child((knight_row + 1) * grid.columns + 2)
 	_check(guide.editable and hp_cell.text == "150" and hp_cell.get_theme_color("font_color") == guide.CHANGED_COLOR,
 		"the main menu's Unit Guide shows changed stats in gold")
-	guide._edit_stat("knight", "wits", hp_cell)
+	guide._edit_stat("knight", "speed", hp_cell)
 	guide._edit_stat("knight", "attdef", hp_cell)
-	_check(Jobs.job("knight").wits == Jobs.STAT_LIMITS.wits[1] and Jobs.job("knight").attdef == Jobs.base_job("knight").attdef,
+	_check(Jobs.job("knight").speed == Jobs.STAT_LIMITS.speed[1] and Jobs.job("knight").attdef == Jobs.base_job("knight").attdef,
 		"opening the stat editor changes nothing")
 	guide._editor_box.value = 20
 	guide._editor.hide()
@@ -1715,10 +1715,10 @@ func _test_dev_tools() -> void:
 	look.value = 1.6
 	_check(is_equal_approx(settings.unit_circle_size, 1.6), "a display slider changes the setting at once")
 	settings.set_value("unit_circle_size", circle_before)
-	tools._sliders.wits_multiplier.value = 1.5
-	_check(config.tuning.get("wits_multiplier") == 1.5, "moving a slider saves the value")
-	var tip: String = tools._sliders.wits_multiplier.tooltip_text
-	_check(tip.contains("Wits multiplier 1.5") and tip.contains("= "), "the slider tooltip shows the formula with the new value")
+	tools._sliders.speed_multiplier.value = 1.5
+	_check(config.tuning.get("speed_multiplier") == 1.5, "moving a slider saves the value")
+	var tip: String = tools._sliders.speed_multiplier.tooltip_text
+	_check(tip.contains("Speed multiplier 1.5") and tip.contains("= "), "the slider tooltip shows the formula with the new value")
 	_check(tools._sliders.patience_multiplier.tooltip_text.contains("Patience"), "the Patience slider tooltip shows the countdown math")
 	# The change is sent once the slider settles (DevTools.APPLY_DELAY), which
 	# is a time, not a number of frames.
@@ -1726,7 +1726,7 @@ func _test_dev_tools() -> void:
 		if not sent.is_empty():
 			break
 		await process_frame
-	_check(sent.size() == 1 and sent[0].get("wits_multiplier") == 1.5,
+	_check(sent.size() == 1 and sent[0].get("speed_multiplier") == 1.5,
 		"a live battle gets the change once, after the slider settles (got %s, live=%s, pending=%s)" % [sent, tools.live, tools._pending])
 	tools._reset_all()
 	_check(config.tuning.is_empty(), "Reset all restores the defaults")

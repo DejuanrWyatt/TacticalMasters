@@ -776,8 +776,8 @@
         },
         {
           "id": "30e634ce-7985-40d3-8ac9-ffe30e0fa9b2",
-          "key": "wits",
-          "name": "Wits",
+          "key": "speed",
+          "name": "Speed",
           "base": 8,
           "step": 0,
           "unit": "",
@@ -1116,7 +1116,7 @@
     {
       "id": "7b8dbe5b-0e48-46b9-be7f-1470ae19e777",
       "name": "Thunderbird Pact",
-      "description": "Bless every ally within 3 m of a point up to 6 m away; Wits +2 for 2 turns. (1 s)",
+      "description": "Bless every ally within 3 m of a point up to 6 m away; Speed +2 for 2 turns. (1 s)",
       "kind": "Active",
       "resource": "None",
       "damageType": "None",
@@ -1200,8 +1200,8 @@
         },
         {
           "id": "fdc75b18-dd3c-4884-bde8-3f2ec20772c7",
-          "key": "buff_wits",
-          "name": "Buff Wits",
+          "key": "buff_speed",
+          "name": "Buff Speed",
           "base": 2,
           "step": 0,
           "unit": "",

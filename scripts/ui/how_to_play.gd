@@ -100,12 +100,12 @@ func _key(id: String) -> String:
 
 func _build_pages() -> Array:
 	var tuning: Dictionary = GameConfig.tuning
-	var wits_mult: float = tuning.get("wits_multiplier", 1.0)
-	var turn_seconds := GameState.TG_MAX / (10.0 * GameState.TG_PER_WITS * wits_mult) / GameState.TICKS_PER_SECOND
+	var speed_mult: float = tuning.get("speed_multiplier", 1.0)
+	var turn_seconds := GameState.TG_MAX / (10.0 * GameState.TG_PER_SPEED * speed_mult) / GameState.TICKS_PER_SECOND
 	return [
 		["Turns and the Turn Gauge",
-			"Time keeps running. Every unit has a [b]Turn Gauge (TG)[/b] that fills at a speed set by its [b]Wits[/b] "
-			+ "(a Wits-10 unit gets a turn about every %d seconds).\n\n" % roundi(turn_seconds)
+			"Time keeps running. Every unit has a [b]Turn Gauge (TG)[/b] that fills at a speed set by its [b]Speed[/b] "
+			+ "(a Speed-10 unit gets a turn about every %d seconds).\n\n" % roundi(turn_seconds)
 			+ "When the gauge is full the unit is [color=#ffd15a][b]READY[/b][/color]: it can act right away, even while "
 			+ "enemies act too. Each ready unit has its own countdown (longer with more [b]Patience[/b]). If it runs out, "
 			+ "that unit loses its turn.\n\nThe [b]turn order strip[/b] at the top shows who is ready and who is next. "

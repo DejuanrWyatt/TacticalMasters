@@ -821,9 +821,9 @@ func show_inspect(u, enemy: bool, title: String, color: Color, seconds: float) -
 	_set_gauge(c.ult, u.ult, 100, "ULT  %d%%" % u.ult, Color(1, 0.95, 0.6) if u.ult >= 100 else Color(0, 0, 0, 0))
 	var move: float = game_state.move_of(u) if game_state != null else float(u.stat("move"))
 	var sight: float = game_state.sight_of(u) if game_state != null else float(u.stat("sight"))
-	_set_text(c.stats, "Power %d   AttDef %d   MagDef %d\nA-Eva %d%%   M-Eva %d%%   Crit %d%%\nWits %d   Patience %d\nMove %s m   Sight %s m" % [
+	_set_text(c.stats, "Power %d   AttDef %d   MagDef %d\nA-Eva %d%%   M-Eva %d%%   Crit %d%%\nSpeed %d   Patience %d\nMove %s m   Sight %s m" % [
 		u.stat("power"), u.stat("attdef"), u.stat("magdef"), u.stat("aeva"), u.stat("meva"), u.stat("crit"),
-		u.stat("wits"), u.stat("patience"), GameState._n(move), GameState._n(sight)])
+		u.stat("speed"), u.stat("patience"), GameState._n(move), GameState._n(sight)])
 	var rows: Array = c.abilities.get_children()
 	while rows.size() < 4:
 		rows.append(_ability_row(c.abilities))
@@ -1345,7 +1345,7 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 	var sight: float = game_state.sight_of(u) if game_state != null else float(u.stat("sight"))
 	_set_text(_stats, "POW %d  DEF %d  MDF %d  CRIT %d%%\nAEV %d%%  MEV %d%%  WIT %d  MOV %sm  PAT %d  SGT %sm" % [
 		u.stat("power"), u.stat("attdef"), u.stat("magdef"), u.stat("crit"),
-		u.stat("aeva"), u.stat("meva"), u.stat("wits"), GameState._n(move), u.stat("patience"), GameState._n(sight)])
+		u.stat("aeva"), u.stat("meva"), u.stat("speed"), GameState._n(move), u.stat("patience"), GameState._n(sight)])
 	if game_state != null and _card_tip_sig != _unit_tip_signature(u):
 		_card_tip_sig = _unit_tip_signature(u)
 		_set_tip(_subtitle, game_state.explain_countdown(u) + "\n" + game_state.explain_turn(u))
