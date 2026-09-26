@@ -1413,7 +1413,7 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 	_set_gauge(_ult_bar, u.ult, 100, "ULT  %d%%" % u.ult, Color(1, 0.95, 0.6) if u.ult >= 100 else Color(0, 0, 0, 0))
 	var move: float = game_state.move_of(u) if game_state != null else float(u.stat("move"))
 	var sight: float = game_state.sight_of(u) if game_state != null else float(u.stat("sight"))
-	_set_text(_stats, "POW %d  DEF %d  MDF %d  CRIT %d%%\nAEV %d%%  MEV %d%%  WIT %d  MOV %sm  PAT %d  SGT %sm" % [
+	_set_text(_stats, "POW %d  DEF %d  MDF %d  CRIT %d%%\nAEV %d%%  MEV %d%%  SPD %d  MOV %sm  PAT %d  SGT %sm" % [
 		u.stat("power"), u.stat("attdef"), u.stat("magdef"), u.stat("crit"),
 		u.stat("aeva"), u.stat("meva"), u.stat("speed"), GameState._n(move), u.stat("patience"), GameState._n(sight)])
 	if game_state != null and _card_tip_sig != _unit_tip_signature(u):
