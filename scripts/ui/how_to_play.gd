@@ -134,7 +134,10 @@ func _build_pages() -> Array:
 			+ "arrives, aimed at the spot its target was standing on. Time runs on while it walks, so a target that "
 			+ "moves away in the meantime is missed entirely.\n\n"
 			+ "Ranged abilities need [b]line of sight[/b]: a hill between you and the target blocks the shot. Hover a target "
-			+ "to see the damage forecast before you commit."],
+			+ "to see the damage forecast before you commit.\n\n"
+			+ "[b]What is coming:[/b] while a spell is in the air, the card of any unit standing where it will "
+			+ "land shows who is casting it and which ability, as their two icons. Standing on the spot is "
+			+ "enough - it need not be the target."],
 		["Height, facing and statuses",
 			"[b]Height:[/b] attacking from higher ground deals +10% per level (up to 30%).\n\n"
 			+ "[b]Evasion and critical hits:[/b] every unit has [b]A-Eva[/b] (chance to evade a physical ability) and "

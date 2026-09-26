@@ -28,6 +28,7 @@ func _initialize() -> void:
 	await _test_cpu_vs_cpu()
 	await _test_log_window()
 	await _test_turn_order_groups()
+	await _test_incoming_casts()
 	await _test_stat_changes()
 	await _test_replay_scene(replay_log)
 	print("SMOKE TEST %s (%d failure(s))" % ["PASSED" if failures == 0 else "FAILED", failures])
@@ -1742,6 +1743,48 @@ func _test_log_window() -> void:
 		f.store_string(saved_cfg)
 	else:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(LogWindow.SAVE_PATH))
+
+
+## What is on its way: the caster's icon and the ability's icon under the card of
+## whoever is standing where the spell will land.
+func _test_incoming_casts() -> void:
+	var state := _new_state()
+	var caster = state.units[4]
+	var victim = state.units[0]
+	_stage(state, caster, victim, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
+	var hud = load("res://scripts/battle/hud.gd").new()
+	root.add_child(hud)
+	hud.build(true)
+	hud.game_state = state
+	await process_frame
+
+	var blocked := ["", "", "", ""]
+	hud.show_unit(victim, "Blue Knight", Color.WHITE, 5.0, true, false, -1, blocked)
+	_check(not hud._incoming.visible, "with nothing on its way the row stays hidden")
+
+	# A spell in flight, aimed at the spot the victim is standing on.
+	caster.casting = {"slot": 0, "name": "Cast", "target": victim.pos, "target_unit": victim.id,
+		"ticks": 10, "total": 10}
+	hud.show_unit(victim, "Blue Knight", Color.WHITE, 5.0, true, false, -1, blocked)
+	_check(hud._incoming.visible and hud._incoming.get_child_count() == 1,
+		"a spell on its way shows one pair of icons under the card")
+	var pair: Control = hud._incoming.get_child(0)
+	_check(pair.get_child_count() == 2 and pair.get_child(0).texture != null and pair.get_child(1).texture != null,
+		"the pair is who is casting it and which ability")
+
+	# Standing on the targeted spot is enough: it doesn't have to be the target.
+	var bystander = state.units[1]
+	bystander.pos = victim.pos
+	hud.show_inspect(bystander, false, "Blue Archer", Color.WHITE, 3.0)
+	_check(hud._inspect.left.incoming.visible and hud._inspect.left.incoming.get_child_count() == 1,
+		"a unit merely standing where it will land is warned too")
+
+	# Once the cast is gone, so is the warning.
+	caster.casting = {}
+	hud.show_unit(victim, "Blue Knight", Color.WHITE, 5.0, true, false, -1, blocked)
+	_check(not hud._incoming.visible, "and the row goes once the cast does")
+	hud.queue_free()
+	await process_frame
 
 
 ## Turn order bars: icons sit on their team's bar; close ones merge into one

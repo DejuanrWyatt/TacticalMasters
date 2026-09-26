@@ -153,6 +153,8 @@ var game_state
 var dev_tools_live := false
 ## What the unit card's tooltips were last built from.
 var _card_tip_sig := ""
+## The row under the selected unit's card showing what is aimed at it.
+var _incoming: HFlowContainer
 
 
 func build(can_pause: bool) -> void:
@@ -697,6 +699,7 @@ func _build_unit_card() -> void:
 	_stats.add_theme_font_size_override("font_size", 11)
 	_stats.add_theme_color_override("font_color", DIM)
 	box.add_child(_stats)
+	_incoming = _incoming_row(box)
 	# Hovering these shows how their numbers are calculated.
 	for part in [_title, _subtitle, _hp_bar, _tg_bar, _ult_bar, _stats]:
 		part.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -750,9 +753,11 @@ func _build_inspect_card(right: bool) -> Dictionary:
 	abilities.add_theme_constant_override("separation", 1)
 	box.add_child(abilities)
 	box.add_child(_ability_legend())
+	var incoming := _incoming_row(box)
 	for part in [hp, tg, ult]:
 		part.mouse_filter = Control.MOUSE_FILTER_PASS
-	return {"card": card, "title": title, "sub": sub, "hp": hp, "tg": tg, "ult": ult, "stats": stats, "abilities": abilities}
+	return {"card": card, "title": title, "sub": sub, "hp": hp, "tg": tg, "ult": ult, "stats": stats,
+		"abilities": abilities, "incoming": incoming}
 
 
 ## What the colors on the ability list mean, in a small block under it.
@@ -813,6 +818,7 @@ func show_inspect(u, enemy: bool, title: String, color: Color, seconds: float) -
 	for s in u.statuses:
 		sub += "  ·  %s" % Jobs.STATUSES[s.id].tag
 	_set_text(c.sub, sub)
+	_fill_incoming(c.incoming, u)
 	_set_gauge(c.hp, u.hp, u.max_hp(), "HP  %d / %d" % [u.hp, u.max_hp()])
 	if u.ready:
 		_set_gauge(c.tg, 1.0, 1.0, "TG  READY", GOLD)
@@ -1103,6 +1109,69 @@ func _chip_style(team_color: Color, state_name: String) -> StyleBoxFlat:
 ## Turn order strip. Each entry: {"id", "name", "color", "ready", "seconds",
 ## "casting", "cast_seconds", "selected", "hidden"}, already in display order.
 ## Loaded icon textures by path.
+## The row under a card for what is on its way to this unit: who is casting it
+## and which ability, as their two icons side by side.
+func _incoming_row(box: VBoxContainer) -> HFlowContainer:
+	var row := HFlowContainer.new()
+	row.add_theme_constant_override("h_separation", 6)
+	row.add_theme_constant_override("v_separation", 2)
+	row.visible = false
+	box.add_child(row)
+	return row
+
+
+## What can be seen coming is a spell in flight: a cast names the spot it will
+## land on, so anything standing inside its shape is about to be caught --
+## whether it was the target or just happens to be standing there.
+func _fill_incoming(row: HFlowContainer, u) -> void:
+	if row == null:
+		return
+	var aimed := []
+	if game_state != null:
+		for caster in game_state.units:
+			if caster == u or not caster.is_alive() or not caster.is_casting():
+				continue
+			var ab: Dictionary = caster.ability(int(caster.casting.slot))
+			if game_state.in_shape(ab, caster.pos, caster.casting.target, u.pos):
+				aimed.append(caster)
+	row.visible = not aimed.is_empty()
+	# Rebuilt only when what is coming changes: this runs every frame.
+	var sig := ""
+	for caster in aimed:
+		sig += "%d:%d," % [caster.id, int(caster.casting.slot)]
+	if row.get_meta("aimed_sig", "") == sig:
+		return
+	row.set_meta("aimed_sig", sig)
+	for child in row.get_children():
+		row.remove_child(child)
+		child.queue_free()
+	for caster in aimed:
+		row.add_child(_incoming_chip(caster))
+
+
+## One "who is casting what at you" pair of icons.
+func _incoming_chip(caster) -> Control:
+	var slot := int(caster.casting.slot)
+	var ab: Dictionary = caster.ability(slot)
+	var pair := HBoxContainer.new()
+	pair.add_theme_constant_override("separation", 1)
+	pair.tooltip_text = "%s %s is casting %s on this spot" % [GameState.TEAM_NAMES[caster.team], caster.job_name(), ab.name]
+	pair.mouse_filter = Control.MOUSE_FILTER_STOP
+	pair.add_child(_incoming_icon(Jobs.icon_path(caster.job)))
+	pair.add_child(_incoming_icon(Jobs.ability_icon_path(caster.job_data().abilities[slot])))
+	return pair
+
+
+func _incoming_icon(path: String) -> TextureRect:
+	var icon := TextureRect.new()
+	icon.texture = _icon(path)
+	icon.custom_minimum_size = Vector2(16, 16)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return icon
+
+
 func _icon(path: String) -> Texture2D:
 	if not _icons.has(path):
 		_icons[path] = load(path)
@@ -1332,6 +1401,7 @@ func show_unit(u, title: String, color: Color, seconds: float, controllable: boo
 		sub += "  ·  %s" % Jobs.STATUSES[s.id].tag
 	_set_text(_subtitle, sub)
 	_set_color(_subtitle, (URGENT if seconds <= 5.0 else GOLD) if u.ready else DIM)
+	_fill_incoming(_incoming, u)
 	_set_gauge(_hp_bar, u.hp, u.max_hp(), "HP  %d / %d" % [u.hp, u.max_hp()])
 	if u.is_casting():
 		var done: float = 1.0 - float(u.casting.ticks) / u.casting.total
