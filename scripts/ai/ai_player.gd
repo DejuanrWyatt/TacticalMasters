@@ -205,7 +205,7 @@ func _score(u, slot: int, ab: Dictionary, hits: Array, state = null) -> float:
 		var t = hit.unit
 		var amount: int = hit.amount
 		if smart and state != null and ab.effect == "damage":
-			var evade: float = state.evade_chance(t, ab) / 100.0
+			var evade: float = state.evade_chance(t, ab, u) / 100.0
 			var crit: float = state.crit_chance(u) / 100.0
 			amount = maxi(1, roundi(amount * (1.0 - evade) * (1.0 + crit * (state.tune("crit_multiplier") - 1.0))))
 		match ab.effect:

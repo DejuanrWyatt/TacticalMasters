@@ -92,6 +92,8 @@ const UNIT_SPACING := 0.9
 const HIT_RADIUS := 0.6
 ## Largest height difference (in levels) a unit can step up or down.
 const JUMP := 2
+## Height levels a flying unit may cross in one step: any of them.
+const FLY_JUMP := 999
 ## Meters per ground height level.
 const LEVEL_HEIGHT := 0.7
 ## Line of sight runs from EYE_HEIGHT above the viewer's ground to
@@ -444,8 +446,13 @@ func node_walkable(n: Vector2i) -> bool:
 
 ## Nodes the unit can end its move on, mapped to the meters walked.
 ## Allies can be passed through but not stood on; enemies block.
+## Height levels this unit may cross in one step (any, while it is flying).
+func _jump_of(unit: Unit) -> int:
+	return FLY_JUMP if unit.flies() else JUMP
+
+
 func reachable_nodes(unit: Unit, sprint := false) -> Dictionary:
-	var costs: Dictionary = _dijkstra([node_of(unit.pos)], move_of(unit, sprint), unit.team).cost
+	var costs: Dictionary = _dijkstra([node_of(unit.pos)], move_of(unit, sprint), unit.team, _jump_of(unit)).cost
 	for n in costs.keys():
 		var p := node_pos(n)
 		for other in units:
@@ -457,7 +464,7 @@ func reachable_nodes(unit: Unit, sprint := false) -> Dictionary:
 
 ## Walking path from the unit to a node (both ends included), or [] if none.
 func path_to(unit: Unit, to: Vector2i, sprint := false) -> Array[Vector2]:
-	var result := _dijkstra([node_of(unit.pos)], move_of(unit, sprint), unit.team)
+	var result := _dijkstra([node_of(unit.pos)], move_of(unit, sprint), unit.team, _jump_of(unit))
 	var path: Array[Vector2] = []
 	if not result.cost.has(to):
 		return path
@@ -503,8 +510,8 @@ func nav_index(n: Vector2i) -> int:
 ##
 ## Runs on flat arrays indexed by node (y * nav_x + x) for speed: the
 ## computer calls this several times per decision, so it must stay fast.
-func _dijkstra(starts: Array[Vector2i], max_cost: float, team: int) -> Dictionary:
-	_run_dijkstra(starts, max_cost, team)
+func _dijkstra(starts: Array[Vector2i], max_cost: float, team: int, jump := JUMP) -> Dictionary:
+	_run_dijkstra(starts, max_cost, team, jump)
 	var cost_out := {}
 	var parent_out := {}
 	for i in _cost.size():
@@ -526,7 +533,7 @@ var _field_cache := {}
 
 
 ## The search itself; fills _cost and _parent.
-func _run_dijkstra(starts: Array[Vector2i], max_cost: float, team: int) -> void:
+func _run_dijkstra(starts: Array[Vector2i], max_cost: float, team: int, jump := JUMP) -> void:
 	var count := nav_x * nav_y
 	var blocked := PackedByteArray()
 	blocked.resize(count)
@@ -573,7 +580,7 @@ func _run_dijkstra(starts: Array[Vector2i], max_cost: float, team: int) -> void:
 				continue
 			var m := my * nav_x + mx
 			var m_level := _nav_levels[m]
-			if m_level <= 0 or blocked[m] == 1 or absi(m_level - level) > JUMP:
+			if m_level <= 0 or blocked[m] == 1 or absi(m_level - level) > jump:
 				continue
 			var step := NAV_STEP
 			if dx != 0 and dy != 0:
@@ -584,7 +591,7 @@ func _run_dijkstra(starts: Array[Vector2i], max_cost: float, team: int) -> void:
 				var b_level := _nav_levels[b]
 				if a_level <= 0 or b_level <= 0 or blocked[a] == 1 or blocked[b] == 1:
 					continue
-				if absi(a_level - level) > JUMP or absi(b_level - level) > JUMP:
+				if absi(a_level - level) > jump or absi(b_level - level) > jump:
 					continue
 				step = diagonal
 			var nc := c + step
@@ -694,7 +701,7 @@ func clock_ticks(u: Unit) -> int:
 
 ## Meters the unit can walk per turn (Move x move multiplier).
 func move_of(u: Unit, sprint := false) -> float:
-	var meters: float = u.stat("move") * tune("move_multiplier")
+	var meters: float = u.stat("move") * tune("move_multiplier") * u.move_factor()
 	return meters * tune("sprint_multiplier") if sprint else meters
 
 
@@ -773,7 +780,7 @@ func _schedule_before(a: Unit, b: Unit) -> bool:
 ## "" if the unit may use the ability now, otherwise why not.
 func ability_blocked_reason(u: Unit, slot: int) -> String:
 	if u.is_silenced():
-		return "%s is silenced." % u.job_name()
+		return "%s can't use abilities: %s." % [u.job_name(), Jobs.STATUSES[u.status_with("no_abilities")].name]
 	var kind: String = u.ability(slot).get("kind", "active")
 	if kind == "passive" or kind == "aura":
 		return "%s is always on." % u.ability(slot).name
@@ -851,6 +858,9 @@ func preview(u: Unit, slot: int, from: Vector2, target: Vector2) -> Array[Dictio
 		var t_pos := from if t == u else t.pos
 		if not in_shape(ab, from, target, t_pos):
 			continue
+		# Off the ground: only something with reach can touch it.
+		if t != u and t.flies() and ab.max_range <= MELEE_RANGE and ab.target == "enemy":
+			continue
 		out.append({"unit": t, "amount": _amount(u, ab, from, t, t_pos), "distance": t_pos.distance_to(target),
 			"flank": flank_bonus(t, t_pos, from) if ab.effect == "damage" else 1.0})
 	if ab.aoe == 0.0 and shape_of(ab) != "global" and out.size() > 1:
@@ -893,7 +903,7 @@ func _calc(u: Unit, ab: Dictionary, from: Vector2, t: Unit, t_pos: Vector2, expl
 			lines.append("= %d, - %s %d = %d" % [raw, def_name, def, raw - def])
 			lines.append("x damage multiplier %s = %d%s" % [_n(tune("damage_multiplier")), value, " (minimum 1)" if value == 1 else ""])
 			lines.append("%s %d%% to evade, %s %d%% to crit (x %s)" % ["A-Eva" if ab.scale == "att" else "M-Eva",
-				evade_chance(t, ab), u.job_name(), crit_chance(u), _n(tune("crit_multiplier"))])
+				evade_chance(t, ab, u), u.job_name(), crit_chance(u), _n(tune("crit_multiplier"))])
 			return {"value": value, "text": "\n".join(lines)}
 		"heal":
 			var full := roundi(power * HEAL_SCALE * tune("heal_multiplier"))
@@ -918,11 +928,13 @@ static func _n(v: float) -> String:
 
 ## Chance in % that this unit evades the ability (physical abilities are
 ## evaded with A-Eva, harmful magic with M-Eva; friendly abilities never are).
-func evade_chance(t: Unit, ab: Dictionary) -> int:
+func evade_chance(t: Unit, ab: Dictionary, attacker: Unit = null) -> int:
 	if ab.effect != "damage":
 		return 0
 	var base := t.stat("aeva" if ab.scale == "att" else "meva")
-	return clampi(roundi(base * tune("evade_multiplier")), 0, 95)
+	# A blinded attacker is that much easier to get out of the way of.
+	var blind := attacker.miss_chance() if attacker != null else 0
+	return clampi(roundi(base * tune("evade_multiplier")) + blind, 0, 95)
 
 
 ## Chance in % that this unit's abilities land a critical hit.
@@ -994,7 +1006,10 @@ func explain_ability(u: Unit, slot: int) -> String:
 
 
 func explain_move(u: Unit) -> String:
-	return "Move %d m x move multiplier %s = %s m" % [u.stat("move"), _n(tune("move_multiplier")), _n(move_of(u))]
+	var text := "Move %d m x move multiplier %s" % [u.stat("move"), _n(tune("move_multiplier"))]
+	if not is_equal_approx(u.move_factor(), 1.0):
+		text += " x status %s" % _n(u.move_factor())
+	return text + " = %s m" % _n(move_of(u))
 
 
 func explain_sight(u: Unit) -> String:
@@ -1053,16 +1068,18 @@ func validate(cmd: Dictionary) -> String:
 	if not u.ready:
 		return "%s isn't ready." % u.job_name()
 	if u.is_stunned():
-		return "%s is stunned." % u.job_name()
+		return "%s can't act: %s." % [u.job_name(), Jobs.STATUSES[u.no_orders_status()].name]
 	var serial = cmd.get("serial")
 	if not (serial is int) or serial != u.serial:
 		return "That order was for an earlier turn."
 	match type:
 		"move":
 			if u.is_rooted():
-				return "%s can't walk: %s." % [u.job_name(), Jobs.STATUSES.root.name]
+				return "%s can't walk: %s." % [u.job_name(), Jobs.STATUSES[u.status_with("no_move")].name]
 			if u.moved:
 				return "Already moved this turn."
+			if u.acts_once() and u.acted:
+				return "%s is knocked down: it can walk or act this turn, not both." % u.job_name()
 			if u.is_casting():
 				return "Can't move while casting."
 			# A Sprint goes further, but it is the unit's action for the turn.
@@ -1076,6 +1093,8 @@ func validate(cmd: Dictionary) -> String:
 		"ability":
 			if u.acted:
 				return "Already used an ability this turn."
+			if u.acts_once() and u.moved:
+				return "%s is knocked down: it can walk or act this turn, not both." % u.job_name()
 			var slot = cmd.get("slot")
 			if not (slot is int) or slot < 0 or slot > 3:
 				return "No such ability."
@@ -1225,14 +1244,16 @@ func _tick_statuses(u: Unit, result: Dictionary) -> void:
 		if per_turn != 0.0 and u.is_alive():
 			var amount := maxi(1, roundi(u.max_hp() * absf(per_turn)))
 			if per_turn < 0.0:
-				_hurt(u, amount)
-				result.events.append({"pos": u.pos, "text": "-%d" % amount, "color": info.color})
-				_log_about(result, u, " takes ", "filler", [{"text": "%d" % amount, "kind": "damage"},
-					{"text": " from %s." % info.name, "kind": "filler"}], "damage")
-				if not u.is_alive():
-					_knock_out(u, "%s %s" % [TEAM_NAMES[u.team], u.job_name()], result)
-					_check_winner()
-					return
+				# Nothing to show if it shrugged the whole thing off.
+				amount = _hurt(u, amount)
+				if amount > 0:
+					result.events.append({"pos": u.pos, "text": "-%d" % amount, "color": info.color})
+					_log_about(result, u, " takes ", "filler", [{"text": "%d" % amount, "kind": "damage"},
+						{"text": " from %s." % info.name, "kind": "filler"}], "damage")
+					if not u.is_alive():
+						_knock_out(u, "%s %s" % [TEAM_NAMES[u.team], u.job_name()], result)
+						_check_winner()
+						return
 			else:
 				var healed := mini(amount, u.max_hp() - u.hp)
 				if healed > 0:
@@ -1241,6 +1262,16 @@ func _tick_statuses(u: Unit, result: Dictionary) -> void:
 		s.turns -= 1
 		if s.turns > 0:
 			kept.append(s)
+		elif info.get("doom", false) and u.is_alive():
+			# The count has run out: it falls whatever health it has left.
+			u.hp = 0
+			u.unharmed_turns = 0
+			_log_about(result, u, "'s %s runs out." % info.name, "ko")
+			result.events.append({"pos": u.pos, "text": info.tag, "color": info.color, "impact": true})
+			u.statuses = kept
+			_knock_out(u, "%s %s" % [TEAM_NAMES[u.team], u.job_name()], result)
+			_check_winner()
+			return
 		else:
 			_log_about(result, u, ": %s wears off." % info.name, "filler", [], "status")
 	u.statuses = kept
@@ -1254,12 +1285,13 @@ func _ground_effect(u: Unit, result: Dictionary) -> void:
 		return
 	var amount := maxi(1, roundi(u.max_hp() * tune("hazard_percent") * 0.01))
 	if kind < 0:
-		_hurt(u, amount)
-		result.events.append({"pos": u.pos, "text": "-%d" % amount, "color": Color(1.0, 0.5, 0.2)})
-		_log_about(result, u, " is burned by the ground ", "filler", [{"text": "-%d" % amount, "kind": "damage"}], "damage")
-		if not u.is_alive():
-			_knock_out(u, "%s %s" % [TEAM_NAMES[u.team], u.job_name()], result)
-			_check_winner()
+		amount = _hurt(u, amount)
+		if amount > 0:
+			result.events.append({"pos": u.pos, "text": "-%d" % amount, "color": Color(1.0, 0.5, 0.2)})
+			_log_about(result, u, " is burned by the ground ", "filler", [{"text": "-%d" % amount, "kind": "damage"}], "damage")
+			if not u.is_alive():
+				_knock_out(u, "%s %s" % [TEAM_NAMES[u.team], u.job_name()], result)
+				_check_winner()
 	else:
 		var healed := mini(amount, u.max_hp() - u.hp)
 		if healed > 0:
@@ -1304,9 +1336,18 @@ func _apply_auras(u: Unit, result: Dictionary) -> void:
 
 ## Takes health off a unit and remembers it was hurt, which is what the
 ## undamaged regen watches. Every path that deals damage goes through here.
-func _hurt(u: Unit, amount: int) -> void:
+func _hurt(u: Unit, amount: int) -> int:
+	if amount <= 0 or u.is_invulnerable():
+		return 0
 	u.hp = maxi(0, u.hp - amount)
 	u.unharmed_turns = 0
+	# Anything that hurts it wakes it up.
+	var kept: Array[Dictionary] = []
+	for st in u.statuses:
+		if not Jobs.STATUSES[st.id].get("wakes_on_damage", false):
+			kept.append(st)
+	u.statuses = kept
+	return amount
 
 
 ## A Shield soaks up damage first; returns what is left to take off its HP.
@@ -1371,6 +1412,15 @@ func _log(result: Dictionary, text: String, kind := "system", unit := -1) -> voi
 
 ## Puts (or refreshes) a status on a unit for that many of its own turns.
 func _add_status(u: Unit, status_id: String, turns: int, extra := {}) -> void:
+	var incoming: Dictionary = Jobs.STATUSES[status_id]
+	if incoming.get("harmful", false) and u.is_immune():
+		return
+	if incoming.get("cleanse", false):
+		var clean: Array[Dictionary] = []
+		for st in u.statuses:
+			if not Jobs.STATUSES[st.id].get("harmful", false):
+				clean.append(st)
+		u.statuses = clean
 	for s in u.statuses:
 		if s.id == status_id:
 			s.turns = maxi(s.turns, turns)
@@ -1621,6 +1671,15 @@ func _end_turn(u: Unit, timed_out: bool, result: Dictionary) -> void:
 	u.moved = false
 	u.acted = false
 	result.turn_ended.append(u.id)
+	# Relentless: straight back round again, and it is spent doing so.
+	if u.has_extra_turn():
+		var kept: Array[Dictionary] = []
+		for st in u.statuses:
+			if not Jobs.STATUSES[st.id].get("extra_turn", false):
+				kept.append(st)
+		u.statuses = kept
+		u.tg = TG_MAX - 1
+		_log_about(result, u, " goes again.", "buff")
 
 
 ## Commits to an ability: pays its cost, then resolves it now (instant; the
@@ -1699,7 +1758,7 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 		var critical := false
 		var amount_before_evasion := amount
 		if ab.effect == "damage":
-			evaded = rng.randi_range(1, 100) <= evade_chance(t, ab)
+			evaded = rng.randi_range(1, 100) <= evade_chance(t, ab, u)
 			if not evaded:
 				critical = rng.randi_range(1, 100) <= crit_chance(u)
 				if critical:
@@ -1725,10 +1784,17 @@ func _resolve_ability(u: Unit, slot: int, target: Vector2, result: Dictionary) -
 				var before_shield := amount
 				amount = _take_from_shield(t, amount, result)
 				resolved.avoided += before_shield - amount
+				var shrugged_off := t.is_invulnerable()
+				var offered := amount
+				amount = _hurt(t, amount)
+				resolved.avoided += offered - amount
 				resolved.amounts[-1] = amount
-				_hurt(t, amount)
 				t.ult = mini(ULT_MAX, t.ult + roundi(amount * 100.0 / t.max_hp() * ULT_FROM_DAMAGE))
-				result.events.append({"pos": t.pos, "text": "-%d" % amount, "color": Color(1, 0.45, 0.35), "impact": true})
+				if shrugged_off:
+					var inv: Dictionary = Jobs.STATUSES.invuln
+					result.events.append({"pos": t.pos, "text": inv.tag, "color": inv.color, "impact": true})
+				else:
+					result.events.append({"pos": t.pos, "text": "-%d" % amount, "color": Color(1, 0.45, 0.35), "impact": true})
 				if critical:
 					parts.append("%s takes %d (critical!)" % [who, amount])
 				parts.append("%s -%d%s" % [who, amount, " (defeated!)" if not t.is_alive() else ""])

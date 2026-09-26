@@ -269,6 +269,18 @@ static func _ability(a: Dictionary, ultimate: bool) -> Dictionary:
 		if turns >= 1.0:
 			ab["status"] = {"id": status, "turns": clampi(roundi(turns), 1, 10)}
 			break
+	# Astra's own effect list can't name most statuses, so a tag carries them:
+	# "status:blind", or "status:doom:3" to say how many turns. A tag is explicit,
+	# so it wins over anything worked out from the effects above.
+	for tag in a.tags:
+		if not (tag is String and tag.begins_with("status:")):
+			continue
+		var parts := str(tag).substr(7).split(":", false)
+		if parts.is_empty() or not Jobs.STATUSES.has(parts[0]):
+			continue  # not a status this game knows: leave the ability as it is
+		var tagged := roundi(float(parts[1])) if parts.size() > 1 and parts[1].is_valid_float() else roundi(v.get("status_duration", 2.0))
+		ab["status"] = {"id": str(parts[0]), "turns": clampi(tagged, 1, 10)}
+		break
 	if a.tags.has("taunt") and not ab.has("status"):
 		ab["status"] = {"id": "taunt", "turns": clampi(roundi(v.get("status_duration", 2.0)), 1, 10)}
 	ab["fx"] = _fx(a, ab)

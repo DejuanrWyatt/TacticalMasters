@@ -113,11 +113,35 @@ the end.
 - **Line of sight:** ranged abilities (reach beyond 1.8 m) need a clear line over the terrain; the targeting hint says
   "No line of sight" when a hill is in the way.
 - **Status effects** (tags over the unit's head) last a number of the affected unit's **own turns**: they act and count
-  down when its turn comes. **Burn** (−10% max HP a turn), **Regen** (+10% a turn), **Slow** (Turn Gauge fills at
-  half speed), **Stun** (takes the turn a unit is caught in and leaves its gauge 75% full, so it is back soon),
-  **Shield** (soaks damage before HP and breaks when it is used up), **Root** (can't walk, can still act),
-  **Silence** (can't use abilities, can still walk) and **Taunt**
-  (its damaging abilities must include whoever taunted it, while that one is in reach).
+  down when its turn comes.
+
+| Tag | Status | What it does |
+| --- | --- | --- |
+| BRN | Burn | −10% of max HP at the start of each of its turns |
+| BLE | Bleed | −6% of max HP a turn |
+| RGN | Regen | +10% of max HP a turn |
+| SLW | Slow | Turn Gauge fills at half speed |
+| STN | Stun | takes the turn it is caught in, and leaves its gauge 75% full |
+| SHD | Shield | soaks damage before HP, and breaks when it is used up |
+| BAR | Barrier | soaks the same way, and stacks with a Shield |
+| ROT | Root | can't walk, can still act |
+| CRP | Crippled | walks only half as far |
+| STR | Stride | walks half again as far |
+| SIL | Silence | can't use abilities, can still walk |
+| BLN | Blind | its own attacks are 25% more likely to be evaded |
+| SHR | Shred | AttDef and MagDef cut to 60%, so everything hits harder |
+| SLP | Sleep | loses its turns, but any damage wakes it at once |
+| FRZ | Freeze | pinned and unable to act, but AttDef and MagDef tripled |
+| KND | Knockdown | may walk or act on its turn, not both |
+| DOM | Doom | when the count runs out the unit falls, at any health |
+| TNT | Taunt | its damaging abilities must include whoever taunted it, while that one is in reach |
+| FLY | Fly | crosses any height, and melee abilities can't reach it |
+| IMM | Immunity | clears every harmful status, and turns new ones away |
+| INV | Invulnerable | takes no damage at all |
+| RLN | Relentless | takes another turn the moment this one ends, then wears off |
+
+  A class imported from Astra can apply any of these with a `status:<id>` tag on the ability, e.g. `status:blind` or
+  `status:doom:3` to set how many turns it lasts.
 - **Mending:** a unit that goes **2 of its own turns without taking damage** regains **5% of its max HP** at the
   start of each turn after that, until something hurts it again. Breaking off to let a unit recover is a real option.
   All three numbers are in Developer Tools.

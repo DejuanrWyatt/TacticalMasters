@@ -6,6 +6,7 @@ signal closed
 
 const UiTheme = preload("res://scripts/ui/ui_theme.gd")
 const GameState = preload("res://scripts/core/game_state.gd")
+const Jobs = preload("res://scripts/core/jobs.gd")
 
 var _pages: Array = []
 var _text: RichTextLabel
@@ -140,14 +141,7 @@ func _build_pages() -> Array:
 			+ "[b]M-Eva[/b] (harmful magic), and a [b]Crit[/b] chance that multiplies its damage. A miss shows as MISS.\n\n"
 			+ "[b]Facing:[/b] units face where they last walked or aimed. Hits from the [b]side[/b] deal +10%, from "
 			+ "[b]behind[/b] +25%.\n\n[b]Statuses[/b] show as tags over a unit's head:\n"
-			+ "  [color=#ff8033]BRN Burn[/color]: loses 10% of max HP on each of its turns (Fire)\n"
-			+ "  [color=#73ff8c]RGN Regen[/color]: recovers 10% of max HP on each of its turns (Chakra, Sanctuary)\n"
-			+ "  [color=#80bfff]SLW Slow[/color]: Turn Gauge fills at half speed (Blizzard)\n"
-			+ "  [color=#ffe64d]STN Stun[/color]: takes the turn it is caught in, and leaves its gauge 75% full (Shield Bash)\n"
-			+ "  [color=#b3e0ff]SHD Shield[/color]: soaks damage before HP, and breaks when it is used up\n"
-			+ "  [color=#a8895c]ROT Root[/color]: can't walk, can still act\n"
-			+ "  [color=#c78cff]SIL Silence[/color]: can't use abilities, can still walk\n"
-			+ "  [color=#ff8f6b]TNT Taunt[/color]: must attack whoever taunted it, while that one is in reach\n\n"
+			+ _status_lines()
 			+ "A status lasts a number of the unit's own [b]turns[/b]: it acts and counts down when that unit's turn comes.\n\n"
 			+ "[b]Mending:[/b] a unit that goes 2 of its own turns without being hurt regains 5% of its max HP at "
 			+ "the start of every turn after that, until something hits it again. Pulling a hurt unit out of reach "
@@ -176,3 +170,13 @@ func _build_pages() -> Array:
 			+ "middle-drag to pan, %s to center on your unit. The camera only moves when you move it.\n\n" % _key("center_camera")
 			+ "Every key can be changed in [b]Options[/b]."],
 	]
+
+
+## Every status, built from the table itself so this page can never drift
+## out of step with what the game actually does.
+func _status_lines() -> String:
+	var out := ""
+	for id in Jobs.STATUSES:
+		var st: Dictionary = Jobs.STATUSES[id]
+		out += "  [color=#%s]%s %s[/color]: %s\n" % [st.color.to_html(false), st.tag, st.name, st.desc]
+	return out + "\n"

@@ -82,6 +82,10 @@ func stat(stat_name: String) -> int:
 			for b in ab.buffs:
 				if b.stat == stat_name:
 					value += b.amount
+	# Shred cuts the defences and Freeze multiplies them, so those scale what
+	# everything else has added up to rather than adding to it.
+	if stat_name == "attdef" or stat_name == "magdef":
+		value = roundi(value * defense_factor())
 	return value
 
 
@@ -172,6 +176,65 @@ func is_rooted() -> bool:
 ## Can't use abilities (Silence).
 func is_silenced() -> bool:
 	return _status_flag("no_abilities")
+
+
+## How far this unit walks compared with its Move stat (Crippled, Stride).
+func move_factor() -> float:
+	return _status_product("move_factor")
+
+
+## What its AttDef and MagDef are scaled by (Shred, Freeze).
+func defense_factor() -> float:
+	return _status_product("defense_factor")
+
+
+## Extra chance in % that its attacks are evaded (Blind).
+func miss_chance() -> int:
+	var total := 0
+	for s in statuses:
+		total += int(Jobs.STATUSES[s.id].get("miss_percent", 0))
+	return total
+
+
+## Turns away new harmful statuses (Immunity).
+func is_immune() -> bool:
+	return _status_flag("immune")
+
+
+## Takes no damage at all (Invulnerable).
+func is_invulnerable() -> bool:
+	return _status_flag("invulnerable")
+
+
+## Climbs any height, and melee can't reach it (Fly).
+func flies() -> bool:
+	return _status_flag("fly")
+
+
+## May walk or act on its turn, but not both (Knockdown).
+func acts_once() -> bool:
+	return _status_flag("one_action")
+
+
+## Takes another turn as soon as this one ends (Relentless).
+func has_extra_turn() -> bool:
+	return _status_flag("extra_turn")
+
+
+## The id of the status carrying this flag, or "" if none does. Used so a
+## message can name Freeze rather than always blaming Root.
+func status_with(flag: String) -> String:
+	for s in statuses:
+		if Jobs.STATUSES[s.id].get(flag, false):
+			return str(s.id)
+	return ""
+
+
+func _status_product(flag: String) -> float:
+	var f := 1.0
+	for s in statuses:
+		f *= float(Jobs.STATUSES[s.id].get(flag, 1.0))
+	return f
 
 
 func _status_flag(flag: String) -> bool:

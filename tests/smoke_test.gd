@@ -463,6 +463,21 @@ func _test_target_shapes() -> void:
 	_check(state.in_shape(cone_ab, caster.pos, Vector2(12.25, 12.25), Vector2(9.25, 12.25))
 		and not state.in_shape(cone_ab, caster.pos, Vector2(12.25, 12.25), Vector2(6.25, 18.25)),
 		"a cone hits in front of the user, not behind")
+	# Aiming at bare ground: an ability may be pointed at an empty spot, which is
+	# how you catch a unit where it is about to walk rather than where it stands.
+	var open_ground := _new_state()
+	var thrower = open_ground.units[0]
+	_force_ready(open_ground, thrower)
+	var empty := open_ground.snap(thrower.pos + Vector2(1, 0))
+	var nobody := true
+	for t in open_ground.units:
+		if t.is_alive() and t.pos == empty:
+			nobody = false
+	_check(nobody, "the spot chosen for the test really is empty")
+	_check(open_ground.validate({"type": "ability", "unit": thrower.id, "serial": thrower.serial,
+		"slot": 0, "target": empty, "follow": -1}) == "", "an ability can be aimed at bare ground")
+	_check(open_ground.preview(thrower, 0, thrower.pos, empty).is_empty(),
+		"and it catches nobody when nobody is standing there")
 
 	var global_ab := line_ab.duplicate()
 	global_ab.shape = "global"
@@ -603,6 +618,113 @@ func _test_new_statuses() -> void:
 	taunter.pos = Vector2(20.25, 20.25)  # out of reach: it may hit anyone again
 	_check(taunt.validate({"type": "ability", "unit": angry.id, "serial": angry.serial, "slot": 0,
 		"target": other.pos, "follow": other.id}) == "", "out of reach, a taunt no longer holds")
+
+	# Crippled and Stride scale how far a unit walks.
+	var legs := _new_state()
+	var walker = legs.units[0]
+	var plain: float = legs.move_of(walker)
+	legs._add_status(walker, "crippled", 2)
+	_check(is_equal_approx(legs.move_of(walker), plain * 0.5), "Crippled halves how far a unit walks")
+	walker.statuses.clear()
+	legs._add_status(walker, "stride", 2)
+	_check(is_equal_approx(legs.move_of(walker), plain * 1.5), "Stride walks half again as far")
+
+	# Blind makes its own attacks easier to evade; Shred cuts what a unit shrugs off.
+	var eyes := _new_state()
+	var shooter = eyes.units[4]
+	var mark = eyes.units[0]
+	var ab0: Dictionary = shooter.ability(0)
+	var clear_shot: int = eyes.evade_chance(mark, ab0, shooter)
+	eyes._add_status(shooter, "blind", 2)
+	_check(eyes.evade_chance(mark, ab0, shooter) == mini(clear_shot + 25, 95), "Blind adds 25% to the chance its attack is evaded")
+	_check(eyes.evade_chance(mark, ab0) == clear_shot, "and it is the attacker's Blind, not the target's")
+	var armour: int = mark.stat("attdef")
+	eyes._add_status(mark, "shred", 2)
+	_check(mark.stat("attdef") == roundi(armour * 0.6), "Shred cuts AttDef to 60%")
+	mark.statuses.clear()
+	eyes._add_status(mark, "freeze", 2)
+	_check(mark.stat("attdef") == roundi(armour * 3.0) and eyes.validate({"type": "move", "unit": mark.id,
+		"serial": mark.serial, "to": eyes.snap(mark.pos + Vector2(1, 0))}) != "",
+		"Freeze triples AttDef and pins the unit in place")
+
+	# Invulnerable turns damage away entirely, and it counts as avoided.
+	var safe := _new_state()
+	var bully = safe.units[4]
+	var ward = safe.units[0]
+	_stage(safe, bully, ward, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
+	safe._add_status(ward, "invuln", 2)
+	var full_hp: int = ward.hp
+	var hit := safe.apply({"type": "ability", "unit": bully.id, "serial": bully.serial, "slot": 0, "target": ward.pos})
+	_check(ward.hp == full_hp, "an Invulnerable unit takes nothing")
+	_check(hit.resolved[0].avoided > 0, "and what it turned away is counted as avoided")
+
+	# Sleep loses its turns, but any damage wakes it at once.
+	var nap := _new_state()
+	var sleeper = nap.units[0]
+	nap._add_status(sleeper, "sleep", 3)
+	_check(nap.validate({"type": "end_turn", "unit": sleeper.id, "serial": sleeper.serial}) != "", "a sleeping unit takes no orders")
+	nap._hurt(sleeper, 1)
+	_check(not sleeper.has_status("sleep"), "any damage wakes a sleeping unit")
+
+	# Immunity clears what is already on a unit and turns new harm away.
+	var ward2 := _new_state()
+	var cleansed = ward2.units[0]
+	ward2._add_status(cleansed, "burn", 3)
+	ward2._add_status(cleansed, "slow", 3)
+	ward2._add_status(cleansed, "immunity", 2)
+	_check(not cleansed.has_status("burn") and not cleansed.has_status("slow"), "Immunity clears the harmful statuses on a unit")
+	ward2._add_status(cleansed, "bleed", 3)
+	_check(not cleansed.has_status("bleed"), "and turns new harmful ones away while it lasts")
+	ward2._add_status(cleansed, "regen", 3)
+	_check(cleansed.has_status("regen"), "a helpful status still lands through Immunity")
+
+	# Doom: when the count runs out the unit falls, whatever health it has.
+	var fate := _new_state()
+	var marked = fate.units[0]
+	marked.hp = marked.max_hp()
+	fate._add_status(marked, "doom", 1)
+	_wait_for_turn(fate, marked)
+	_check(not marked.is_alive(), "Doom takes the unit when its count runs out, at full health")
+
+	# Knockdown: it may walk or act on its turn, but not both.
+	var down := _new_state()
+	var floored = down.units[0]
+	_force_ready(down, floored)
+	down._add_status(floored, "knockdown", 2)
+	var step := down.snap(floored.pos + Vector2(1, 0))
+	_check(down.validate({"type": "move", "unit": floored.id, "serial": floored.serial, "to": step}) == "",
+		"a knocked-down unit may still walk")
+	down.apply({"type": "move", "unit": floored.id, "serial": floored.serial, "to": step})
+	_check(down.validate({"type": "ability", "unit": floored.id, "serial": floored.serial, "slot": 0,
+		"target": floored.pos}) != "", "but not act as well once it has walked")
+
+	# Fly: melee can't reach it, and it crosses any height.
+	var air := _new_state()
+	var swinger = air.units[0]
+	var flier = air.units[4]
+	_stage(air, swinger, flier, Vector2(10.25, 10.25), Vector2(11.25, 10.25))
+	_check(air.preview(swinger, 0, swinger.pos, flier.pos).size() == 1, "a melee attack reaches a unit on the ground")
+	var grounded: int = air.reachable_nodes(flier).size()
+	air._add_status(flier, "fly", 2)
+	_check(air.preview(swinger, 0, swinger.pos, flier.pos).is_empty(), "melee can't reach a unit in the air")
+	_check(air._jump_of(flier) > GameState.JUMP and air.reachable_nodes(flier).size() >= grounded,
+		"a flier crosses any height, so it is never held back by a climb")
+
+	# Relentless: straight back round again, then it wears off.
+	var again2 := _new_state()
+	var eager = again2.units[0]
+	_force_ready(again2, eager)
+	again2._add_status(eager, "relentless", 2)
+	again2.apply({"type": "end_turn", "unit": eager.id, "serial": eager.serial})
+	_check(eager.tg >= GameState.TG_MAX - 1 and not eager.has_status("relentless"),
+		"Relentless sends a unit straight back round, and is spent doing it")
+
+	# Barrier soaks like a Shield, and the two stack.
+	var wall := _new_state()
+	var guarded = wall.units[0]
+	wall._add_status(guarded, "shield", 3, {"amount": 5})
+	wall._add_status(guarded, "barrier", 3, {"amount": 7})
+	_check(guarded.shield_left() == 12, "a Barrier stacks with a Shield")
 
 
 ## The new ground: embers burn and springs heal whoever starts a turn on
